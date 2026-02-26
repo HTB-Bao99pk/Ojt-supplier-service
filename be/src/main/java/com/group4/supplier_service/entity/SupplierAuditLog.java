@@ -36,9 +36,9 @@ public class SupplierAuditLog {
     String newData;
 
     @Column(name = "performed_by", nullable = false)
-    @CreationTimestamp
     String performedBy;
 
     @Column(name = "performed_at", updatable = false)
+    @CreationTimestamp
     LocalDateTime performedAt;
 }
