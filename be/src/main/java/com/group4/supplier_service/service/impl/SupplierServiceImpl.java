@@ -1,0 +1,82 @@
+package com.group4.supplier_service.service.impl;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.group4.supplier_service.dto.SupplierUpdateRequest;
+import com.group4.supplier_service.entity.Supplier;
+import com.group4.supplier_service.entity.SupplierAuditLog;
+import com.group4.supplier_service.enums.AuditAction;
+import com.group4.supplier_service.repository.SupplierAuditLogRepository;
+import com.group4.supplier_service.repository.SupplierRepository;
+import com.group4.supplier_service.service.SupplierService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class SupplierServiceImpl implements SupplierService {
+
+    private final SupplierRepository supplierRepository;
+    private final SupplierAuditLogRepository auditLogRepository;
+
+    public Supplier updateSupplier(String supplierId, SupplierUpdateRequest dto, String updatedBy){
+
+        Supplier supplier = supplierRepository.findById(supplierId)
+                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+
+        Supplier oldData = cloneSupplier(supplier);
+
+        if(dto.name() != null) supplier.setName(dto.name());
+        if(dto.contactEmail() != null) supplier.setContactEmail(dto.contactEmail());
+        if(dto.phone() != null) supplier.setPhone(dto.phone());
+        if(dto.address() != null) supplier.setAddress(dto.address());
+        if(dto.region() != null) supplier.setRegion(dto.region());
+
+        supplier.setUpdateBy(updatedBy);
+
+        Supplier newData = supplierRepository.save(supplier);
+
+        auditUpdate(newData, oldData, newData, updatedBy);
+
+        return newData;
+    }
+
+    private void auditUpdate(Supplier supplier, Supplier oldData, Supplier newData, String updatedBy){
+        SupplierAuditLog auditLog = SupplierAuditLog.builder()
+                .supplier(supplier)
+                .action(AuditAction.UPDATE)
+                .oldData("name=" + oldData.getName() + ", email=" + oldData.getContactEmail() +
+                        ", phone=" + oldData.getPhone() + ", address=" + oldData.getAddress() +
+                        ", region=" + oldData.getRegion())
+                .newData("name=" + newData.getName() + ", email=" + newData.getContactEmail() +
+                        ", phone=" + newData.getPhone() + ", address=" + newData.getAddress() +
+                        ", region=" + newData.getRegion())
+                .performedBy(updatedBy)
+                .performedAt(LocalDateTime.now())
+                .build();
+
+        auditLogRepository.save(auditLog);
+    }
+
+    private Supplier cloneSupplier(Supplier supplier){
+        return Supplier.builder()
+                .id(supplier.getId())
+                .name(supplier.getName())
+                .contactEmail(supplier.getContactEmail())
+                .phone(supplier.getPhone())
+                .address(supplier.getAddress())
+                .region(supplier.getRegion())
+                .status(supplier.getStatus())
+                .rating(supplier.getRating())
+                .approvedBy(supplier.getApprovedBy())
+                .approvedAt(supplier.getApprovedAt())
+                .createBy(supplier.getCreateBy())
+                .createAt(supplier.getCreateAt())
+                .updateBy(supplier.getUpdateBy())
+                .updateAt(supplier.getUpdateAt())
+                .build();
+    }
+}
