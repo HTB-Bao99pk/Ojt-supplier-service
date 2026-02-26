@@ -21,4 +21,12 @@ public class SupplierController {
     ) {
         return supplierService.updateSupplier(id, dto, user);
     }
+
+    @PatchMapping("/{id}/toggle-suspend")
+    public Supplier toggleSuspend(
+            @PathVariable String id,
+            @RequestHeader("USER") String user
+    ) {
+        return supplierService.toggleSuspend(id, user);
+    }
 }
