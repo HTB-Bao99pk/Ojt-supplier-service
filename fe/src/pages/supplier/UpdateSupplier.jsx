@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSupplierById, updateSupplier } from "../../api/supplierApi";
+import { useAuth } from "../../context/AuthContext";
 import "./UpdateSupplier.css";
 
 export default function UpdateSupplier() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const [form, setForm]       = useState({
     name: "", contactEmail: "", phone: "", address: "", region: "",
@@ -43,7 +45,7 @@ export default function UpdateSupplier() {
     try {
       setSaving(true);
       setError(null);
-      await updateSupplier(id, form, "admin");
+      await updateSupplier(id, form, currentUser);
       navigate("/suppliers");
     } catch (err) {
       setError(err.message);
