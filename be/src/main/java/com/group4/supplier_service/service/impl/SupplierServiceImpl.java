@@ -1,6 +1,6 @@
 package com.group4.supplier_service.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.group4.supplier_service.dto.SupplierResponse;
 import com.group4.supplier_service.dto.SupplierUpdateRequest;
 import com.group4.supplier_service.entity.Supplier;
 import com.group4.supplier_service.entity.SupplierAuditLog;
@@ -11,6 +11,8 @@ import com.group4.supplier_service.repository.SupplierRepository;
 import com.group4.supplier_service.service.SupplierService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,7 +25,8 @@ public class SupplierServiceImpl implements SupplierService {
     private final SupplierRepository supplierRepository;
     private final SupplierAuditLogRepository auditLogRepository;
 
-    public Supplier updateSupplier(String supplierId, SupplierUpdateRequest dto, String updatedBy) {
+    @Override
+    public SupplierResponse updateSupplier(String supplierId, SupplierUpdateRequest dto, String updatedBy) {
 
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
@@ -38,14 +41,16 @@ public class SupplierServiceImpl implements SupplierService {
 
         supplier.setUpdateBy(updatedBy);
 
-        Supplier newData = supplierRepository.save(supplier);
+        Supplier saved = supplierRepository.save(supplier);
 
-        auditLog(newData, oldData, newData, updatedBy, AuditAction.UPDATE);
+        auditLog(saved, oldData, saved, updatedBy, AuditAction.UPDATE);
 
-        return newData;
+        return mapToResponse(saved);
     }
 
-    public Supplier toggleSuspend(String supplierId, String updatedBy) {
+    @Override
+    public SupplierResponse toggleSuspend(String supplierId, String updatedBy) {
+
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new RuntimeException("Supplier not found"));
 
@@ -58,26 +63,34 @@ public class SupplierServiceImpl implements SupplierService {
 
         Supplier saved = supplierRepository.save(supplier);
 
-        auditLog(saved, oldData, saved, updatedBy, isSuspended ? AuditAction.APPROVE : AuditAction.SUSPEND);
+        auditLog(saved, oldData, saved, updatedBy,
+                isSuspended ? AuditAction.APPROVE : AuditAction.SUSPEND);
 
-        return saved;
+        return mapToResponse(saved);
     }
 
-    private void auditLog(Supplier supplier, Supplier oldData, Supplier newData, String updatedBy, AuditAction action) {
-        SupplierAuditLog auditLog = SupplierAuditLog.builder()
-                .supplier(supplier)
-                .action(action)
-                .oldData("name=" + oldData.getName() + ", email=" + oldData.getContactEmail() +
-                        ", phone=" + oldData.getPhone() + ", address=" + oldData.getAddress() +
-                        ", region=" + oldData.getRegion())
-                .newData("name=" + newData.getName() + ", email=" + newData.getContactEmail() +
-                        ", phone=" + newData.getPhone() + ", address=" + newData.getAddress() +
-                        ", region=" + newData.getRegion())
-                .performedBy(updatedBy)
-                .performedAt(LocalDateTime.now())
-                .build();
+    @Override
+    public Page<SupplierResponse> getAllSuppliers(int page, int size) {
 
-        auditLogRepository.save(auditLog);
+        return supplierRepository.findAll(PageRequest.of(page, size))
+                .map(this::mapToResponse);
+    }
+
+    private SupplierResponse mapToResponse(Supplier supplier) {
+        return SupplierResponse.builder()
+                .id(supplier.getId())
+                .name(supplier.getName())
+                .contactEmail(supplier.getContactEmail())
+                .phone(supplier.getPhone())
+                .address(supplier.getAddress())
+                .region(supplier.getRegion())
+                .status(supplier.getStatus())
+                .rating(supplier.getRating())
+                .approvedBy(supplier.getApprovedBy())
+                .approvedAt(supplier.getApprovedAt())
+                .createAt(supplier.getCreateAt())
+                .updateAt(supplier.getUpdateAt())
+                .build();
     }
 
     private Supplier cloneSupplier(Supplier supplier) {
@@ -97,5 +110,24 @@ public class SupplierServiceImpl implements SupplierService {
                 .updateBy(supplier.getUpdateBy())
                 .updateAt(supplier.getUpdateAt())
                 .build();
+    }
+
+    private void auditLog(Supplier supplier, Supplier oldData,
+                          Supplier newData, String updatedBy, AuditAction action) {
+
+        SupplierAuditLog auditLog = SupplierAuditLog.builder()
+                .supplier(supplier)
+                .action(action)
+                .oldData("name=" + oldData.getName() + ", email=" + oldData.getContactEmail() +
+                        ", phone=" + oldData.getPhone() + ", address=" + oldData.getAddress() +
+                        ", region=" + oldData.getRegion())
+                .newData("name=" + newData.getName() + ", email=" + newData.getContactEmail() +
+                        ", phone=" + newData.getPhone() + ", address=" + newData.getAddress() +
+                        ", region=" + newData.getRegion())
+                .performedBy(updatedBy)
+                .performedAt(LocalDateTime.now())
+                .build();
+
+        auditLogRepository.save(auditLog);
     }
 }
