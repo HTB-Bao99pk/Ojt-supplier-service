@@ -8,8 +8,10 @@ public enum ErrorCode {
     // LỖI HỆ THỐNG CHUNG
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
 
-    //------- 1 - 99: LỖI SUPPLIER (SUPPLIER ERRORS) --------
-    SUPPLIER_NOT_FOUND(1, "Supplier not found", HttpStatus.NOT_FOUND);
+    SUPPLIER_NOT_FOUND(404, "Supplier not found", HttpStatus.NOT_FOUND),
+    SUPPLIER_ALREADY_EXISTS(409, "Supplier name already exists", HttpStatus.CONFLICT),
+    EMAIL_ALREADY_USED(409, "Contact email is already in use", HttpStatus.CONFLICT),
+    INVALID_FORMAT(400, "Invalid data format", HttpStatus.BAD_REQUEST);
 
 
 

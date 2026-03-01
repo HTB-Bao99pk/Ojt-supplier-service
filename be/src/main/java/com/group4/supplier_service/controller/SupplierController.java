@@ -1,9 +1,11 @@
 package com.group4.supplier_service.controller;
 
 import com.group4.supplier_service.dto.ApiResponse;
+import com.group4.supplier_service.dto.SupplierCreateRequest;
 import com.group4.supplier_service.dto.SupplierResponse;
 import com.group4.supplier_service.dto.SupplierUpdateRequest;
 import com.group4.supplier_service.service.SupplierService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -49,6 +51,17 @@ public class SupplierController {
         return ApiResponse.<SupplierResponse>builder()
                 .message("Toggle supplier status successfully")
                 .result(supplierService.toggleSuspend(id, user))
+                .build();
+    }
+
+    @PostMapping
+    public ApiResponse<SupplierResponse> createSupplier(
+            @RequestBody @Valid SupplierCreateRequest dto,
+            @RequestHeader("USER") String user
+    ) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Create supplier successfully")
+                .result(supplierService.createSupplier(dto, user))
                 .build();
     }
 }

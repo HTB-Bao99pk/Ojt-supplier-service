@@ -43,3 +43,22 @@ export const toggleSuspend = async (id, user) => {
     const data = await res.json();
     return data.result;
 };
+
+export const createSupplier = async (dataBody, user) => {
+    const res = await fetch(`${BASE_URL}/suppliers`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            USER: user,
+        },
+        body: JSON.stringify(dataBody),
+    });
+
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Create failed.");
+    }
+
+    const data = await res.json();
+    return data.result;
+};
