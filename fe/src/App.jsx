@@ -14,7 +14,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Navigate to="/suppliers" replace />} />
                     <Route path="/suppliers" element={<SupplierList />} />
-                    <Route path="/update/:id" element={<UpdateSupplier />} />
+                    <Route path="/suppliers/:id" element={<UpdateSupplier />} />
                     <Route path="*" element={<Navigate to="/suppliers" replace />} />
                 </Routes>
             </AuthProvider>
