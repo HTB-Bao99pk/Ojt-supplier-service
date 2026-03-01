@@ -4,11 +4,13 @@ import { AuthProvider } from './context/AuthContext'
 
 import UpdateSupplier from './pages/supplier/UpdateSupplier'
 import SupplierList from './pages/supplier/SupplierList'
+import AppHeader from './components/AppHeader'
 
 function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
+                <AppHeader />
                 <Routes>
                     <Route path="/" element={<Navigate to="/suppliers" replace />} />
                     <Route path="/suppliers" element={<SupplierList />} />

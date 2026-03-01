@@ -46,66 +46,87 @@ export default function SupplierList() {
 
     return (
         <div className="supplier-list">
-            <h1 className="supplier-list__title">Supplier List</h1>
+            <div className="supplier-list__wrapper">
 
-            <div className="supplier-list__card">
-                <table className="supplier-list__table">
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Region</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {suppliers.map((s) => (
-                        <tr key={s.id}>
-                            <td>{s.name}</td>
-                            <td>{s.contactEmail}</td>
-                            <td>{s.region}</td>
-                            <td>
-                  <span
-                      className={`status ${
-                          s.status === "SUSPENDED" ? "suspended" : "approved"
-                      }`}
-                  >
-                    {s.status}
-                  </span>
-                            </td>
-                            <td>
-                                <button onClick={() => navigate(`/update/${s.id}`)}>
-                                    Edit
-                                </button>
-                                <button onClick={() => handleToggle(s.id)}>
-                                    Toggle
-                                </button>
-                            </td>
+                <h1 className="supplier-list__title">
+                    Supplier Management
+                </h1>
+
+                <div className="supplier-list__card">
+                    <table className="supplier-list__table">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Region</th>
+                            <th>Status</th>
+                            <th>Actions</th>
                         </tr>
-                    ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {suppliers.map((s) => (
+                            <tr key={s.id}>
+                                <td>{s.name}</td>
+                                <td>{s.contactEmail}</td>
+                                <td>{s.region}</td>
+                                <td>
+                                        <span
+                                            className={`status ${
+                                                s.status === "SUSPENDED"
+                                                    ? "suspended"
+                                                    : "approved"
+                                            }`}
+                                        >
+                                            {s.status}
+                                        </span>
+                                </td>
+                                <td>
+                                    <button
+                                        onClick={() =>
+                                            navigate(`/update/${s.id}`)
+                                        }
+                                    >
+                                        Edit
+                                    </button>
 
-                <div className="supplier-list__pagination">
-                    <button
-                        disabled={page === 0}
-                        onClick={() => fetchSuppliers(page - 1)}
-                    >
-                        Prev
-                    </button>
+                                    <button
+                                        onClick={() =>
+                                            handleToggle(s.id)
+                                        }
+                                    >
+                                        Toggle
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
 
-                    <span>
-            Page {page + 1} / {totalPages}
-          </span>
+                    <div className="supplier-list__pagination">
+                        <button
+                            disabled={page === 0}
+                            onClick={() =>
+                                fetchSuppliers(page - 1)
+                            }
+                        >
+                            Prev
+                        </button>
 
-                    <button
-                        disabled={page + 1 === totalPages}
-                        onClick={() => fetchSuppliers(page + 1)}
-                    >
-                        Next
-                    </button>
+                        <span>
+                            Page {page + 1} / {totalPages}
+                        </span>
+
+                        <button
+                            disabled={page + 1 === totalPages}
+                            onClick={() =>
+                                fetchSuppliers(page + 1)
+                            }
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
+
             </div>
         </div>
     );
