@@ -70,12 +70,17 @@ export default function UpdateSupplier() {
 
   return (
     <div className="update-supplier">
-      <button className="update-supplier__back" onClick={() => navigate("/suppliers")}>
-        ← Back
-      </button>
-      <h1 className="update-supplier__title">Update Supplier</h1>
-
       <div className="update-supplier__card">
+        <div className="update-supplier__card-header">
+          <button
+            className="update-supplier__back"
+            onClick={() => navigate("/suppliers")}
+          >
+            ← Back
+          </button>
+          <h1 className="update-supplier__title">Update Supplier</h1>
+        </div>
+        <p className="update-supplier__subtitle">Make changes and save</p>
         {error && <div className="update-supplier__error">{error}</div>}
 
         <form className="update-supplier__form" onSubmit={handleSubmit}>
