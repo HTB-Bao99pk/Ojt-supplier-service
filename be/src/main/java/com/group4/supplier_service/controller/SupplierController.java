@@ -1,32 +1,54 @@
 package com.group4.supplier_service.controller;
 
+import com.group4.supplier_service.dto.ApiResponse;
+import com.group4.supplier_service.dto.SupplierResponse;
 import com.group4.supplier_service.dto.SupplierUpdateRequest;
-import com.group4.supplier_service.entity.Supplier;
 import com.group4.supplier_service.service.SupplierService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/v1/suppliers")
+@RequestMapping("/suppliers")
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SupplierController {
-    private final SupplierService supplierService;
+
+    SupplierService supplierService;
+
+    @GetMapping
+    public ApiResponse<Page<SupplierResponse>> getAllSuppliers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.<Page<SupplierResponse>>builder()
+                .message("Get supplier list successfully")
+                .result(supplierService.getAllSuppliers(page, size))
+                .build();
+    }
 
     @PutMapping("/{id}")
-    public Supplier updateSupplier(
+    public ApiResponse<SupplierResponse> updateSupplier(
             @PathVariable String id,
             @RequestBody SupplierUpdateRequest dto,
             @RequestHeader("USER") String user
     ) {
-        return supplierService.updateSupplier(id, dto, user);
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Update supplier successfully")
+                .result(supplierService.updateSupplier(id, dto, user))
+                .build();
     }
 
     @PatchMapping("/{id}/toggle-suspend")
-    public Supplier toggleSuspend(
+    public ApiResponse<SupplierResponse> toggleSuspend(
             @PathVariable String id,
             @RequestHeader("USER") String user
     ) {
-        return supplierService.toggleSuspend(id, user);
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Toggle supplier status successfully")
+                .result(supplierService.toggleSuspend(id, user))
+                .build();
     }
 }
