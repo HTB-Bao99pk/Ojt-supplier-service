@@ -34,6 +34,12 @@ public class Supplier {
 
     String phone;
 
+    @Column(name = "material_type")
+    String materialType;
+
+    @Column(name = "tax_code", unique = true)
+    String taxCode;
+
     @Column(columnDefinition = "TEXT")
     String address;
 

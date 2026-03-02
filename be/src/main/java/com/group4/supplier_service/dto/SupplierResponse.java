@@ -20,6 +20,10 @@ public class SupplierResponse {
 
     private String phone;
 
+    private String materialType;
+
+    private String taxCode;
+
     private String address;
 
     private String region;
