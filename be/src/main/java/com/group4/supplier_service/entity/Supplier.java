@@ -25,14 +25,20 @@ public class Supplier {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     String name;
 
     @Email
-    @Column(name = "contact_email")
+    @Column(name = "contact_email", unique = true)
     String contactEmail;
 
     String phone;
+
+    @Column(name = "material_type")
+    String materialType;
+
+    @Column(name = "tax_code", unique = true)
+    String taxCode;
 
     @Column(columnDefinition = "TEXT")
     String address;
