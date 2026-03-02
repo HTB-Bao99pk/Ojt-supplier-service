@@ -64,4 +64,15 @@ public class SupplierController {
                 .result(supplierService.createSupplier(dto, user))
                 .build();
     }
+
+    @PutMapping("/{id}/approve")
+    public ApiResponse<SupplierResponse> approveSupplier(
+            @PathVariable String id,
+            @RequestHeader("USER") String user
+    ) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Approve supplier successfully")
+                .result(supplierService.approveSupplier(id, user))
+                .build();
+    }
 }
