@@ -92,7 +92,7 @@ export default function SupplierList() {
                                     </button>
                                     <button
                                         onClick={() =>
-                                            navigate(`/suppliers/${s.id}`)
+                                            navigate(`/suppliers/update/${s.id}`)
                                         }
                                     >
                                         Edit
@@ -186,7 +186,7 @@ export default function SupplierList() {
                     </span>
                   </td>
                   <td>
-                    <button onClick={() => navigate(`/suppliers/${s.id}`)}>
+                    <button onClick={() => navigate(`/suppliers/update/${s.id}`)}>
                       Edit
                     </button>
                     {s.status === "PENDING" && (
