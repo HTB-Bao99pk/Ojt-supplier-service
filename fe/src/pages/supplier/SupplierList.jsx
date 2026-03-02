@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllSuppliers, toggleSuspend } from "../../api/supplierApi";
+import {
+  getAllSuppliers,
+  toggleSuspend,
+  approveSupplier,
+} from "../../api/supplierApi";
 import { useAuth } from "../../context/AuthContext";
 import "./SupplierList.css";
 
@@ -34,6 +38,15 @@ export default function SupplierList() {
   const handleToggle = async (id) => {
     await toggleSuspend(id, currentUser);
     fetchSuppliers(page);
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      await approveSupplier(id, currentUser);
+      fetchSuppliers(page);
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   if (loading) {
@@ -92,6 +105,17 @@ export default function SupplierList() {
                     <button onClick={() => navigate(`/suppliers/${s.id}`)}>
                       Edit
                     </button>
+                    {s.status === "PENDING" && (
+                      <button
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #16a34a, #15803d)",
+                        }}
+                        onClick={() => handleApprove(s.id)}
+                      >
+                        Approve
+                      </button>
+                    )}
 
                     <button onClick={() => handleToggle(s.id)}>Toggle</button>
                   </td>

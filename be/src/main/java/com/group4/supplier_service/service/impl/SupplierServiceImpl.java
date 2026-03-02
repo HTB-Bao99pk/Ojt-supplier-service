@@ -114,6 +114,29 @@ public class SupplierServiceImpl implements SupplierService {
         }
     }
 
+    @Override
+    public SupplierResponse approveSupplier(String supplierId, String approvedBy) {
+        Supplier supplier = supplierRepository.findById(supplierId)
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+
+        if (supplier.getStatus() != SupplierStatus.PENDING) {
+            throw new AppException(ErrorCode.INVALID_FORMAT);
+        }
+
+        Supplier oldData = cloneSupplier(supplier);
+
+        supplier.setStatus(SupplierStatus.APPROVED);
+        supplier.setApprovedBy(approvedBy);
+        supplier.setApprovedAt(LocalDateTime.now());
+        supplier.setUpdateBy(approvedBy);
+
+        Supplier saved = supplierRepository.save(supplier);
+
+        auditLog(saved, oldData, saved, approvedBy, AuditAction.APPROVE);
+
+        return mapToResponse(saved);
+    }
+
     private void saveAuditLog(Supplier supplier, AuditAction action, String performedBy) {
         SupplierAuditLog auditLog = SupplierAuditLog.builder()
                 .supplier(supplier)
