@@ -95,6 +95,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .address(dto.address())
                 .region(dto.region())
                 .createBy(createdBy)
+                .taxCode(dto.taxCode())
+                .materialType(dto.materialType())
                 .status(SupplierStatus.PENDING)
                 .rating(BigDecimal.ZERO)
                 .build();
