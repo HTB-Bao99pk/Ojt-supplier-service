@@ -9,7 +9,6 @@ public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
 
     SUPPLIER_NOT_FOUND(404, "Supplier not found", HttpStatus.NOT_FOUND),
-    SUPPLIER_ALREADY_EXISTS(409, "Supplier name already exists", HttpStatus.CONFLICT),
     EMAIL_ALREADY_USED(409, "Contact email is already in use", HttpStatus.CONFLICT),
     INVALID_FORMAT(400, "Invalid data format", HttpStatus.BAD_REQUEST);
 

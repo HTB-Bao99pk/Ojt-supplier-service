@@ -199,6 +199,14 @@
     animation: spin 0.7s linear infinite;
 }
 
+.error-text {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
