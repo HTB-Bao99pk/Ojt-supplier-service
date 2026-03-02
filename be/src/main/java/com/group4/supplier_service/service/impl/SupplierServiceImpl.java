@@ -44,7 +44,6 @@ public class SupplierServiceImpl implements SupplierService {
         if (dto.address() != null) supplier.setAddress(dto.address());
         if (dto.region() != null) supplier.setRegion(dto.region());
         if (dto.materialType() != null) supplier.setMaterialType(dto.materialType());
-        if (dto.taxCode() != null) supplier.setTaxCode(dto.taxCode());
 
         supplier.setUpdateBy(updatedBy);
 
