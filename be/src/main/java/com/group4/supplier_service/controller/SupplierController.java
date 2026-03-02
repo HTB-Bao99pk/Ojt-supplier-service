@@ -55,6 +55,14 @@ public class SupplierController {
                 .build();
     }
 
+    @GetMapping("/{id}")
+    public ApiResponse<SupplierResponse> getSupplierById(@PathVariable String id) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Get supplier successfully")
+                .result(supplierService.getSupplierById(id))
+                .build();
+    }
+
     @PostMapping
     public ApiResponse<SupplierResponse> createSupplier(
             @RequestBody @Valid SupplierCreateRequest dto,

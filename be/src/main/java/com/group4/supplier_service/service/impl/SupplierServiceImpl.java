@@ -82,6 +82,14 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
+    public SupplierResponse getSupplierById(String supplierId) {
+        Supplier supplier = supplierRepository.findById(supplierId)
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+
+        return mapToResponse(supplier);
+    }
+
+    @Override
     public SupplierResponse createSupplier(SupplierCreateRequest dto, String createdBy) {
 
         if (supplierRepository.existsByContactEmail(dto.contactEmail().trim().toLowerCase())) {
