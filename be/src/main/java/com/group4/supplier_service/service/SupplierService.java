@@ -14,4 +14,6 @@ public interface SupplierService {
     Page<SupplierResponse> getAllSuppliers(int page, int size);
 
     SupplierResponse createSupplier(SupplierCreateRequest dto, String createdBy);
+
+    SupplierResponse approveSupplier(String supplierId, String approvedBy);
 }

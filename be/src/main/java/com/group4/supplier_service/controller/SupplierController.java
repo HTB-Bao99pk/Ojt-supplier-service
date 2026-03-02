@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/suppliers")
+@CrossOrigin(origins="http://localhost:5173")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SupplierController {
@@ -62,6 +63,17 @@ public class SupplierController {
         return ApiResponse.<SupplierResponse>builder()
                 .message("Create supplier successfully")
                 .result(supplierService.createSupplier(dto, user))
+                .build();
+    }
+
+    @PutMapping("/{id}/approve")
+    public ApiResponse<SupplierResponse> approveSupplier(
+            @PathVariable String id,
+            @RequestHeader("USER") String user
+    ) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Approve supplier successfully")
+                .result(supplierService.approveSupplier(id, user))
                 .build();
     }
 }

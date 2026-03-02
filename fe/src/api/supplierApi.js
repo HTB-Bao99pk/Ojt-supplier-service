@@ -62,3 +62,18 @@ export const createSupplier = async (dataBody, user) => {
     const data = await res.json();
     return data.result;
 };
+
+export const approveSupplier = async (id, user) => {
+    const res = await fetch(`${BASE_URL}/suppliers/${id}/approve`, {
+        method: "PUT",
+        headers: { USER: user },
+    });
+
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Approval failed.");
+    }
+
+    const data = await res.json();
+    return data.result;
+};
