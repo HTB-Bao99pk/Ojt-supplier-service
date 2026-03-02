@@ -1,4 +1,4 @@
-package com.group4.supplier_service.dto;
+package com.group4.supplier_service.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

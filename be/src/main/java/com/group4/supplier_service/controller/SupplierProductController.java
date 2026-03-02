@@ -1,14 +1,16 @@
 package com.group4.supplier_service.controller;
 
-import com.group4.supplier_service.dto.ApiResponse;
-import com.group4.supplier_service.dto.ProductResponse;
+import com.group4.supplier_service.dto.response.ApiResponse;
+import com.group4.supplier_service.dto.response.ProductResponse;
+import com.group4.supplier_service.dto.response.SupplierComparisonResponse;
 import com.group4.supplier_service.service.SupplierProductService;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -25,6 +27,13 @@ public class SupplierProductController {
         return ApiResponse.<Page<ProductResponse>>builder()
                 .message("Get products by supplier id successfully")
                 .result(supplierProductService.getProductBySupplierId(supplierId, page, size))
+                .build();
+    }
+    @GetMapping("/products/{productId}/compare")
+    public ApiResponse<List<SupplierComparisonResponse>> compareSuppliers(@PathVariable String productId) {
+        return ApiResponse.<List<SupplierComparisonResponse>>builder()
+                .message("Ranked supplier recommendation list generated successfully")
+                .result(supplierProductService.compareSuppliersByProduct(productId))
                 .build();
     }
 

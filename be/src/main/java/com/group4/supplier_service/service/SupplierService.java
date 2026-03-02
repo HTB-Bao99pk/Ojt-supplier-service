@@ -1,8 +1,8 @@
 package com.group4.supplier_service.service;
 
-import com.group4.supplier_service.dto.SupplierCreateRequest;
-import com.group4.supplier_service.dto.SupplierResponse;
-import com.group4.supplier_service.dto.SupplierUpdateRequest;
+import com.group4.supplier_service.dto.request.SupplierCreateRequest;
+import com.group4.supplier_service.dto.response.SupplierResponse;
+import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
 import org.springframework.data.domain.Page;
 
 public interface SupplierService {
