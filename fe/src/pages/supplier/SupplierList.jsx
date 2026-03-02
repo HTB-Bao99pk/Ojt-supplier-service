@@ -81,6 +81,9 @@ export default function SupplierList() {
                                         </span>
                                 </td>
                                 <td>
+                                    <button onClick={() => navigate(`/suppliers/${s.id}`)}>
+                                        View
+                                    </button>
                                     <button
                                         onClick={() =>
                                             navigate(`/update/${s.id}`)

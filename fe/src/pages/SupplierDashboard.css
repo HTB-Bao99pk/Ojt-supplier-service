@@ -1,0 +1,171 @@
+.dashboard-layout {
+    display: flex;
+    height: 100vh;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ===== SIDEBAR ===== */
+.dashboard-sidebar {
+    width: 250px;
+    background: linear-gradient(180deg, #7c2d12, #5b1c0d);
+    color: white;
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-brand h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.dashboard-brand span {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.dashboard-sidebar nav {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.dashboard-sidebar button {
+    background: none;
+    border: none;
+    color: white;
+    text-align: left;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.dashboard-sidebar button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-sidebar .active {
+    background: #ea580c;
+}
+
+/* ===== MAIN ===== */
+.dashboard-main {
+    flex: 1;
+    background: linear-gradient(
+            135deg,
+            #fef3c7 0%,
+            #fde68a 40%,
+            #fef9c3 100%
+    );
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== TOPBAR ===== */
+.dashboard-topbar {
+    background: white;
+    padding: 16px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-topbar input {
+    width: 320px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid #f3f4f6;
+    outline: none;
+}
+
+.dashboard-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #ea580c;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* ===== CONTENT ===== */
+.dashboard-content {
+    padding: 30px;
+}
+
+.dashboard-content h1 {
+    margin-bottom: 30px;
+    color: #78350f;
+}
+
+/* ===== STAT CARDS ===== */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+}
+
+.stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: 18px;
+    box-shadow:
+            0 12px 28px rgba(0, 0, 0, 0.08),
+            0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card h4 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    color: #92400e;
+}
+
+.stat-card p {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0;
+    color: #78350f;
+}
+
+/* Accent top border */
+.stat-card.total {
+    border-top: 5px solid #ea580c;
+}
+
+.stat-card.approved {
+    border-top: 5px solid #22c55e;
+}
+
+.stat-card.suspended {
+    border-top: 5px solid #ef4444;
+}
+
+.stat-card.pending {
+    border-top: 5px solid #f59e0b;
+}
+
+/* ===== CHART AREA ===== */
+.dashboard-charts {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.chart-box {
+    background: white;
+    border-radius: 18px;
+    height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #78350f;
+    font-weight: 500;
+    box-shadow:
+            0 12px 28px rgba(0, 0, 0, 0.08),
+            0 4px 12px rgba(0, 0, 0, 0.04);
+}

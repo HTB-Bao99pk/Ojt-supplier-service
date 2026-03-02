@@ -43,3 +43,4 @@ export const toggleSuspend = async (id, user) => {
     const data = await res.json();
     return data.result;
 };
+
