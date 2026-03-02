@@ -1,25 +1,23 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import Header from "../components/AppHeader";
+import AppHeader from "../components/AppHeader";
 
-const DashboardLayout = () => {
+export default function DashboardLayout() {
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+
     return (
-        <div style={{ display: "flex" }}>
-            <Sidebar />
+        <div className="flex h-screen w-full bg-gray-50 overflow-hidden">
+            {/* Thanh Sidebar bên trái */}
+            <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-            <div style={{ flex: 1 }}>
-                <Header />
-
-                <div style={{
-                    padding: "30px",
-                    minHeight: "100vh",
-                    background: "linear-gradient(to bottom, #f6e6a6, #e6d27d)"
-                }}>
+            {/* Khu vực nội dung chính */}
+            <div className="flex flex-1 flex-col overflow-hidden">
+                <AppHeader />
+                <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
                     <Outlet />
-                </div>
+                </main>
             </div>
         </div>
     );
-};
-
-export default DashboardLayout;
+}
