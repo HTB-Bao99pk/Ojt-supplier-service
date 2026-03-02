@@ -1,4 +1,4 @@
-package com.group4.supplier_service.dto;
+package com.group4.supplier_service.dto.response;
 
 import com.group4.supplier_service.enums.SupplierStatus;
 import lombok.*;

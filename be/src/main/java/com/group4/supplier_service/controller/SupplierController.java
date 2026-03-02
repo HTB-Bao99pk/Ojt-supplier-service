@@ -1,9 +1,9 @@
 package com.group4.supplier_service.controller;
 
-import com.group4.supplier_service.dto.ApiResponse;
-import com.group4.supplier_service.dto.SupplierCreateRequest;
-import com.group4.supplier_service.dto.SupplierResponse;
-import com.group4.supplier_service.dto.SupplierUpdateRequest;
+import com.group4.supplier_service.dto.response.ApiResponse;
+import com.group4.supplier_service.dto.request.SupplierCreateRequest;
+import com.group4.supplier_service.dto.response.SupplierResponse;
+import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
 import com.group4.supplier_service.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;

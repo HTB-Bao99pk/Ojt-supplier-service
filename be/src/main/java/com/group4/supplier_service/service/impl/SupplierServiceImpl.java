@@ -1,8 +1,8 @@
 package com.group4.supplier_service.service.impl;
 
-import com.group4.supplier_service.dto.SupplierCreateRequest;
-import com.group4.supplier_service.dto.SupplierResponse;
-import com.group4.supplier_service.dto.SupplierUpdateRequest;
+import com.group4.supplier_service.dto.request.SupplierCreateRequest;
+import com.group4.supplier_service.dto.response.SupplierResponse;
+import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
 import com.group4.supplier_service.entity.Supplier;
 import com.group4.supplier_service.entity.SupplierAuditLog;
 import com.group4.supplier_service.enums.AuditAction;
