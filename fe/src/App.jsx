@@ -1,5 +1,7 @@
 import { Routes, Route } from "react-router-dom";
-import SupplierDashboard from "./pages/SupplierDashboard";
+import DashboardLayout from "./layouts/DashboardLayout";
+
+import SupplierDashboard from "./pages/supplier/SupplierDashboard";
 import SupplierList from "./pages/supplier/SupplierList";
 import SupplierDetail from "./pages/supplier/SupplierDetail";
 import UpdateSupplier from "./pages/supplier/UpdateSupplier";
@@ -8,12 +10,18 @@ import CreateSupplier from './pages/supplier/CreateSupplier';
 function App() {
     return (
         <Routes>
-            <Route path="/" element={<SupplierDashboard />} />
+            {/* Layout cha */}
+            <Route path="/" element={<DashboardLayout />}>
 
-            <Route path="/suppliers" element={<SupplierList />} />
-            <Route path="/suppliers/:id" element={<SupplierDetail />} />
-            <Route path="/update/:id" element={<UpdateSupplier />} />
-            <Route path="/suppliers/create" element={<CreateSupplier />} />
+                {/* Trang mặc định khi vào "/" */}
+                <Route index element={<SupplierDashboard />} />
+
+                {/* Supplier routes */}
+                <Route path="suppliers" element={<SupplierList />} />
+                <Route path="suppliers/:id" element={<SupplierDetail />} />
+                <Route path="suppliers/update/:id" element={<UpdateSupplier />} />
+                <Route path="/suppliers/create" element={<CreateSupplier />} />
+            </Route>
         </Routes>
     );
 }
