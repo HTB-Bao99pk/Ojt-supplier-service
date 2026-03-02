@@ -76,7 +76,8 @@
 }
 
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-update {
     padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
@@ -99,6 +100,22 @@
 
 .btn-secondary:hover {
     background: #d1d5db;
+}
+
+.btn-update {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transition: all 0.2s ease;
+}
+
+.btn-update:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
 }
 
 /* Fade animation */

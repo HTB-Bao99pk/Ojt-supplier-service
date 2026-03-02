@@ -5,5 +5,7 @@ public record SupplierUpdateRequest(
         String contactEmail,
         String phone,
         String address,
-        String region
+        String region,
+        String materialType,
+        String taxCode
 ) { }

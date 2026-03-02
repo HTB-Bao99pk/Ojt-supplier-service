@@ -10,7 +10,7 @@ export default function UpdateSupplier() {
   const { currentUser } = useAuth();
 
   const [form, setForm]       = useState({
-    name: "", contactEmail: "", phone: "", address: "", region: "",
+    name: "", materialType: "", taxCode: "", contactEmail: "", phone: "", address: "", region: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
@@ -22,6 +22,8 @@ export default function UpdateSupplier() {
         const data = await getSupplierById(id);
         setForm({
           name:         data.name         || "",
+          materialType: data.materialType || "",
+          taxCode:      data.taxCode      || "",
           contactEmail: data.contactEmail || "",
           phone:        data.phone        || "",
           address:      data.address      || "",
@@ -56,6 +58,8 @@ export default function UpdateSupplier() {
 
   const fields = [
     { name: "name",         label: "Supplier Name", type: "text"  },
+    { name: "materialType", label: "Material Type", type: "text"  },
+    { name: "taxCode",      label: "Tax Code",      type: "text"  },
     { name: "contactEmail", label: "Email",          type: "email" },
     { name: "phone",        label: "Phone",          type: "text"  },
     { name: "address",      label: "Address",        type: "text"  },

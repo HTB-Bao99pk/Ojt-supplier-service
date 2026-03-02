@@ -43,6 +43,8 @@ public class SupplierServiceImpl implements SupplierService {
         if (dto.phone() != null) supplier.setPhone(dto.phone());
         if (dto.address() != null) supplier.setAddress(dto.address());
         if (dto.region() != null) supplier.setRegion(dto.region());
+        if (dto.materialType() != null) supplier.setMaterialType(dto.materialType());
+        if (dto.taxCode() != null) supplier.setTaxCode(dto.taxCode());
 
         supplier.setUpdateBy(updatedBy);
 
@@ -166,6 +168,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .phone(supplier.getPhone())
                 .address(supplier.getAddress())
                 .region(supplier.getRegion())
+                .materialType(supplier.getMaterialType())
+                .taxCode(supplier.getTaxCode())
                 .status(supplier.getStatus())
                 .rating(supplier.getRating())
                 .approvedBy(supplier.getApprovedBy())
@@ -183,6 +187,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .phone(supplier.getPhone())
                 .address(supplier.getAddress())
                 .region(supplier.getRegion())
+                .materialType(supplier.getMaterialType())
+                .taxCode(supplier.getTaxCode())
                 .status(supplier.getStatus())
                 .rating(supplier.getRating())
                 .approvedBy(supplier.getApprovedBy())
@@ -202,10 +208,12 @@ public class SupplierServiceImpl implements SupplierService {
                 .action(action)
                 .oldData("name=" + oldData.getName() + ", email=" + oldData.getContactEmail() +
                         ", phone=" + oldData.getPhone() + ", address=" + oldData.getAddress() +
-                        ", region=" + oldData.getRegion())
+                        ", region=" + oldData.getRegion() + ", material type=" + oldData.getMaterialType() +
+                        ", tax code=" + oldData.getTaxCode())
                 .newData("name=" + newData.getName() + ", email=" + newData.getContactEmail() +
                         ", phone=" + newData.getPhone() + ", address=" + newData.getAddress() +
-                        ", region=" + newData.getRegion())
+                        ", region=" + newData.getRegion()+ ", material type=" + oldData.getMaterialType() +
+                        ", tax code=" + oldData.getTaxCode())
                 .performedBy(updatedBy)
                 .performedAt(LocalDateTime.now())
                 .build();
