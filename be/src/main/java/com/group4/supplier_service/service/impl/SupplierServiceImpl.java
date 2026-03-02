@@ -1,20 +1,25 @@
 package com.group4.supplier_service.service.impl;
 
+import com.group4.supplier_service.dto.SupplierCreateRequest;
 import com.group4.supplier_service.dto.SupplierResponse;
 import com.group4.supplier_service.dto.SupplierUpdateRequest;
 import com.group4.supplier_service.entity.Supplier;
 import com.group4.supplier_service.entity.SupplierAuditLog;
 import com.group4.supplier_service.enums.AuditAction;
 import com.group4.supplier_service.enums.SupplierStatus;
+import com.group4.supplier_service.exception.AppException;
+import com.group4.supplier_service.exception.ErrorCode;
 import com.group4.supplier_service.repository.SupplierAuditLogRepository;
 import com.group4.supplier_service.repository.SupplierRepository;
 import com.group4.supplier_service.service.SupplierService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -74,6 +79,50 @@ public class SupplierServiceImpl implements SupplierService {
 
         return supplierRepository.findAll(PageRequest.of(page, size))
                 .map(this::mapToResponse);
+    }
+
+    @Override
+    public SupplierResponse createSupplier(SupplierCreateRequest dto, String createdBy) {
+
+        if (supplierRepository.existsByContactEmail(dto.contactEmail().trim().toLowerCase())) {
+            throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
+        }
+
+        Supplier supplier = Supplier.builder()
+                .name(dto.name().trim())
+                .contactEmail(dto.contactEmail().trim().toLowerCase())
+                .phone(dto.phone())
+                .address(dto.address())
+                .region(dto.region())
+                .createBy(createdBy)
+                .status(SupplierStatus.PENDING)
+                .rating(BigDecimal.ZERO)
+                .build();
+
+        try {
+            Supplier saved = supplierRepository.save(supplier);
+            saveAuditLog(saved, AuditAction.CREATE, createdBy);
+            return mapToResponse(saved);
+
+        } catch (DataIntegrityViolationException ex) {
+
+            if (ex.getMessage().contains("contact_email")) {
+                throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
+            }
+
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+
+    private void saveAuditLog(Supplier supplier, AuditAction action, String performedBy) {
+        SupplierAuditLog auditLog = SupplierAuditLog.builder()
+                .supplier(supplier)
+                .action(action)
+                .newData("Name: " + supplier.getName() + ", Email: " + supplier.getContactEmail())
+                .performedBy(performedBy)
+                .performedAt(LocalDateTime.now())
+                .build();
+        auditLogRepository.save(auditLog);
     }
 
     private SupplierResponse mapToResponse(Supplier supplier) {

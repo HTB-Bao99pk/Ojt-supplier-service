@@ -1,5 +1,6 @@
 package com.group4.supplier_service.service;
 
+import com.group4.supplier_service.dto.SupplierCreateRequest;
 import com.group4.supplier_service.dto.SupplierResponse;
 import com.group4.supplier_service.dto.SupplierUpdateRequest;
 import org.springframework.data.domain.Page;
@@ -11,4 +12,6 @@ public interface SupplierService {
     SupplierResponse toggleSuspend(String supplierId, String updatedBy);
 
     Page<SupplierResponse> getAllSuppliers(int page, int size);
+
+    SupplierResponse createSupplier(SupplierCreateRequest dto, String createdBy);
 }

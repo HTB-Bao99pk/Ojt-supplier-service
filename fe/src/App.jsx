@@ -5,6 +5,7 @@ import SupplierDashboard from "./pages/supplier/SupplierDashboard";
 import SupplierList from "./pages/supplier/SupplierList";
 import SupplierDetail from "./pages/supplier/SupplierDetail";
 import UpdateSupplier from "./pages/supplier/UpdateSupplier";
+import CreateSupplier from './pages/supplier/CreateSupplier';
 
 function App() {
     return (
@@ -19,7 +20,7 @@ function App() {
                 <Route path="suppliers" element={<SupplierList />} />
                 <Route path="suppliers/:id" element={<SupplierDetail />} />
                 <Route path="suppliers/update/:id" element={<UpdateSupplier />} />
-
+                <Route path="/suppliers/create" element={<CreateSupplier />} />
             </Route>
         </Routes>
     );
