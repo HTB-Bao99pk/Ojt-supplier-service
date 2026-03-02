@@ -59,6 +59,10 @@ export default function SupplierDetail() {
                     <button className="btn-secondary" onClick={() => navigate("/suppliers")}>
                         ← Back
                     </button>
+
+                    <button className="btn-update" onClick={() => navigate(`/suppliers/update/${id}`)}>
+                        Update
+                    </button>
                 </div>
 
                 <div className="detail-grid">

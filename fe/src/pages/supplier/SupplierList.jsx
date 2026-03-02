@@ -51,93 +51,86 @@ export default function SupplierList() {
 
   if (loading) {
     return (
-        <div className="supplier-list">
-            <div className="supplier-list__wrapper">
+      <div className="supplier-list">
+        <div className="supplier-list__wrapper">
+          <h1 className="supplier-list__title">Supplier Management</h1>
 
-                <h1 className="supplier-list__title">
-                    Supplier Management
-                </h1>
+          <div className="supplier-list__card">
+            <table className="supplier-list__table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Region</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {suppliers.map((s) => (
+                  <tr key={s.id}>
+                    <td>{s.name}</td>
+                    <td>{s.contactEmail}</td>
+                    <td>{s.region}</td>
+                    <td>
+                      <span
+                        className={`status ${
+                          s.status === "SUSPENDED"
+                            ? "suspended"
+                            : "approved"
+                        }`}
+                      >
+                        {s.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button onClick={() => navigate(`/suppliers/${s.id}`)}>
+                        View
+                      </button>
 
-                <div className="supplier-list__card">
-                    <table className="supplier-list__table">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Region</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {suppliers.map((s) => (
-                            <tr key={s.id}>
-                                <td>{s.name}</td>
-                                <td>{s.contactEmail}</td>
-                                <td>{s.region}</td>
-                                <td>
-                                        <span
-                                            className={`status ${
-                                                s.status === "SUSPENDED"
-                                                    ? "suspended"
-                                                    : "approved"
-                                            }`}
-                                        >
-                                            {s.status}
-                                        </span>
-                                </td>
-                                <td>
-                                    <button onClick={() => navigate(`/suppliers/${s.id}`)}>
-                                        View
-                                    </button>
-                                    <button
-                                        onClick={() =>
-                                            navigate(`/suppliers/update/${s.id}`)
-                                        }
-                                    >
-                                        Edit
-                                    </button>
-
-                                    <button
-                                        onClick={() =>
-                                            handleToggle(s.id)
-                                        }
-                                    >
-                                        Toggle
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-
-                    <div className="supplier-list__pagination">
+                      {s.status === "PENDING" && (
                         <button
-                            disabled={page === 0}
-                            onClick={() =>
-                                fetchSuppliers(page - 1)
-                            }
+                          style={{
+                            background:
+                              "linear-gradient(135deg, #16a34a, #15803d)",
+                          }}
+                          onClick={() => handleApprove(s.id)}
                         >
-                            Prev
+                          Approve
                         </button>
+                      )}
 
-                        <span>
-                            Page {page + 1} / {totalPages}
-                        </span>
+                      <button onClick={() => handleToggle(s.id)}>
+                        Toggle
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-                        <button
-                            disabled={page + 1 === totalPages}
-                            onClick={() =>
-                                fetchSuppliers(page + 1)
-                            }
-                        >
-                            Next
-                        </button>
-                    </div>
-                </div>
+            <div className="supplier-list__pagination">
+              <button
+                disabled={page === 0}
+                onClick={() => fetchSuppliers(page - 1)}
+              >
+                Prev
+              </button>
 
+              <span>
+                Page {page + 1} / {totalPages}
+              </span>
+
+              <button
+                disabled={page + 1 === totalPages}
+                onClick={() => fetchSuppliers(page + 1)}
+              >
+                Next
+              </button>
             </div>
+          </div>
         </div>
+      </div>
     );
   }
 
@@ -145,6 +138,7 @@ export default function SupplierList() {
     <div className="supplier-list">
       <div className="supplier-list__wrapper">
         <h1 className="supplier-list__title">Supplier Management</h1>
+
         <button
           className="supplier-list__add-btn"
           onClick={() => navigate("/suppliers/create")}
@@ -170,6 +164,7 @@ export default function SupplierList() {
                 <th>Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {suppliers.map((s) => (
                 <tr key={s.id}>
@@ -179,16 +174,20 @@ export default function SupplierList() {
                   <td>
                     <span
                       className={`status ${
-                        s.status === "SUSPENDED" ? "suspended" : "approved"
+                        s.status === "SUSPENDED"
+                          ? "suspended"
+                          : "approved"
                       }`}
                     >
                       {s.status}
                     </span>
                   </td>
+
                   <td>
-                    <button onClick={() => navigate(`/suppliers/update/${s.id}`)}>
-                      Edit
+                    <button onClick={() => navigate(`/suppliers/${s.id}`)}>
+                      View
                     </button>
+
                     {s.status === "PENDING" && (
                       <button
                         style={{
@@ -201,7 +200,9 @@ export default function SupplierList() {
                       </button>
                     )}
 
-                    <button onClick={() => handleToggle(s.id)}>Toggle</button>
+                    <button onClick={() => handleToggle(s.id)}>
+                      Toggle
+                    </button>
                   </td>
                 </tr>
               ))}
