@@ -18,6 +18,8 @@
 
     display: flex;
     justify-content: center;
+    /* vertically center the card so it doesn't sit at the very top */
+    align-items: center;
 }
 
 .update-supplier__back {
@@ -46,6 +48,21 @@
     text-align: center;
     width: 100%;
     max-width: 540px;
+}
+
+.update-supplier__card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* centre title horizontally */
+    gap: 8px; /* smaller gap between back and title */
+    margin-bottom: 16px;
+}
+
+.update-supplier__subtitle {
+    font-size: 14px;
+    color: #78350f;
+    margin-bottom: 24px;
+    text-align: center;
 }
 
 .update-supplier__card {

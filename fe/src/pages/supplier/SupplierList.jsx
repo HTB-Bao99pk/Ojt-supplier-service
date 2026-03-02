@@ -86,7 +86,7 @@ export default function SupplierList() {
                                     </button>
                                     <button
                                         onClick={() =>
-                                            navigate(`/update/${s.id}`)
+                                            navigate(`/suppliers/${s.id}`)
                                         }
                                     >
                                         Edit
