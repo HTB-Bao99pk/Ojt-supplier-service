@@ -12,11 +12,14 @@ import com.group4.supplier_service.exception.ErrorCode;
 import com.group4.supplier_service.repository.SupplierAuditLogRepository;
 import com.group4.supplier_service.repository.SupplierRepository;
 import com.group4.supplier_service.service.SupplierService;
+import com.group4.supplier_service.specification.SupplierSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -211,12 +214,29 @@ public class SupplierServiceImpl implements SupplierService {
                         ", tax code=" + oldData.getTaxCode())
                 .newData("name=" + newData.getName() + ", email=" + newData.getContactEmail() +
                         ", phone=" + newData.getPhone() + ", address=" + newData.getAddress() +
-                        ", region=" + newData.getRegion()+ ", material type=" + oldData.getMaterialType() +
-                        ", tax code=" + oldData.getTaxCode())
+                        ", region=" + newData.getRegion()+ ", material type=" + newData.getMaterialType() +
+                        ", tax code=" + newData.getTaxCode())
                 .performedBy(updatedBy)
                 .performedAt(LocalDateTime.now())
                 .build();
 
         auditLogRepository.save(auditLog);
+    }
+
+    @Override
+    public Page<SupplierResponse> filterSuppliers(
+            SupplierStatus status,
+            String region,
+            BigDecimal minRating,
+            LocalDateTime updatedAfter,
+            Pageable pageable
+    ) {
+
+        Specification<Supplier> spec =
+                SupplierSpecification.filter(
+                        status, region, minRating, updatedAfter);
+
+        return supplierRepository.findAll(spec, pageable)
+                .map(this::mapToResponse);
     }
 }

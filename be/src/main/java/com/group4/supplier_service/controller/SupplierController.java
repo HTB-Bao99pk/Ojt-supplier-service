@@ -4,13 +4,22 @@ import com.group4.supplier_service.dto.response.ApiResponse;
 import com.group4.supplier_service.dto.request.SupplierCreateRequest;
 import com.group4.supplier_service.dto.response.SupplierResponse;
 import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
+import com.group4.supplier_service.enums.SupplierStatus;
 import com.group4.supplier_service.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/suppliers")
@@ -82,6 +91,29 @@ public class SupplierController {
         return ApiResponse.<SupplierResponse>builder()
                 .message("Approve supplier successfully")
                 .result(supplierService.approveSupplier(id, user))
+                .build();
+    }
+
+    @GetMapping("/filter")
+    public ApiResponse<Page<SupplierResponse>> filterSuppliers(
+            @RequestParam(required = false) SupplierStatus status,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) BigDecimal minRating,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime updatedAfter,
+
+            @PageableDefault(size = 10)
+            @SortDefault(sort = "updateAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    ) {
+
+        return ApiResponse.<Page<SupplierResponse>>builder()
+                .message("Filter suppliers successfully")
+                .result(
+                        supplierService.filterSuppliers(
+                                status, region, minRating,
+                                updatedAfter, pageable))
                 .build();
     }
 }
