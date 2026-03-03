@@ -1,9 +1,9 @@
 package com.group4.supplier_service.controller;
 
-import com.group4.supplier_service.dto.ApiResponse;
-import com.group4.supplier_service.dto.SupplierCreateRequest;
-import com.group4.supplier_service.dto.SupplierResponse;
-import com.group4.supplier_service.dto.SupplierUpdateRequest;
+import com.group4.supplier_service.dto.response.ApiResponse;
+import com.group4.supplier_service.dto.request.SupplierCreateRequest;
+import com.group4.supplier_service.dto.response.SupplierResponse;
+import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
 import com.group4.supplier_service.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/suppliers")
-@CrossOrigin(origins="http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SupplierController {
@@ -29,6 +29,18 @@ public class SupplierController {
         return ApiResponse.<Page<SupplierResponse>>builder()
                 .message("Get supplier list successfully")
                 .result(supplierService.getAllSuppliers(page, size))
+                .build();
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<Page<SupplierResponse>> getSuppliersByNameOrEmailOrPhone(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.<Page<SupplierResponse>>builder()
+                .message("Get supplier list successfully")
+                .result(supplierService.getSuppliersByNameOrEmailOrPhone(keyword, page, size))
                 .build();
     }
 
@@ -55,6 +67,14 @@ public class SupplierController {
                 .build();
     }
 
+    @GetMapping("/{id}")
+    public ApiResponse<SupplierResponse> getSupplierById(@PathVariable String id) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Get supplier successfully")
+                .result(supplierService.getSupplierById(id))
+                .build();
+    }
+
     @PostMapping
     public ApiResponse<SupplierResponse> createSupplier(
             @RequestBody @Valid SupplierCreateRequest dto,
@@ -76,4 +96,5 @@ public class SupplierController {
                 .result(supplierService.approveSupplier(id, user))
                 .build();
     }
+
 }

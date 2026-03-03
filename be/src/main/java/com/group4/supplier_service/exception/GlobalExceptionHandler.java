@@ -1,6 +1,6 @@
 package com.group4.supplier_service.exception;
 
-import com.group4.supplier_service.dto.ApiResponse;
+import com.group4.supplier_service.dto.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

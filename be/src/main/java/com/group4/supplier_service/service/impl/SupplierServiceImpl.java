@@ -1,8 +1,8 @@
 package com.group4.supplier_service.service.impl;
 
-import com.group4.supplier_service.dto.SupplierCreateRequest;
-import com.group4.supplier_service.dto.SupplierResponse;
-import com.group4.supplier_service.dto.SupplierUpdateRequest;
+import com.group4.supplier_service.dto.request.SupplierCreateRequest;
+import com.group4.supplier_service.dto.response.SupplierResponse;
+import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
 import com.group4.supplier_service.entity.Supplier;
 import com.group4.supplier_service.entity.SupplierAuditLog;
 import com.group4.supplier_service.enums.AuditAction;
@@ -45,6 +45,7 @@ public class SupplierServiceImpl implements SupplierService {
         if (dto.phone() != null) supplier.setPhone(dto.phone());
         if (dto.address() != null) supplier.setAddress(dto.address());
         if (dto.region() != null) supplier.setRegion(dto.region());
+        if (dto.materialType() != null) supplier.setMaterialType(dto.materialType());
 
         supplier.setUpdateBy(updatedBy);
 
@@ -81,6 +82,14 @@ public class SupplierServiceImpl implements SupplierService {
 
         return supplierRepository.findAll(PageRequest.of(page, size))
                 .map(this::mapToResponse);
+    }
+
+    @Override
+    public SupplierResponse getSupplierById(String supplierId) {
+        Supplier supplier = supplierRepository.findById(supplierId)
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+
+        return mapToResponse(supplier);
     }
 
     @Override
@@ -178,6 +187,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .phone(supplier.getPhone())
                 .address(supplier.getAddress())
                 .region(supplier.getRegion())
+                .materialType(supplier.getMaterialType())
+                .taxCode(supplier.getTaxCode())
                 .status(supplier.getStatus())
                 .rating(supplier.getRating())
                 .approvedBy(supplier.getApprovedBy())
@@ -195,6 +206,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .phone(supplier.getPhone())
                 .address(supplier.getAddress())
                 .region(supplier.getRegion())
+                .materialType(supplier.getMaterialType())
+                .taxCode(supplier.getTaxCode())
                 .status(supplier.getStatus())
                 .rating(supplier.getRating())
                 .approvedBy(supplier.getApprovedBy())
@@ -214,14 +227,24 @@ public class SupplierServiceImpl implements SupplierService {
                 .action(action)
                 .oldData("name=" + oldData.getName() + ", email=" + oldData.getContactEmail() +
                         ", phone=" + oldData.getPhone() + ", address=" + oldData.getAddress() +
-                        ", region=" + oldData.getRegion())
+                        ", region=" + oldData.getRegion() + ", material type=" + oldData.getMaterialType() +
+                        ", tax code=" + oldData.getTaxCode())
                 .newData("name=" + newData.getName() + ", email=" + newData.getContactEmail() +
                         ", phone=" + newData.getPhone() + ", address=" + newData.getAddress() +
-                        ", region=" + newData.getRegion())
+                        ", region=" + newData.getRegion()+ ", material type=" + oldData.getMaterialType() +
+                        ", tax code=" + oldData.getTaxCode())
                 .performedBy(updatedBy)
                 .performedAt(LocalDateTime.now())
                 .build();
 
         auditLogRepository.save(auditLog);
+    }
+
+    @Override
+    public Page<SupplierResponse> getSuppliersByNameOrEmailOrPhone(String keyword, int page, int size) {
+        String kw = (keyword == null) ? "" : keyword;
+        return supplierRepository.findByNameContainingIgnoreCaseOrContactEmailContainingIgnoreCaseOrPhoneContainingIgnoreCase(
+                        kw, kw, kw, PageRequest.of(page, size))
+                .map(this::mapToResponse);
     }
 }
