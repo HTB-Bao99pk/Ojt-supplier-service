@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/suppliers")
-@CrossOrigin(origins="http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SupplierController {
@@ -41,56 +41,15 @@ public class SupplierController {
                 .build();
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<SupplierResponse> updateSupplier(
-            @PathVariable String id,
-            @RequestBody SupplierUpdateRequest dto,
-            @RequestHeader("USER") String user
+    @GetMapping("/search")
+    public ApiResponse<Page<SupplierResponse>> getSuppliersByNameOrEmailOrPhone(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return ApiResponse.<SupplierResponse>builder()
-                .message("Update supplier successfully")
-                .result(supplierService.updateSupplier(id, dto, user))
-                .build();
-    }
-
-    @PatchMapping("/{id}/toggle-suspend")
-    public ApiResponse<SupplierResponse> toggleSuspend(
-            @PathVariable String id,
-            @RequestHeader("USER") String user
-    ) {
-        return ApiResponse.<SupplierResponse>builder()
-                .message("Toggle supplier status successfully")
-                .result(supplierService.toggleSuspend(id, user))
-                .build();
-    }
-
-    @GetMapping("/{id}")
-    public ApiResponse<SupplierResponse> getSupplierById(@PathVariable String id) {
-        return ApiResponse.<SupplierResponse>builder()
-                .message("Get supplier successfully")
-                .result(supplierService.getSupplierById(id))
-                .build();
-    }
-
-    @PostMapping
-    public ApiResponse<SupplierResponse> createSupplier(
-            @RequestBody @Valid SupplierCreateRequest dto,
-            @RequestHeader("USER") String user
-    ) {
-        return ApiResponse.<SupplierResponse>builder()
-                .message("Create supplier successfully")
-                .result(supplierService.createSupplier(dto, user))
-                .build();
-    }
-
-    @PutMapping("/{id}/approve")
-    public ApiResponse<SupplierResponse> approveSupplier(
-            @PathVariable String id,
-            @RequestHeader("USER") String user
-    ) {
-        return ApiResponse.<SupplierResponse>builder()
-                .message("Approve supplier successfully")
-                .result(supplierService.approveSupplier(id, user))
+        return ApiResponse.<Page<SupplierResponse>>builder()
+                .message("Get supplier list successfully")
+                .result(supplierService.getSuppliersByNameOrEmailOrPhone(keyword, page, size))
                 .build();
     }
 
@@ -114,6 +73,59 @@ public class SupplierController {
                         supplierService.filterSuppliers(
                                 status, region, minRating,
                                 updatedAfter, pageable))
+                .build();
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<SupplierResponse> getSupplierById(@PathVariable String id) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Get supplier successfully")
+                .result(supplierService.getSupplierById(id))
+                .build();
+    }
+
+    @PostMapping
+    public ApiResponse<SupplierResponse> createSupplier(
+            @RequestBody @Valid SupplierCreateRequest dto,
+            @RequestHeader("USER") String user
+    ) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Create supplier successfully")
+                .result(supplierService.createSupplier(dto, user))
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<SupplierResponse> updateSupplier(
+            @PathVariable String id,
+            @RequestBody SupplierUpdateRequest dto,
+            @RequestHeader("USER") String user
+    ) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Update supplier successfully")
+                .result(supplierService.updateSupplier(id, dto, user))
+                .build();
+    }
+
+    @PutMapping("/{id}/approve")
+    public ApiResponse<SupplierResponse> approveSupplier(
+            @PathVariable String id,
+            @RequestHeader("USER") String user
+    ) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Approve supplier successfully")
+                .result(supplierService.approveSupplier(id, user))
+                .build();
+    }
+
+    @PatchMapping("/{id}/toggle-suspend")
+    public ApiResponse<SupplierResponse> toggleSuspend(
+            @PathVariable String id,
+            @RequestHeader("USER") String user
+    ) {
+        return ApiResponse.<SupplierResponse>builder()
+                .message("Toggle supplier status successfully")
+                .result(supplierService.toggleSuspend(id, user))
                 .build();
     }
 }

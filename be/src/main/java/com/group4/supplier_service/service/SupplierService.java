@@ -24,5 +24,7 @@ public interface SupplierService {
 
     SupplierResponse getSupplierById(String id);
 
+    Page<SupplierResponse> getSuppliersByNameOrEmailOrPhone(String keyword, int page, int size);
+
     Page<SupplierResponse> filterSuppliers(SupplierStatus status, String region, BigDecimal minRating, LocalDateTime updatedAfter, Pageable pageable);
 }

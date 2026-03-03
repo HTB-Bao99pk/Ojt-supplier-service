@@ -32,6 +32,7 @@ public class Supplier {
     @Column(name = "contact_email", unique = true)
     String contactEmail;
 
+    @Column(name = "phone", unique = true)
     String phone;
 
     @Column(name = "material_type")
@@ -72,10 +73,4 @@ public class Supplier {
     @Column(name = "update_at")
     @UpdateTimestamp
     LocalDateTime updateAt;
-
-
-
-
-
-
 }
