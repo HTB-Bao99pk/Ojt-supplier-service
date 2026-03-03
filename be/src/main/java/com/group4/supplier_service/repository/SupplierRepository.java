@@ -9,5 +9,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SupplierRepository extends JpaRepository<Supplier, String> {
     boolean existsByContactEmail(String contactEmail);
+
+    boolean existsByTaxCode(String taxCode);
+    boolean existsByName(String supplierName);
+
     Page<Supplier> findByNameContainingIgnoreCaseOrContactEmailContainingIgnoreCaseOrPhoneContainingIgnoreCase(String name, String contactEmail, String phone, Pageable pageable);
+
 }
