@@ -1,8 +1,8 @@
 package com.group4.supplier_service.service.impl;
 
-import com.group4.supplier_service.dto.SupplierCreateRequest;
-import com.group4.supplier_service.dto.SupplierResponse;
-import com.group4.supplier_service.dto.SupplierUpdateRequest;
+import com.group4.supplier_service.dto.request.SupplierCreateRequest;
+import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
+import com.group4.supplier_service.dto.response.SupplierResponse;
 import com.group4.supplier_service.entity.Supplier;
 import com.group4.supplier_service.entity.SupplierAuditLog;
 import com.group4.supplier_service.enums.AuditAction;
@@ -12,15 +12,20 @@ import com.group4.supplier_service.exception.ErrorCode;
 import com.group4.supplier_service.repository.SupplierAuditLogRepository;
 import com.group4.supplier_service.repository.SupplierRepository;
 import com.group4.supplier_service.service.SupplierService;
+import com.group4.supplier_service.specification.SupplierSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +48,7 @@ public class SupplierServiceImpl implements SupplierService {
         if (dto.phone() != null) supplier.setPhone(dto.phone());
         if (dto.address() != null) supplier.setAddress(dto.address());
         if (dto.region() != null) supplier.setRegion(dto.region());
+        if (dto.materialType() != null) supplier.setMaterialType(dto.materialType());
 
         supplier.setUpdateBy(updatedBy);
 
@@ -76,7 +82,6 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public Page<SupplierResponse> getAllSuppliers(int page, int size) {
-
         return supplierRepository.findAll(PageRequest.of(page, size))
                 .map(this::mapToResponse);
     }
@@ -99,9 +104,7 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     public SupplierResponse createSupplier(SupplierCreateRequest dto, String createdBy) {
 
-        if (supplierRepository.existsByContactEmail(dto.contactEmail().trim().toLowerCase())) {
-            throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
-        }
+        validateBusinessRule(dto);
 
         Supplier supplier = Supplier.builder()
                 .name(dto.name().trim())
@@ -109,9 +112,9 @@ public class SupplierServiceImpl implements SupplierService {
                 .phone(dto.phone())
                 .address(dto.address())
                 .region(dto.region())
-                .createBy(createdBy)
                 .taxCode(dto.taxCode())
                 .materialType(dto.materialType())
+                .createBy(createdBy)
                 .status(SupplierStatus.PENDING)
                 .rating(BigDecimal.ZERO)
                 .build();
@@ -130,13 +133,34 @@ public class SupplierServiceImpl implements SupplierService {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
+    private void validateBusinessRule(SupplierCreateRequest dto) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        if (supplierRepository.existsByContactEmail(dto.contactEmail().trim())) {
+            errors.put("contactEmail", "Contact email is already in use");
+        }
+
+        if (supplierRepository.existsByTaxCode(dto.taxCode().trim())) {
+            errors.put("taxCode", "Tax code is already in use");
+        }
+
+        if (supplierRepository.existsByName(dto.name().trim())) {
+            errors.put("name", "Supplier name is already in use");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_INPUT, errors);
+        }
+    }
 
     @Override
     public SupplierResponse approveSupplier(String supplierId, String approvedBy) {
+
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
 
-        if (supplier.getStatus() != SupplierStatus.PENDING) {
+        if (supplier.getStatus() != SupplierStatus.PENDING && supplier.getStatus() != SupplierStatus.SUSPENDED) {
             throw new AppException(ErrorCode.INVALID_FORMAT);
         }
 
@@ -154,18 +178,50 @@ public class SupplierServiceImpl implements SupplierService {
         return mapToResponse(saved);
     }
 
+    @Override
+    public Page<SupplierResponse> getSuppliersByNameOrEmailOrPhone(String keyword, int page, int size) {
+
+        String kw = (keyword == null) ? "" : keyword;
+
+        return supplierRepository
+                .findByNameContainingIgnoreCaseOrContactEmailContainingIgnoreCaseOrPhoneContainingIgnoreCase(
+                        kw, kw, kw, PageRequest.of(page, size)
+                )
+                .map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<SupplierResponse> filterSuppliers(
+            SupplierStatus status,
+            String region,
+            BigDecimal minRating,
+            LocalDateTime updatedAfter,
+            Pageable pageable
+    ) {
+
+        Specification<Supplier> spec =
+                SupplierSpecification.filter(status, region, minRating, updatedAfter);
+
+        return supplierRepository.findAll(spec, pageable)
+                .map(this::mapToResponse);
+    }
+
     private void saveAuditLog(Supplier supplier, AuditAction action, String performedBy) {
+
         SupplierAuditLog auditLog = SupplierAuditLog.builder()
                 .supplier(supplier)
                 .action(action)
-                .newData("Name: " + supplier.getName() + ", Email: " + supplier.getContactEmail())
+                .newData("Name: " + supplier.getName() +
+                        ", Email: " + supplier.getContactEmail())
                 .performedBy(performedBy)
                 .performedAt(LocalDateTime.now())
                 .build();
+
         auditLogRepository.save(auditLog);
     }
 
     private SupplierResponse mapToResponse(Supplier supplier) {
+
         return SupplierResponse.builder()
                 .id(supplier.getId())
                 .name(supplier.getName())
@@ -173,6 +229,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .phone(supplier.getPhone())
                 .address(supplier.getAddress())
                 .region(supplier.getRegion())
+                .materialType(supplier.getMaterialType())
+                .taxCode(supplier.getTaxCode())
                 .status(supplier.getStatus())
                 .rating(supplier.getRating())
                 .approvedBy(supplier.getApprovedBy())
@@ -183,6 +241,7 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     private Supplier cloneSupplier(Supplier supplier) {
+
         return Supplier.builder()
                 .id(supplier.getId())
                 .name(supplier.getName())
@@ -190,6 +249,8 @@ public class SupplierServiceImpl implements SupplierService {
                 .phone(supplier.getPhone())
                 .address(supplier.getAddress())
                 .region(supplier.getRegion())
+                .materialType(supplier.getMaterialType())
+                .taxCode(supplier.getTaxCode())
                 .status(supplier.getStatus())
                 .rating(supplier.getRating())
                 .approvedBy(supplier.getApprovedBy())
@@ -201,18 +262,29 @@ public class SupplierServiceImpl implements SupplierService {
                 .build();
     }
 
-    private void auditLog(Supplier supplier, Supplier oldData,
-                          Supplier newData, String updatedBy, AuditAction action) {
+    private void auditLog(Supplier supplier,
+                          Supplier oldData,
+                          Supplier newData,
+                          String updatedBy,
+                          AuditAction action) {
 
         SupplierAuditLog auditLog = SupplierAuditLog.builder()
                 .supplier(supplier)
                 .action(action)
-                .oldData("name=" + oldData.getName() + ", email=" + oldData.getContactEmail() +
-                        ", phone=" + oldData.getPhone() + ", address=" + oldData.getAddress() +
-                        ", region=" + oldData.getRegion())
-                .newData("name=" + newData.getName() + ", email=" + newData.getContactEmail() +
-                        ", phone=" + newData.getPhone() + ", address=" + newData.getAddress() +
-                        ", region=" + newData.getRegion())
+                .oldData("name=" + oldData.getName()
+                        + ", email=" + oldData.getContactEmail()
+                        + ", phone=" + oldData.getPhone()
+                        + ", address=" + oldData.getAddress()
+                        + ", region=" + oldData.getRegion()
+                        + ", materialType=" + oldData.getMaterialType()
+                        + ", taxCode=" + oldData.getTaxCode())
+                .newData("name=" + newData.getName()
+                        + ", email=" + newData.getContactEmail()
+                        + ", phone=" + newData.getPhone()
+                        + ", address=" + newData.getAddress()
+                        + ", region=" + newData.getRegion()
+                        + ", materialType=" + newData.getMaterialType()
+                        + ", taxCode=" + newData.getTaxCode())
                 .performedBy(updatedBy)
                 .performedAt(LocalDateTime.now())
                 .build();
