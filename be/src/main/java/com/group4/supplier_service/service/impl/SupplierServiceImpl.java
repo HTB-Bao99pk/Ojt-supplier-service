@@ -219,4 +219,12 @@ public class SupplierServiceImpl implements SupplierService {
 
         auditLogRepository.save(auditLog);
     }
+
+    @Override
+    public Page<SupplierResponse> getSuppliersByNameOrEmailOrPhone(String keyword, int page, int size) {
+        String kw = (keyword == null) ? "" : keyword;
+        return supplierRepository.findByNameContainingIgnoreCaseOrContactEmailContainingIgnoreCaseOrPhoneContainingIgnoreCase(
+                        kw, kw, kw, PageRequest.of(page, size))
+                .map(this::mapToResponse);
+    }
 }

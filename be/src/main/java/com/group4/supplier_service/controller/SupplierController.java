@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/suppliers")
-@CrossOrigin(origins="http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SupplierController {
@@ -29,6 +29,18 @@ public class SupplierController {
         return ApiResponse.<Page<SupplierResponse>>builder()
                 .message("Get supplier list successfully")
                 .result(supplierService.getAllSuppliers(page, size))
+                .build();
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<Page<SupplierResponse>> getSuppliersByNameOrEmailOrPhone(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.<Page<SupplierResponse>>builder()
+                .message("Get supplier list successfully")
+                .result(supplierService.getSuppliersByNameOrEmailOrPhone(keyword, page, size))
                 .build();
     }
 
@@ -84,4 +96,5 @@ public class SupplierController {
                 .result(supplierService.approveSupplier(id, user))
                 .build();
     }
+
 }
