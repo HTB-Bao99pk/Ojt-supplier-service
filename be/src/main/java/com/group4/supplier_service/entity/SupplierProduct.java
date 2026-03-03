@@ -29,6 +29,7 @@ public class SupplierProduct {
     @Column(name = "product_id", nullable = false)
     String productId;
 
+
     @Column(precision = 15, scale = 2)
     BigDecimal price;
 
