@@ -1,10 +1,7 @@
 package com.group4.supplier_service.controller;
 
-<<<<<<< HEAD
 import com.group4.supplier_service.dto.request.SupplierProductUpdateRequest;
-=======
 import com.group4.supplier_service.dto.request.SupplierProductCreateRequest;
->>>>>>> deed7af1423cf3ec9a05c1aae5bacf2faf65e356
 import com.group4.supplier_service.dto.response.ApiResponse;
 import com.group4.supplier_service.dto.response.ProductResponse;
 import com.group4.supplier_service.dto.response.SupplierComparisonResponse;
@@ -22,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/suppliers")
 @RequiredArgsConstructor
+@CrossOrigin("*")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SupplierProductController {
     SupplierProductService supplierProductService;
