@@ -18,4 +18,6 @@ public interface SupplierService {
     SupplierResponse approveSupplier(String supplierId, String approvedBy);
 
     SupplierResponse getSupplierById(String id);
+
+    Page<SupplierResponse> getSuppliersByNameOrEmailOrPhone(String keyword, int page, int size);
 }
