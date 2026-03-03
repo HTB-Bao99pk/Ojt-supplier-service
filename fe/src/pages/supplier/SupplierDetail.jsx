@@ -219,7 +219,16 @@ export default function SupplierDetail() {
                             <tbody className="divide-y divide-gray-100">
                                 {products.map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50">
-                                        <td className="px-4 py-3 font-medium text-gray-900">{item.productId}</td>
+                                        <td className="px-4 py-3 font-medium text-gray-900">{
+                                            <Link 
+                                                to={`/suppliers/compare/${item.productId}`} 
+                                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                                                title="Click to compare all suppliers for this product"
+                                            >
+                                                {item.productId}
+                                                <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] uppercase text-blue-600">Compare</span>
+                                            </Link>
+                                        }</td>
                                         <td className="px-4 py-3">
                                             {item.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price) : 'Contact'}
                                         </td>
