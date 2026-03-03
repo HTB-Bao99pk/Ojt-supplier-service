@@ -111,12 +111,14 @@ export const createSupplier = async (dataBody, user) => {
         body: JSON.stringify(dataBody),
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Create failed.");
+        const error = new Error(data.message || "Create failed");
+        error.errors = data.result; 
+        throw error;
     }
 
-    const data = await res.json();
     return data.result;
 };
 
