@@ -159,6 +159,10 @@ export const approveSupplier = async (id, user) => {
     const data = await res.json();
     return data.result;
 };
+
+/* =========================
+   GET PRODUCTS BY SUPPLIER ID
+========================= */
 export const getProductsBySupplierId = async (supplierId, params = { page: 0, size: 10 }) => {
     const query = new URLSearchParams();
 
@@ -174,4 +178,19 @@ export const getProductsBySupplierId = async (supplierId, params = { page: 0, si
 
     const data = await res.json();
     return data.result; // Backend trả về đối tượng Page chứa content và metadata phân trang
+};
+
+/* =========================
+   COMPARE SUPPLIERS BY PRODUCT
+========================= */
+export const compareSuppliers = async (productId) => {
+    const res = await fetch(`${BASE_URL}/suppliers/products/${productId}/compare`);
+
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Unable to fetch comparison data.");
+    }
+
+    const data = await res.json();
+    return data.result; 
 };

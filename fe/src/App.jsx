@@ -6,6 +6,7 @@ import SupplierList from "./pages/supplier/SupplierList";
 import SupplierDetail from "./pages/supplier/SupplierDetail";
 import UpdateSupplier from "./pages/supplier/UpdateSupplier";
 import CreateSupplier from './pages/supplier/CreateSupplier';
+import CompareSuppliers from './pages/supplier/CompareSuppliers';
 
 function App() {
     return (
@@ -21,6 +22,7 @@ function App() {
                 <Route path="suppliers/:id" element={<SupplierDetail />} />
                 <Route path="suppliers/update/:id" element={<UpdateSupplier />} />
                 <Route path="/suppliers/create" element={<CreateSupplier />} />
+                <Route path="suppliers/compare/:productId" element={<CompareSuppliers />} />
             </Route>
         </Routes>
     );
