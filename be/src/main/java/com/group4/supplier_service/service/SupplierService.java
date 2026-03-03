@@ -18,4 +18,7 @@ public interface SupplierService {
     SupplierResponse approveSupplier(String supplierId, String approvedBy);
 
     SupplierResponse getSupplierById(String id);
+
+    Page<SupplierResponse> getApprovedSuppliersForFranchise(int page, int size);
+
 }
