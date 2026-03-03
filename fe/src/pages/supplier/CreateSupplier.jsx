@@ -25,28 +25,28 @@ export default function CreateSupplier() {
     name: "",
     contactEmail: "",
     phone: "",
-    region: "North Region",
+    region: "Asia",
     taxCode: "",
     address: "",
     materialType: "",
   });
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setFieldErrors({}); 
-  
-  try {
-    await createSupplier(formData, currentUser);
-    alert("Supplier created successfully!");
-    navigate("/suppliers");
-  } catch (err) {
-    if (err.errors && typeof err.errors === 'object') {
-      setFieldErrors(err.errors);
-    } else {
-      alert("System error: " + err.message);
+    e.preventDefault();
+    setFieldErrors({});
+
+    try {
+      await createSupplier(formData, currentUser);
+      alert("Supplier created successfully!");
+      navigate("/suppliers");
+    } catch (err) {
+      if (err.errors && typeof err.errors === "object") {
+        setFieldErrors(err.errors);
+      } else {
+        alert("System error: " + err.message);
+      }
     }
-  }
-};
+  };
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -98,7 +98,11 @@ export default function CreateSupplier() {
                     className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
-                {fieldErrors.name && <p className="mt-1 text-xs text-red-500">{fieldErrors.name}</p>}
+                {fieldErrors.name && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {fieldErrors.name}
+                  </p>
+                )}
               </div>
 
               {/* Email Address */}
@@ -118,7 +122,11 @@ export default function CreateSupplier() {
                     className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
-                {fieldErrors.contactEmail && <p className="mt-1 text-xs text-red-500">{fieldErrors.contactEmail}</p>}
+                {fieldErrors.contactEmail && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {fieldErrors.contactEmail}
+                  </p>
+                )}
               </div>
 
               {/* Phone Number */}
@@ -177,11 +185,12 @@ export default function CreateSupplier() {
                     onChange={handleChange}
                     className="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-8 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   >
-                    <option value="North Region">North Region</option>
-                    <option value="South Region">South Region</option>
-                    <option value="East Region">East Region</option>
-                    <option value="West Region">West Region</option>
-                    <option value="Global">Global</option>
+                    <option value="ASIA">Asia</option>
+                    <option value="EUROPE">Europe</option>
+                    <option value="NORTH_AMERICA">North America</option>
+                    <option value="SOUTH_AMERICA">South America</option>
+                    <option value="AFRICA">Africa</option>
+                    <option value="OCEANIA">Oceania</option>
                   </select>
                 </div>
               </div>
@@ -203,7 +212,11 @@ export default function CreateSupplier() {
                     className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
-                {fieldErrors.taxCode && <p className="mt-1 text-xs text-red-500">{fieldErrors.taxCode}</p>}
+                {fieldErrors.taxCode && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {fieldErrors.taxCode}
+                  </p>
+                )}
               </div>
 
               {/* Full Address (Textarea) */}

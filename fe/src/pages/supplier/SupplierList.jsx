@@ -5,6 +5,7 @@ import {
   getAllSuppliers,
   filterSuppliers,
   toggleSuspend,
+  approveSupplier,
 } from "../../api/supplierApi";
 import { useAuth } from "../../context/AuthContext";
 
@@ -51,7 +52,7 @@ export default function SupplierList() {
       const result = await getAllSuppliers(
         pageNumber,
         5,
-        filters.sort // gửi sort khi load all
+        filters.sort, // gửi sort khi load all
       );
 
       setSuppliers(result?.content || []);
@@ -130,21 +131,31 @@ export default function SupplierList() {
     await loadAllSuppliers(0);
   };
 
-  /* ================= TOGGLE STATUS ================= */
-  const handleToggleStatus = async (id) => {
+  const handleApprove = async (id) => {
+    try {
+      await approveSupplier(id, currentUser);
+      refreshList();
+    } catch (error) {
+      alert(error.message || "Approval failed");
+    }
+  };
+
+  const handleSuspend = async (id) => {
     try {
       await toggleSuspend(id, currentUser);
-
-      if (isSearching) {
-        loadFilteredSuppliers(page);
-      } else {
-        loadAllSuppliers(page);
-      }
+      refreshList();
     } catch (error) {
       alert(error.message || "Operation failed");
     }
   };
 
+  const refreshList = () => {
+    if (isSearching) {
+      loadFilteredSuppliers(page);
+    } else {
+      loadAllSuppliers(page);
+    }
+  };
   if (loading) {
     return <div className="p-10 text-gray-500">Loading suppliers...</div>;
   }
@@ -168,9 +179,7 @@ export default function SupplierList() {
       <div className="grid grid-cols-6 gap-4 bg-white p-4 rounded-xl shadow border">
         <select
           value={filters.status}
-          onChange={(e) =>
-            setFilters({ ...filters, status: e.target.value })
-          }
+          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
           className="border p-2 rounded"
         >
           <option value="">All Status</option>
@@ -181,17 +190,16 @@ export default function SupplierList() {
 
         <select
           value={filters.region}
-          onChange={(e) =>
-            setFilters({ ...filters, region: e.target.value })
-          }
+          onChange={(e) => setFilters({ ...filters, region: e.target.value })}
           className="border p-2 rounded"
         >
           <option value="">All Region</option>
-          <option value="South">South</option>
-          <option value="North">North</option>
-          <option value="East">East</option>
-          <option value="West">West</option>
-          <option value="Global">Global</option>
+          <option value="ASIA">Asia</option>
+          <option value="EUROPE">Europe</option>
+          <option value="NORTH_AMERICA">North America</option>
+          <option value="SOUTH_AMERICA">South America</option>
+          <option value="AFRICA">Africa</option>
+          <option value="OCEANIA">Oceania</option>
         </select>
 
         <input
@@ -233,10 +241,7 @@ export default function SupplierList() {
             Search
           </button>
 
-          <button
-            onClick={handleReset}
-            className="border px-4 rounded"
-          >
+          <button onClick={handleReset} className="border px-4 rounded">
             Reset
           </button>
         </div>
@@ -271,9 +276,7 @@ export default function SupplierList() {
                   <td className="px-5 py-3">{s.contactEmail}</td>
                   <td className="px-5 py-3">{s.region || "-"}</td>
                   <td className="px-5 py-3">{s.rating}</td>
-                  <td className="px-5 py-3">
-                    {formatDateTime(s.updateAt)}
-                  </td>
+                  <td className="px-5 py-3">{formatDateTime(s.updateAt)}</td>
                   <td className="px-5 py-3">{s.status}</td>
 
                   <td className="px-5 py-3 text-right">
@@ -286,10 +289,9 @@ export default function SupplierList() {
                         Detail
                       </button>
 
-                      {(s.status === "PENDING" ||
-                        s.status === "SUSPENDED") && (
+                      {(s.status === "PENDING" || s.status === "SUSPENDED") && (
                         <button
-                          onClick={() => handleToggleStatus(s.id)}
+                          onClick={() => handleApprove(s.id)}
                           className="bg-green-600 text-white px-3 py-1.5 text-xs rounded flex items-center gap-1"
                         >
                           <CheckCircle className="h-4 w-4" />
@@ -299,7 +301,7 @@ export default function SupplierList() {
 
                       {s.status === "APPROVED" && (
                         <button
-                          onClick={() => handleToggleStatus(s.id)}
+                          onClick={() => handleSuspend(s.id)}
                           className="bg-red-600 text-white px-3 py-1.5 text-xs rounded flex items-center gap-1"
                         >
                           <Ban className="h-4 w-4" />
