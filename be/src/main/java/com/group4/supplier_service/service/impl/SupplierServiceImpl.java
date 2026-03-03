@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -84,9 +86,7 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     public SupplierResponse createSupplier(SupplierCreateRequest dto, String createdBy) {
 
-        if (supplierRepository.existsByContactEmail(dto.contactEmail().trim().toLowerCase())) {
-            throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
-        }
+        validateBusinessRule(dto);
 
         Supplier supplier = Supplier.builder()
                 .name(dto.name().trim())
@@ -113,6 +113,26 @@ public class SupplierServiceImpl implements SupplierService {
             }
 
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
+    private void validateBusinessRule(SupplierCreateRequest dto) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        if (supplierRepository.existsByContactEmail(dto.contactEmail().trim())) {
+            errors.put("contactEmail", "Contact email is already in use");
+        }
+
+        if (supplierRepository.existsByTaxCode(dto.taxCode().trim())) {
+            errors.put("taxCode", "Tax code is already in use");
+        }
+
+        if (supplierRepository.existsByName(dto.name().trim())) {
+            errors.put("name", "Supplier name is already in use");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_INPUT, errors);
         }
     }
 

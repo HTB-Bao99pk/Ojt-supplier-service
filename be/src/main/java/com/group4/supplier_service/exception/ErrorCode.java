@@ -7,14 +7,15 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     // LỖI HỆ THỐNG CHUNG
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
-
+    // -- SUPPLIER SERVICE ERRORS (401 -> 500) --
     SUPPLIER_NOT_FOUND(404, "Supplier not found", HttpStatus.NOT_FOUND),
+    SUPPLIER_ALREADY_EXISTS(409, "Supplier name already exists", HttpStatus.CONFLICT),
     EMAIL_ALREADY_USED(409, "Contact email is already in use", HttpStatus.CONFLICT),
-    INVALID_FORMAT(400, "Invalid data format", HttpStatus.BAD_REQUEST);
+    INVALID_INPUT(400, "Invalid input data", HttpStatus.BAD_REQUEST),
+    INVALID_FORMAT(400, "Invalid data format", HttpStatus.BAD_REQUEST),
 
-
-
-
+    // -- PRODUCT SERVICE ERRORS (501 -> 600) --
+    PRODUCT_NOT_FOUND(501, "Product not found", HttpStatus.NOT_FOUND);
 
     private final int code;
     private final String message;
