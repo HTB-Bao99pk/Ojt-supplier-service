@@ -1,5 +1,6 @@
 package com.group4.supplier_service.controller;
 
+import com.group4.supplier_service.dto.request.SupplierProductUpdateRequest;
 import com.group4.supplier_service.dto.request.SupplierProductCreateRequest;
 import com.group4.supplier_service.dto.response.ApiResponse;
 import com.group4.supplier_service.dto.response.ProductResponse;
@@ -18,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/suppliers")
 @RequiredArgsConstructor
+@CrossOrigin("*")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SupplierProductController {
     SupplierProductService supplierProductService;
@@ -46,6 +48,14 @@ public class SupplierProductController {
         return ApiResponse.<List<SupplierComparisonResponse>>builder()
                 .message("Ranked supplier recommendation list generated successfully")
                 .result(supplierProductService.compareSuppliersByProduct(productId))
+                .build();
+    }
+
+    @PatchMapping("/{supplierId}/products/{productId}")
+    public ApiResponse<ProductResponse> updateSupplierProduct(@PathVariable String productId, @PathVariable String supplierId, @RequestBody @Valid SupplierProductUpdateRequest request){
+        return ApiResponse.<ProductResponse>builder()
+                .message("Update supplier product successfully")
+                .result(supplierProductService.updateSupplierProduct(productId, supplierId, request ))
                 .build();
     }
 
