@@ -128,4 +128,14 @@ public class SupplierController {
                 .result(supplierService.toggleSuspend(id, user))
                 .build();
     }
+    @GetMapping("/approved")
+    public ApiResponse<Page<SupplierResponse>> viewApprovedSuppliers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.<Page<SupplierResponse>>builder()
+                .message("view approved suppliers")
+                .result(supplierService.getApprovedSuppliers(page, size))
+                .build();
+    }
 }
