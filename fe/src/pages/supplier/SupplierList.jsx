@@ -6,6 +6,7 @@ import {
     filterSuppliers,
     toggleSuspend,
     approveSupplier,
+    searchSuppliersByKeyword,
 } from "../../api/supplierApi";
 import { useAuth } from "../../context/AuthContext";
 
@@ -19,6 +20,8 @@ export default function SupplierList() {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [isSearching, setIsSearching] = useState(false);
+    const [isKeywordSearching, setIsKeywordSearching] = useState(false);
+    const [keyword, setKeyword] = useState("");
 
     const defaultFilters = {
         status: "",
@@ -87,6 +90,27 @@ export default function SupplierList() {
         }
     };
 
+    /* ================= LOAD KEYWORD SEARCH ================= */
+    const loadKeywordSearch = async (pageNumber = page) => {
+        try {
+            setLoading(true);
+
+            const result = await searchSuppliersByKeyword(
+                keyword,
+                pageNumber,
+                5
+            );
+
+            setSuppliers(result?.content || []);
+            setTotalPages(result?.totalPages || 0);
+        } catch (error) {
+            console.error(error);
+            setSuppliers([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     /* ================= INITIAL LOAD ================= */
     useEffect(() => {
         loadAllSuppliers(0);
@@ -96,7 +120,9 @@ export default function SupplierList() {
     useEffect(() => {
         if (page === 0) return;
 
-        if (isSearching) {
+        if (isKeywordSearching) {
+            loadKeywordSearch(page);
+        } else if (isSearching) {
             loadFilteredSuppliers(page);
         } else {
             loadAllSuppliers(page);
@@ -119,14 +145,29 @@ export default function SupplierList() {
     /* ================= SEARCH ================= */
     const handleSearch = async () => {
         setIsSearching(true);
+        setIsKeywordSearching(false);
         setPage(0);
         await loadFilteredSuppliers(0);
+    };
+
+    /* ================= KEYWORD SEARCH ================= */
+    const handleKeywordSearch = async () => {
+        if (!keyword.trim()) {
+            alert("Please enter a keyword");
+            return;
+        }
+        setIsKeywordSearching(true);
+        setIsSearching(false);
+        setPage(0);
+        await loadKeywordSearch(0);
     };
 
     /* ================= RESET ================= */
     const handleReset = async () => {
         setFilters(defaultFilters);
         setIsSearching(false);
+        setIsKeywordSearching(false);
+        setKeyword("");
         setPage(0);
         await loadAllSuppliers(0);
     };
@@ -150,7 +191,9 @@ export default function SupplierList() {
     };
 
     const refreshList = () => {
-        if (isSearching) {
+        if (isKeywordSearching) {
+            loadKeywordSearch(page);
+        } else if (isSearching) {
             loadFilteredSuppliers(page);
         } else {
             loadAllSuppliers(page);
@@ -173,6 +216,24 @@ export default function SupplierList() {
                 >
                     <Plus className="h-4 w-4" />
                     Add Supplier
+                </button>
+            </div>
+
+            {/* ================= KEYWORD SEARCH ================= */}
+            <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl shadow-sm border border-blue-200">
+                <input
+                    type="text"
+                    placeholder="Search by keyword (name, email, etc.)..."
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleKeywordSearch()}
+                    className="flex-1 border border-blue-300 p-2.5 text-sm rounded-lg outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                    onClick={handleKeywordSearch}
+                    className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                >
+                    Search
                 </button>
             </div>
 

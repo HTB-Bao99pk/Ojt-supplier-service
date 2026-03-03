@@ -44,6 +44,23 @@ export const filterSuppliers = async (params) => {
 };
 
 /* =========================
+   SEARCH BY KEYWORD
+========================= */
+export const searchSuppliersByKeyword = async (keyword, page = 0, size = 10) => {
+    const res = await fetch(
+        `${BASE_URL}/suppliers/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${size}`
+    );
+
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Search failed.");
+    }
+
+    const data = await res.json();
+    return data.result; // Page object
+};
+
+/* =========================
    GET BY ID
 ========================= */
 export const getSupplierById = async (id) => {
