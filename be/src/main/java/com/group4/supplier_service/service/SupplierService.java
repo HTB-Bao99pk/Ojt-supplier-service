@@ -19,6 +19,6 @@ public interface SupplierService {
 
     SupplierResponse getSupplierById(String id);
 
-    Page<SupplierResponse> getApprovedSuppliersForFranchise(int page, int size);
+    Page<SupplierResponse> getApprovedSuppliers(int page, int size);
 
 }

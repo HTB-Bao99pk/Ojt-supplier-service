@@ -89,7 +89,7 @@ public class SupplierServiceImpl implements SupplierService {
         return mapToResponse(supplier);
     }
     @Override
-    public Page<SupplierResponse> getApprovedSuppliersForFranchise(int page, int size) {
+    public Page<SupplierResponse> getApprovedSuppliers(int page, int size) {
         return supplierRepository
                 .findByStatus(SupplierStatus.APPROVED, PageRequest.of(page, size))
                 .map(this::mapToResponse);
