@@ -1,7 +1,9 @@
 package com.group4.supplier_service.service.impl;
 
+import com.group4.supplier_service.dto.request.SupplierProductCreateRequest;
 import com.group4.supplier_service.dto.response.ProductResponse;
 import com.group4.supplier_service.dto.response.SupplierComparisonResponse;
+import com.group4.supplier_service.entity.Supplier;
 import com.group4.supplier_service.entity.SupplierProduct;
 import com.group4.supplier_service.exception.AppException;
 import com.group4.supplier_service.exception.ErrorCode;
@@ -38,7 +40,34 @@ public class SupplierProductServiceImpl implements SupplierProductService {
         }
         Pageable pageable = PageRequest.of(page, size);
         return supplierProductRepository.findBySupplierId(supplierId, pageable)
-                .map(product -> modelMapper.map(product, ProductResponse.class));
+                .map(this::mapToProductResponse);
+    }
+
+    @Override
+    public ProductResponse createSupplierProduct(String supplierId, SupplierProductCreateRequest request) {
+        Supplier supplier = supplierRepository.findById(supplierId)
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+
+        SupplierProduct supplierProduct = SupplierProduct.builder()
+                .supplier(supplier)
+                .productId(request.getProductId())
+                .price(request.getPrice())
+                .deliveryDateTimes(request.getDeliveryDateTimes())
+                .isActive(true)
+                .build();
+
+        SupplierProduct saved = supplierProductRepository.save(supplierProduct);
+        return mapToProductResponse(saved);
+    }
+
+    private ProductResponse mapToProductResponse(SupplierProduct product) {
+        return ProductResponse.builder()
+                .id(product.getId())
+                .productId(product.getProductId())
+                .price(product.getPrice())
+                .deliveryDateTimes(product.getDeliveryDateTimes())
+                .isActive(product.getIsActive())
+                .build();
     }
 
     @Override
