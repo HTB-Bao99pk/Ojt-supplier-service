@@ -153,7 +153,7 @@ public class SupplierServiceImpl implements SupplierService {
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
 
-        if (supplier.getStatus() != SupplierStatus.PENDING) {
+        if (supplier.getStatus() != SupplierStatus.PENDING && supplier.getStatus() != SupplierStatus.SUSPENDED) {
             throw new AppException(ErrorCode.INVALID_FORMAT);
         }
 
