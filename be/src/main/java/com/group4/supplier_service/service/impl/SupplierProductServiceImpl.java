@@ -1,5 +1,6 @@
 package com.group4.supplier_service.service.impl;
 
+import com.group4.supplier_service.dto.request.SupplierProductUpdateRequest;
 import com.group4.supplier_service.dto.response.ProductResponse;
 import com.group4.supplier_service.dto.response.SupplierComparisonResponse;
 import com.group4.supplier_service.entity.SupplierProduct;
@@ -99,6 +100,34 @@ public class SupplierProductServiceImpl implements SupplierProductService {
                 }
             });
             return resultList;
+    }
+
+    @Override
+    public ProductResponse updateSupplierProduct(String productId, String supplierId, SupplierProductUpdateRequest request) {
+        SupplierProduct supplierProduct = supplierProductRepository.findBySupplierIdAndProductId(supplierId, productId)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        boolean isChanged = false;
+
+        if (request.getPrice() != null && request.getPrice().compareTo(supplierProduct.getPrice()) != 0) {
+            supplierProduct.setPrice(request.getPrice());
+            isChanged = true;
+        }
+
+        if (request.getDeliveryDateTimes() != null && !request.getDeliveryDateTimes().equals(supplierProduct.getDeliveryDateTimes())) {
+            supplierProduct.setDeliveryDateTimes(request.getDeliveryDateTimes());
+            isChanged = true;
+        }
+
+        if (request.getIsActive() != null && !request.getIsActive().equals(supplierProduct.getIsActive())) {
+            supplierProduct.setIsActive(request.getIsActive());
+            isChanged = true;
+        }
+
+        if (isChanged) {
+            supplierProduct = supplierProductRepository.save(supplierProduct);
+        }
+        return modelMapper.map(supplierProduct, ProductResponse.class);
     }
 
     private double calculateScore100(double currentPrice, double minPrice, double rating, int currentDelivery, int minDelivery) {

@@ -1,9 +1,11 @@
 package com.group4.supplier_service.controller;
 
+import com.group4.supplier_service.dto.request.SupplierProductUpdateRequest;
 import com.group4.supplier_service.dto.response.ApiResponse;
 import com.group4.supplier_service.dto.response.ProductResponse;
 import com.group4.supplier_service.dto.response.SupplierComparisonResponse;
 import com.group4.supplier_service.service.SupplierProductService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -34,6 +36,14 @@ public class SupplierProductController {
         return ApiResponse.<List<SupplierComparisonResponse>>builder()
                 .message("Ranked supplier recommendation list generated successfully")
                 .result(supplierProductService.compareSuppliersByProduct(productId))
+                .build();
+    }
+
+    @PatchMapping("/{supplierId}/products/{productId}")
+    public ApiResponse<ProductResponse> updateSupplierProduct(@PathVariable String productId, @PathVariable String supplierId, @RequestBody @Valid SupplierProductUpdateRequest request){
+        return ApiResponse.<ProductResponse>builder()
+                .message("Update supplier product successfully")
+                .result(supplierProductService.updateSupplierProduct(productId, supplierId, request ))
                 .build();
     }
 

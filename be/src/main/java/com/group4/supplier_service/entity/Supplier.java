@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    String id;
+    String id ;
 
     @Column(nullable = false, unique = true)
     String name;
