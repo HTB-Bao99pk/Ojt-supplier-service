@@ -194,3 +194,26 @@ export const compareSuppliers = async (productId) => {
     const data = await res.json();
     return data.result; 
 };
+
+/* =========================
+   UPDATE SUPPLIER PRODUCT
+========================= */
+export const updateSupplierProduct = async (supplierId, productId, dataBody) => {
+    const res = await fetch(`${BASE_URL}/suppliers/${supplierId}/products/${productId}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            // Giả sử bạn dùng header USER để ghi log như các hàm khác
+            USER: "admin_user", 
+        },
+        body: JSON.stringify(dataBody),
+    });
+
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Update product failed.");
+    }
+
+    const data = await res.json();
+    return data.result;
+};
