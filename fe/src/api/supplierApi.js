@@ -142,3 +142,19 @@ export const approveSupplier = async (id, user) => {
     const data = await res.json();
     return data.result;
 };
+export const getProductsBySupplierId = async (supplierId, params = { page: 0, size: 10 }) => {
+    const query = new URLSearchParams();
+
+    Object.keys(params).forEach((key) => {
+        if (params[key] !== "" && params[key] !== null && params[key] !== undefined) {
+            query.append(key, params[key]);
+        }
+    });
+
+    const res = await fetch(`${BASE_URL}/suppliers/${supplierId}/products?${query.toString()}`);
+
+    if (!res.ok) throw new Error("Unable to fetch supplier products.");
+
+    const data = await res.json();
+    return data.result; // Backend trả về đối tượng Page chứa content và metadata phân trang
+};
