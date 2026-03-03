@@ -3,7 +3,9 @@ package com.group4.supplier_service.service.impl;
 import com.group4.supplier_service.dto.request.SupplierProductUpdateRequest;
 import com.group4.supplier_service.dto.response.ProductResponse;
 import com.group4.supplier_service.dto.response.SupplierComparisonResponse;
+import com.group4.supplier_service.entity.Supplier;
 import com.group4.supplier_service.entity.SupplierProduct;
+import com.group4.supplier_service.enums.SupplierStatus;
 import com.group4.supplier_service.exception.AppException;
 import com.group4.supplier_service.exception.ErrorCode;
 import com.group4.supplier_service.repository.SupplierProductRepository;
@@ -34,7 +36,9 @@ public class SupplierProductServiceImpl implements SupplierProductService {
 
     @Override
     public Page<ProductResponse> getProductBySupplierId(String supplierId, int page, int size) {
-        if(!supplierRepository.existsById(supplierId)){
+        Supplier supplier = supplierRepository.findById(supplierId)
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+        if(supplier.getStatus() == SupplierStatus.REJECTED){
             throw new AppException(ErrorCode.SUPPLIER_NOT_FOUND);
         }
         Pageable pageable = PageRequest.of(page, size);
@@ -49,7 +53,7 @@ public class SupplierProductServiceImpl implements SupplierProductService {
             throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
-        //Find min pric e and quick delivery
+        //Find min price and quick delivery
         double minPrice = Double.MAX_VALUE;
         int minDeliveryDays = Integer.MAX_VALUE;
 
