@@ -1,199 +1,342 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Eye, CheckCircle, Ban, Plus } from 'lucide-react';
-import { getAllSuppliers, toggleSuspend } from '../../api/supplierApi';
-import { useAuth } from '../../context/AuthContext';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Eye, CheckCircle, Ban, Plus } from "lucide-react";
+import {
+  getAllSuppliers,
+  filterSuppliers,
+  toggleSuspend,
+} from "../../api/supplierApi";
+import { useAuth } from "../../context/AuthContext";
 
 export default function SupplierList() {
-    const navigate = useNavigate();
-    const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
-    const [suppliers, setSuppliers] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    // --- State quản lý phân trang ---
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5; // Bạn có thể đổi số này nếu muốn hiện nhiều dòng hơn
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isSearching, setIsSearching] = useState(false);
 
-    const fetchSuppliers = async () => {
-        try {
-            const data = await getAllSuppliers();
+  const defaultFilters = {
+    status: "",
+    region: "",
+    minRating: "",
+    updatedAfter: "",
+    sort: "updateAt,desc",
+  };
 
-            if (data?.content) {
-                setSuppliers(data.content);
-            }
-            else if (Array.isArray(data)) {
-                setSuppliers(data);
-            }
-            else {
-                setSuppliers([]);
-            }
+  const [filters, setFilters] = useState(defaultFilters);
 
-        } catch (err) {
-            console.error('Fetch suppliers failed:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  /* ================= FORMAT DATE ================= */
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
 
-    useEffect(() => {
-        fetchSuppliers();
-    }, []);
+    return date.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-    const handleToggleStatus = async (supplierId) => {
-        try {
-            await toggleSuspend(supplierId, currentUser);
-            await fetchSuppliers();
-        } catch (err) {
-            alert(err?.response?.data?.message || 'Change status failed');
-        }
-    };
+  /* ================= LOAD ALL ================= */
+  const loadAllSuppliers = async (pageNumber = page) => {
+    try {
+      setLoading(true);
 
-    const renderStatusBadge = (status) => {
-        const base = 'px-3 py-1 rounded-full text-xs font-semibold';
+      const result = await getAllSuppliers(
+        pageNumber,
+        5,
+        filters.sort // gửi sort khi load all
+      );
 
-        if (status === 'APPROVED') return <span className={`${base} bg-green-100 text-green-700`}>APPROVED</span>;
-        if (status === 'PENDING') return <span className={`${base} bg-amber-100 text-amber-700`}>PENDING</span>;
-        if (status === 'SUSPENDED') return <span className={`${base} bg-red-100 text-red-700`}>SUSPENDED</span>;
-
-        return <span className={`${base} bg-gray-100 text-gray-600`}>{status}</span>;
-    };
-
-    // --- Xử lý cắt mảng dữ liệu cho trang hiện tại ---
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = suppliers.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(suppliers.length / itemsPerPage);
-
-    const handleNextPage = () => {
-        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-    };
-
-    const handlePrevPage = () => {
-        if (currentPage > 1) setCurrentPage(currentPage - 1);
-    };
-
-    if (loading) {
-        return <div className="p-10 text-gray-500">Loading suppliers...</div>;
+      setSuppliers(result?.content || []);
+      setTotalPages(result?.totalPages || 0);
+    } catch (error) {
+      console.error(error);
+      setSuppliers([]);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return (
-        <div className="space-y-6">
+  /* ================= LOAD FILTER ================= */
+  const loadFilteredSuppliers = async (pageNumber = page) => {
+    try {
+      setLoading(true);
 
-            {/* --- ĐÃ KHÔI PHỤC HEADER CÓ NÚT ADD SUPPLIER TẠI ĐÂY --- */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
-                    <p className="mt-1 text-sm text-gray-600">Manage your supplier directory and statuses.</p>
-                </div>
-                <button
-                    onClick={() => navigate('/suppliers/create')}
-                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-                >
-                    <Plus className="h-4 w-4" />
-                    Add Supplier
-                </button>
-            </div>
+      const result = await filterSuppliers({
+        ...filters,
+        page: pageNumber,
+        size: 5,
+        sort: filters.sort,
+      });
 
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full border-collapse">
-                        <thead className="bg-gray-50 text-left text-sm font-semibold text-gray-600">
-                        <tr>
-                            <th className="border-b border-gray-200 px-5 py-3">Name</th>
-                            <th className="border-b border-gray-200 px-5 py-3">Email</th>
-                            <th className="border-b border-gray-200 px-5 py-3">Region</th>
-                            <th className="border-b border-gray-200 px-5 py-3">Material</th>
-                            <th className="border-b border-gray-200 px-5 py-3">Status</th>
-                            <th className="border-b border-gray-200 px-5 py-3 text-right">Actions</th>
-                        </tr>
-                        </thead>
+      setSuppliers(result?.content || []);
+      setTotalPages(result?.totalPages || 0);
+    } catch (error) {
+      console.error(error);
+      setSuppliers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                        <tbody className="divide-y divide-gray-200">
-                        {/* Hiển thị currentItems thay vì toàn bộ suppliers */}
-                        {currentItems.map((s) => (
-                            <tr key={s.id} className="transition-colors hover:bg-gray-50">
-                                <td className="px-5 py-3 font-medium text-gray-900">{s.name}</td>
-                                <td className="px-5 py-3 text-sm text-gray-600">{s.contactEmail}</td>
-                                <td className="px-5 py-3 text-sm text-gray-600">{s.region || '-'}</td>
-                                <td className="px-5 py-3 text-sm text-gray-600">{s.materialType || '-'}</td>
-                                <td className="px-5 py-3">{renderStatusBadge(s.status)}</td>
+  /* ================= INITIAL LOAD ================= */
+  useEffect(() => {
+    loadAllSuppliers(0);
+  }, []);
 
-                                <td className="px-5 py-3">
-                                    <div className="flex justify-end gap-2">
-                                        <button
-                                            onClick={() => navigate(`/suppliers/${s.id}`)}
-                                            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                                        >
-                                            <Eye className="h-4 w-4 text-gray-500" />
-                                            Detail
-                                        </button>
+  /* ================= PAGE CHANGE ================= */
+  useEffect(() => {
+    if (page === 0) return;
 
-                                        {(s.status === 'PENDING' || s.status === 'SUSPENDED') && (
-                                            <button
-                                                onClick={() => handleToggleStatus(s.id)}
-                                                className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-green-700"
-                                            >
-                                                <CheckCircle className="h-4 w-4" />
-                                                Approve
-                                            </button>
-                                        )}
+    if (isSearching) {
+      loadFilteredSuppliers(page);
+    } else {
+      loadAllSuppliers(page);
+    }
+  }, [page]);
 
-                                        {s.status === 'APPROVED' && (
-                                            <button
-                                                onClick={() => handleToggleStatus(s.id)}
-                                                className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-red-700"
-                                            >
-                                                <Ban className="h-4 w-4" />
-                                                Suspend
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+  /* ================= SORT CHANGE ================= */
+  const handleSortChange = async (value) => {
+    const updatedFilters = { ...filters, sort: value };
+    setFilters(updatedFilters);
+    setPage(0);
 
-                        {suppliers.length === 0 && (
-                            <tr>
-                                <td colSpan="6" className="px-5 py-10 text-center text-gray-500">
-                                    No suppliers found
-                                </td>
-                            </tr>
-                        )}
-                        </tbody>
-                    </table>
-                </div>
+    if (isSearching) {
+      await loadFilteredSuppliers(0);
+    } else {
+      await loadAllSuppliers(0);
+    }
+  };
 
-                {/* --- Thanh UI Phân trang chuẩn Figma --- */}
-                {suppliers.length > 0 && (
-                    <div className="flex items-center justify-between border-t border-gray-200 bg-white px-6 py-4">
-                        <span className="text-sm text-gray-500">
-                            Showing <span className="font-medium text-gray-900">{indexOfFirstItem + 1}</span> to{' '}
-                            <span className="font-medium text-gray-900">
-                                {Math.min(indexOfLastItem, suppliers.length)}
-                            </span>{' '}
-                            of <span className="font-medium text-gray-900">{suppliers.length}</span> results
-                        </span>
+  /* ================= SEARCH ================= */
+  const handleSearch = async () => {
+    setIsSearching(true);
+    setPage(0);
+    await loadFilteredSuppliers(0);
+  };
 
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handlePrevPage}
-                                disabled={currentPage === 1}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Previous
-                            </button>
-                            <button
-                                onClick={handleNextPage}
-                                disabled={currentPage === totalPages}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+  /* ================= RESET ================= */
+  const handleReset = async () => {
+    setFilters(defaultFilters);
+    setIsSearching(false);
+    setPage(0);
+    await loadAllSuppliers(0);
+  };
+
+  /* ================= TOGGLE STATUS ================= */
+  const handleToggleStatus = async (id) => {
+    try {
+      await toggleSuspend(id, currentUser);
+
+      if (isSearching) {
+        loadFilteredSuppliers(page);
+      } else {
+        loadAllSuppliers(page);
+      }
+    } catch (error) {
+      alert(error.message || "Operation failed");
+    }
+  };
+
+  if (loading) {
+    return <div className="p-10 text-gray-500">Loading suppliers...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* ================= HEADER ================= */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Suppliers</h1>
+
+        <button
+          onClick={() => navigate("/suppliers/create")}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
+          <Plus className="h-4 w-4" />
+          Add Supplier
+        </button>
+      </div>
+
+      {/* ================= FILTER ================= */}
+      <div className="grid grid-cols-6 gap-4 bg-white p-4 rounded-xl shadow border">
+        <select
+          value={filters.status}
+          onChange={(e) =>
+            setFilters({ ...filters, status: e.target.value })
+          }
+          className="border p-2 rounded"
+        >
+          <option value="">All Status</option>
+          <option value="PENDING">PENDING</option>
+          <option value="APPROVED">APPROVED</option>
+          <option value="SUSPENDED">SUSPENDED</option>
+        </select>
+
+        <select
+          value={filters.region}
+          onChange={(e) =>
+            setFilters({ ...filters, region: e.target.value })
+          }
+          className="border p-2 rounded"
+        >
+          <option value="">All Region</option>
+          <option value="South">South</option>
+          <option value="North">North</option>
+          <option value="East">East</option>
+          <option value="West">West</option>
+          <option value="Global">Global</option>
+        </select>
+
+        <input
+          type="number"
+          placeholder="Min rating"
+          value={filters.minRating}
+          onChange={(e) =>
+            setFilters({ ...filters, minRating: e.target.value })
+          }
+          className="border p-2 rounded"
+        />
+
+        <input
+          type="datetime-local"
+          value={filters.updatedAfter}
+          onChange={(e) =>
+            setFilters({ ...filters, updatedAfter: e.target.value })
+          }
+          className="border p-2 rounded"
+        />
+
+        {/* SORTING */}
+        <select
+          value={filters.sort}
+          onChange={(e) => handleSortChange(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="updateAt,desc">Updated ↓</option>
+          <option value="updateAt,asc">Updated ↑</option>
+          <option value="rating,desc">Rating ↓</option>
+          <option value="rating,asc">Rating ↑</option>
+        </select>
+
+        <div className="flex gap-2">
+          <button
+            onClick={handleSearch}
+            className="bg-blue-600 text-white px-4 rounded"
+          >
+            Search
+          </button>
+
+          <button
+            onClick={handleReset}
+            className="border px-4 rounded"
+          >
+            Reset
+          </button>
         </div>
-    );
+      </div>
+
+      {/* ================= TABLE ================= */}
+      <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+        <table className="min-w-full">
+          <thead className="bg-gray-50 text-sm font-semibold text-gray-600">
+            <tr>
+              <th className="px-5 py-3 text-left">Name</th>
+              <th className="px-5 py-3 text-left">Email</th>
+              <th className="px-5 py-3 text-left">Region</th>
+              <th className="px-5 py-3 text-left">Rating</th>
+              <th className="px-5 py-3 text-left">Updated</th>
+              <th className="px-5 py-3 text-left">Status</th>
+              <th className="px-5 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {suppliers.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="text-center py-8 text-gray-500">
+                  No suppliers found
+                </td>
+              </tr>
+            ) : (
+              suppliers.map((s) => (
+                <tr key={s.id} className="hover:bg-gray-50">
+                  <td className="px-5 py-3">{s.name}</td>
+                  <td className="px-5 py-3">{s.contactEmail}</td>
+                  <td className="px-5 py-3">{s.region || "-"}</td>
+                  <td className="px-5 py-3">{s.rating}</td>
+                  <td className="px-5 py-3">
+                    {formatDateTime(s.updateAt)}
+                  </td>
+                  <td className="px-5 py-3">{s.status}</td>
+
+                  <td className="px-5 py-3 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => navigate(`/suppliers/${s.id}`)}
+                        className="border px-3 py-1.5 text-xs rounded"
+                      >
+                        <Eye className="h-4 w-4 inline mr-1" />
+                        Detail
+                      </button>
+
+                      {(s.status === "PENDING" ||
+                        s.status === "SUSPENDED") && (
+                        <button
+                          onClick={() => handleToggleStatus(s.id)}
+                          className="bg-green-600 text-white px-3 py-1.5 text-xs rounded flex items-center gap-1"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          Approve
+                        </button>
+                      )}
+
+                      {s.status === "APPROVED" && (
+                        <button
+                          onClick={() => handleToggleStatus(s.id)}
+                          className="bg-red-600 text-white px-3 py-1.5 text-xs rounded flex items-center gap-1"
+                        >
+                          <Ban className="h-4 w-4" />
+                          Suspend
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ================= PAGINATION ================= */}
+      <div className="flex justify-center gap-3">
+        <button
+          disabled={page === 0}
+          onClick={() => setPage(page - 1)}
+          className="px-4 py-2 border rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+
+        <span className="px-4 py-2">
+          Page {page + 1} / {totalPages}
+        </span>
+
+        <button
+          disabled={page + 1 >= totalPages}
+          onClick={() => setPage(page + 1)}
+          className="px-4 py-2 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
 }
