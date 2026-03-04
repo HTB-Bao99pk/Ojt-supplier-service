@@ -6,6 +6,7 @@ import SupplierList from "./pages/supplier/SupplierList";
 import SupplierDetail from "./pages/supplier/SupplierDetail";
 import UpdateSupplier from "./pages/supplier/UpdateSupplier";
 import CreateSupplier from './pages/supplier/CreateSupplier';
+import ViewApprovedSupplier from './pages/supplier/ViewApprovedSupplier';
 import CompareSuppliers from './pages/supplier/CompareSuppliers';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
 
                 {/* Supplier routes */}
                 <Route path="suppliers" element={<SupplierList />} />
+                <Route path="suppliers/approved" element={<ViewApprovedSupplier />} />
                 <Route path="suppliers/:id" element={<SupplierDetail />} />
                 <Route path="suppliers/update/:id" element={<UpdateSupplier />} />
                 <Route path="/suppliers/create" element={<CreateSupplier />} />
