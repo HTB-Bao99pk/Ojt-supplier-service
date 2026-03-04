@@ -3,6 +3,7 @@ package com.group4.supplier_service.service;
 import com.group4.supplier_service.dto.request.SupplierCreateRequest;
 import com.group4.supplier_service.dto.response.SupplierResponse;
 import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
+import com.group4.supplier_service.entity.SupplierAuditLog;
 import com.group4.supplier_service.enums.SupplierStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,5 +30,7 @@ public interface SupplierService {
     Page<SupplierResponse> filterSuppliers(SupplierStatus status, String region, BigDecimal minRating, LocalDateTime updatedAfter, Pageable pageable);
 
     Page<SupplierResponse> getApprovedSuppliers(int page, int size);
+
+    Page<SupplierAuditLog> getAuditLogsBySupplierId(String supplierId, int page, int size);
 
 }
