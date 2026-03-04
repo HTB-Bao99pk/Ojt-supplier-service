@@ -228,3 +228,10 @@ export const getApprovedSuppliers = async (page = 0, size = 10) => {
     const data = await res.json();
     return data.result; // Page object
 };
+
+export const getSupplierAuditLogs = async (supplierId, page = 0, size = 10) => {
+    const res = await fetch(`${BASE_URL}/suppliers/${supplierId}/audit-logs?page=${page}&size=${size}`);
+    if (!res.ok) throw new Error("Unable to fetch audit logs.");
+    const data = await res.json();
+    return data.result;
+};

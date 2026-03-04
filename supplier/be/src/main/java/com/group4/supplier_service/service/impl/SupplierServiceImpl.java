@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ public class SupplierServiceImpl implements SupplierService {
 
     private final SupplierRepository supplierRepository;
     private final SupplierAuditLogRepository auditLogRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     public SupplierResponse updateSupplier(String supplierId, SupplierUpdateRequest dto, String updatedBy) {
@@ -100,6 +102,11 @@ public class SupplierServiceImpl implements SupplierService {
                 .map(this::mapToResponse);
     }
 
+    @Override
+    public Page<SupplierAuditLog> getAuditLogsBySupplierId(String supplierId, int page, int size) {
+        return auditLogRepository.findBySupplierIdOrderByPerformedAtDesc(
+                supplierId, PageRequest.of(page, size));
+    }
 
     @Override
     public SupplierResponse createSupplier(SupplierCreateRequest dto, String createdBy) {
@@ -206,13 +213,20 @@ public class SupplierServiceImpl implements SupplierService {
                 .map(this::mapToResponse);
     }
 
-    private void saveAuditLog(Supplier supplier, AuditAction action, String performedBy) {
+    private String toJson(Object obj) {
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (Exception e) {
+            return "{}";
+        }
+    }
 
+    private void saveAuditLog(Supplier supplier, AuditAction action, String performedBy) {
         SupplierAuditLog auditLog = SupplierAuditLog.builder()
                 .supplier(supplier)
                 .action(action)
-                .newData("Name: " + supplier.getName() +
-                        ", Email: " + supplier.getContactEmail())
+                .oldData(null)
+                .newData(toJson(supplier))
                 .performedBy(performedBy)
                 .performedAt(LocalDateTime.now())
                 .build();
@@ -262,29 +276,15 @@ public class SupplierServiceImpl implements SupplierService {
                 .build();
     }
 
-    private void auditLog(Supplier supplier,
-                          Supplier oldData,
-                          Supplier newData,
-                          String updatedBy,
-                          AuditAction action) {
+    private void auditLog(Supplier supplier, Supplier oldData, Supplier newData, String updatedBy, AuditAction action) {
+        String oldDataJson = (oldData != null) ? toJson(oldData) : null;
+        String newDataJson = (newData != null) ? toJson(newData) : null;
 
         SupplierAuditLog auditLog = SupplierAuditLog.builder()
                 .supplier(supplier)
                 .action(action)
-                .oldData("name=" + oldData.getName()
-                        + ", email=" + oldData.getContactEmail()
-                        + ", phone=" + oldData.getPhone()
-                        + ", address=" + oldData.getAddress()
-                        + ", region=" + oldData.getRegion()
-                        + ", materialType=" + oldData.getMaterialType()
-                        + ", taxCode=" + oldData.getTaxCode())
-                .newData("name=" + newData.getName()
-                        + ", email=" + newData.getContactEmail()
-                        + ", phone=" + newData.getPhone()
-                        + ", address=" + newData.getAddress()
-                        + ", region=" + newData.getRegion()
-                        + ", materialType=" + newData.getMaterialType()
-                        + ", taxCode=" + newData.getTaxCode())
+                .oldData(oldDataJson)
+                .newData(newDataJson)
                 .performedBy(updatedBy)
                 .performedAt(LocalDateTime.now())
                 .build();

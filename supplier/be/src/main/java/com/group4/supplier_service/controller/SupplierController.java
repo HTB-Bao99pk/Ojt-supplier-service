@@ -4,6 +4,7 @@ import com.group4.supplier_service.dto.response.ApiResponse;
 import com.group4.supplier_service.dto.request.SupplierCreateRequest;
 import com.group4.supplier_service.dto.response.SupplierResponse;
 import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
+import com.group4.supplier_service.entity.SupplierAuditLog;
 import com.group4.supplier_service.enums.SupplierStatus;
 import com.group4.supplier_service.service.SupplierService;
 import jakarta.validation.Valid;
@@ -136,6 +137,18 @@ public class SupplierController {
         return ApiResponse.<Page<SupplierResponse>>builder()
                 .message("view approved suppliers")
                 .result(supplierService.getApprovedSuppliers(page, size))
+                .build();
+    }
+
+    @GetMapping("/{id}/audit-logs")
+    public ApiResponse<Page<SupplierAuditLog>> getAuditLogs(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.<Page<SupplierAuditLog>>builder()
+                .message("Get audit logs successfully")
+                .result(supplierService.getAuditLogsBySupplierId(id, page, size))
                 .build();
     }
 }
