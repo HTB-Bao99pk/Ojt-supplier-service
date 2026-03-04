@@ -1,17 +1,32 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Menu, X, Coffee } from "lucide-react";
+import { LayoutDashboard, Users, Menu, X, Coffee, CheckCircle } from "lucide-react";
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
     const location = useLocation();
 
-    // Menu chỉ giữ lại Dashboard và Supplier
+    // Menu chỉ giữ lại Dashboard, Supplier Management và Supplier (approved view)
     const navigationItems = [
         { path: "/", label: "Dashboard", icon: LayoutDashboard },
         { path: "/suppliers", label: "Supplier Management", icon: Users },
+        { path: "/suppliers/approved", label: "Supplier", icon: CheckCircle },
     ];
 
     const isActive = (path) => {
+        // root exact
         if (path === "/") return location.pathname === "/";
+
+        // make approved page exact-match so it doesn't unintentionally activate the parent
+        if (path === "/suppliers/approved") return location.pathname === "/suppliers/approved";
+
+        // for the Supplier Management parent, match /suppliers and its subpaths except /suppliers/approved
+        if (path === "/suppliers") {
+            return (
+                location.pathname === "/suppliers" ||
+                (location.pathname.startsWith("/suppliers/") && !location.pathname.startsWith("/suppliers/approved"))
+            );
+        }
+
+        // fallback: startsWith
         return location.pathname.startsWith(path);
     };
 

@@ -159,10 +159,6 @@ export const approveSupplier = async (id, user) => {
     const data = await res.json();
     return data.result;
 };
-
-/* =========================
-   GET PRODUCTS BY SUPPLIER ID
-========================= */
 export const getProductsBySupplierId = async (supplierId, params = { page: 0, size: 10 }) => {
     const query = new URLSearchParams();
 
@@ -192,7 +188,7 @@ export const compareSuppliers = async (productId) => {
     }
 
     const data = await res.json();
-    return data.result; 
+    return data.result;
 };
 
 /* =========================
@@ -204,7 +200,7 @@ export const updateSupplierProduct = async (supplierId, productId, dataBody) => 
         headers: {
             "Content-Type": "application/json",
             // Giả sử bạn dùng header USER để ghi log như các hàm khác
-            USER: "admin_user", 
+            USER: "admin_user",
         },
         body: JSON.stringify(dataBody),
     });
@@ -216,4 +212,19 @@ export const updateSupplierProduct = async (supplierId, productId, dataBody) => 
 
     const data = await res.json();
     return data.result;
+};
+
+/* =========================
+   GET APPROVED SUPPLIERS
+========================= */
+export const getApprovedSuppliers = async (page = 0, size = 10) => {
+    const res = await fetch(`${BASE_URL}/suppliers/approved?page=${page}&size=${size}`);
+
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Unable to fetch approved suppliers.");
+    }
+
+    const data = await res.json();
+    return data.result; // Page object
 };
