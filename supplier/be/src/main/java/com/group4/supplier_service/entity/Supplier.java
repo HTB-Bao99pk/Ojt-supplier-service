@@ -72,4 +72,7 @@ public class Supplier {
     @Column(name = "update_at")
     @UpdateTimestamp
     LocalDateTime updateAt;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    String rejectionReason;
 }

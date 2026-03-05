@@ -140,25 +140,26 @@ export const createSupplier = async (dataBody, user) => {
 };
 
 /* =========================
-   APPROVE
+   APPROVE, REJECT
 ========================= */
-export const approveSupplier = async (id, user) => {
+export const reviewSupplier = async (id, status, user, reason = "") => {
     const res = await fetch(
-        `${BASE_URL}/suppliers/${id}/approve`,
+        `${BASE_URL}/suppliers/${id}/review?status=${status}&reason=${encodeURIComponent(reason)}`,
         {
-            method: "PUT",
+            method: "PATCH",
             headers: { USER: user },
         }
     );
 
     if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Approval failed.");
+        throw new Error(errorData.message || "Review failed.");
     }
 
     const data = await res.json();
     return data.result;
 };
+
 export const getProductsBySupplierId = async (supplierId, params = { page: 0, size: 10 }) => {
     const query = new URLSearchParams();
 

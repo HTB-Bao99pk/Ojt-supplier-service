@@ -108,14 +108,16 @@ public class SupplierController {
                 .build();
     }
 
-    @PutMapping("/{id}/approve")
-    public ApiResponse<SupplierResponse> approveSupplier(
+    @PatchMapping("/{id}/review")
+    public ApiResponse<SupplierResponse> reviewSupplier(
             @PathVariable String id,
+            @RequestParam SupplierStatus status,
+            @RequestParam(required = false) String reason,
             @RequestHeader("USER") String user
     ) {
         return ApiResponse.<SupplierResponse>builder()
-                .message("Approve supplier successfully")
-                .result(supplierService.approveSupplier(id, user))
+                .message("Review supplier successfully")
+                .result(supplierService.reviewSupplier(id, status, reason, user))
                 .build();
     }
 

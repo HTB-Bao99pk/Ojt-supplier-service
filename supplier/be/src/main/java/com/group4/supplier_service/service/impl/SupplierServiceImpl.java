@@ -155,6 +155,9 @@ public class SupplierServiceImpl implements SupplierService {
         if (supplierRepository.existsByName(dto.name().trim())) {
             errors.put("name", "Supplier name is already in use");
         }
+        if (supplierRepository.existsByPhone(dto.phone().trim())) {
+            errors.put("phone", "Phone number is already in use");
+        }
 
         if (!errors.isEmpty()) {
             throw new AppException(ErrorCode.INVALID_INPUT, errors);
@@ -162,25 +165,32 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public SupplierResponse approveSupplier(String supplierId, String approvedBy) {
-
+    public SupplierResponse reviewSupplier(String supplierId, SupplierStatus status, String reason, String reviewedBy) {
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
 
-        if (supplier.getStatus() != SupplierStatus.PENDING && supplier.getStatus() != SupplierStatus.SUSPENDED) {
-            throw new AppException(ErrorCode.INVALID_FORMAT);
-        }
-
         Supplier oldData = cloneSupplier(supplier);
 
-        supplier.setStatus(SupplierStatus.APPROVED);
-        supplier.setApprovedBy(approvedBy);
+        supplier.setStatus(status);
+        if (status == SupplierStatus.REJECTED) {
+            supplier.setRejectionReason(reason);
+        }
+        supplier.setApprovedBy(reviewedBy);
         supplier.setApprovedAt(LocalDateTime.now());
-        supplier.setUpdateBy(approvedBy);
+        supplier.setUpdateBy(reviewedBy);
 
         Supplier saved = supplierRepository.save(supplier);
 
-        auditLog(saved, oldData, saved, approvedBy, AuditAction.APPROVE);
+        AuditAction action;
+        if (status == SupplierStatus.APPROVED || status == SupplierStatus.SUSPENDED) {
+            action = AuditAction.APPROVE;
+        } else if (status == SupplierStatus.REJECTED) {
+            action = AuditAction.REJECT;
+        } else {
+            action = AuditAction.UPDATE;
+        }
+
+        auditLog(saved, oldData, saved, reviewedBy, action);
 
         return mapToResponse(saved);
     }
