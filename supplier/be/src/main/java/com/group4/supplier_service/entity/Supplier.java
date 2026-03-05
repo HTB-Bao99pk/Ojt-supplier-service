@@ -3,7 +3,6 @@ package com.group4.supplier_service.entity;
 import com.group4.supplier_service.enums.SupplierStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;

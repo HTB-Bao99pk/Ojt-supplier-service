@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Alpha Supplies",
+    "contactEmail": "alpha@example.com",
+    "phone": "0900000001",
+    "materialType": "Steel",
+    "taxCode": "TAX10001",
+    "address": "10 Alpha Street, Hometown",
+    "region": "Asia",
+    "status": "APPROVED",
+    "rating": 4.5,
+    "createBy": "data-seed"
+  },
+  {
+    "name": "Beta Traders",
+    "contactEmail": "beta@example.com",
+    "phone": "0900000002",
+    "materialType": "Plastic",
+    "taxCode": "TAX10002",
+    "address": "20 Beta Avenue, Hometown",
+    "region": "Europe",
+    "status": "APPROVED",
+    "rating": 4.2,
+    "createBy": "data-seed"
+  },
+  {
+    "name": "Gamma Industries",
+    "contactEmail": "gamma@example.com",
+    "phone": "0900000003",
+    "materialType": "Chemicals",
+    "taxCode": "TAX10003",
+    "address": "30 Gamma Road, Hometown",
+    "region": "North America",
+    "status": "PENDING",
+    "rating": 3.8,
+    "createBy": "data-seed"
+  },
+  {
+    "name": "Delta Components",
+    "contactEmail": "delta@example.com",
+    "phone": "0900000004",
+    "materialType": "Electronics",
+    "taxCode": "TAX10004",
+    "address": "40 Delta Blvd, Hometown",
+    "region": "South America",
+    "status": "APPROVED",
+    "rating": 4.7,
+    "createBy": "data-seed"
+  },
+  {
+    "name": "Epsilon Materials",
+    "contactEmail": "epsilon@example.com",
+    "phone": "0900000005",
+    "materialType": "Rubber",
+    "taxCode": "TAX10005",
+    "address": "50 Epsilon Lane, Hometown",
+    "region": "Africa",
+    "status": "PENDING",
+    "rating": 3.9,
+    "createBy": "data-seed"
+  },
+  {
+    "name": "Zeta Logistics",
+    "contactEmail": "zeta@example.com",
+    "phone": "0900000006",
+    "materialType": "Logistics",
+    "taxCode": "TAX10006",
+    "address": "60 Zeta Park, Hometown",
+    "region": "Oceania",
+    "status": "APPROVED",
+    "rating": 4.1,
+    "createBy": "data-seed"
+  },
+  {
+    "name": "Eta Supplies",
+    "contactEmail": "eta@example.com",
+    "phone": "0900000007",
+    "materialType": "Glass",
+    "taxCode": "TAX10007",
+    "address": "70 Eta Terrace, Hometown",
+    "region": "Asia",
+    "status": "APPROVED",
+    "rating": 4.0,
+    "createBy": "data-seed"
+  },
+  {
+    "name": "Theta Manufacturing",
+    "contactEmail": "theta@example.com",
+    "phone": "0900000008",
+    "materialType": "Machinery",
+    "taxCode": "TAX10008",
+    "address": "80 Theta Street, Hometown",
+    "region": "Europe",
+    "status": "PENDING",
+    "rating": 3.6,
+    "createBy": "data-seed"
+  },
+  {
+    "name": "Iota Parts",
+    "contactEmail": "iota@example.com",
+    "phone": "0900000009",
+    "materialType": "Components",
+    "taxCode": "TAX10009",
+    "address": "90 Iota Road, Hometown",
+    "region": "North America",
+    "status": "APPROVED",
+    "rating": 4.3,
+    "createBy": "data-seed"
+  },
+  {
+    "name": "Kappa Enterprises",
+    "contactEmail": "kappa@example.com",
+    "phone": "0900000010",
+    "materialType": "Textiles",
+    "taxCode": "TAX10010",
+    "address": "100 Kappa Avenue, Hometown",
+    "region": "South America",
+    "status": "PENDING",
+    "rating": 3.7,
+    "createBy": "data-seed"
+  }
+]

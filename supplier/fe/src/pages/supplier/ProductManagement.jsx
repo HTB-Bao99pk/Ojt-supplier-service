@@ -1,15 +1,15 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Eye, CheckCircle, Ban } from "lucide-react";
 import { getProducts } from "../../api/productService";
 
 export default function ProductManagement() {
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
     const defaultFilters = {
-        productId: "",
+        query: "",
         // Keep only required filters
         minPrice: "",
         maxPrice: "",
@@ -23,24 +23,70 @@ export default function ProductManagement() {
     // Small helper to format price
     const formatPrice = (value) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value || 0);
 
-    const loadProducts = useCallback(async (pageNumber = 0) => {
+    // loadProducts now accepts filters as an explicit argument so it won't run automatically on input change
+    const loadProducts = useCallback(async (pageNumber = 0, searchFilters) => {
+        if (!searchFilters) return; // avoid accidental calls without explicit filters
         try {
             setLoading(true);
-            const params = {
-                // Only send allowed filter params
-                productId: filters.productId,
-                minPrice: filters.minPrice,
-                maxPrice: filters.maxPrice,
-                deliveryDateTimes: filters.deliveryDateTimes,
-                isActive: filters.isActive,
-                page: pageNumber,
-                size: 5,
-            };
 
-            const result = await getProducts(params);
-            setProducts(result?.content || []);
-            setTotalPages(result?.totalPages || 0);
-            setPage(pageNumber);
+            const size = 5; // page size used in UI
+
+            // If query is provided, perform OR search by productId OR supplierId
+            if (searchFilters.query && searchFilters.query.trim() !== "") {
+                const q = searchFilters.query.trim();
+                // We'll fetch a sufficiently large page to merge results client-side.
+                // NOTE: for large datasets consider implementing server-side OR filter or pagination.
+                const FETCH_ALL_SIZE = 1000;
+
+                const baseParams = {
+                    minPrice: searchFilters.minPrice !== "" ? searchFilters.minPrice : undefined,
+                    maxPrice: searchFilters.maxPrice !== "" ? searchFilters.maxPrice : undefined,
+                    deliveryDateTimes: searchFilters.deliveryDateTimes !== "" ? searchFilters.deliveryDateTimes : undefined,
+                    isActive: searchFilters.isActive === "" ? undefined : (String(searchFilters.isActive) === "true"),
+                    // page and size will be set per call
+                };
+
+                const [byProduct, bySupplier] = await Promise.all([
+                    getProducts({ ...baseParams, productId: q, page: 0, size: FETCH_ALL_SIZE }),
+                    getProducts({ ...baseParams, supplierId: q, page: 0, size: FETCH_ALL_SIZE }),
+                ]);
+
+                const listA = byProduct?.content || [];
+                const listB = bySupplier?.content || [];
+
+                // Merge and deduplicate by supplier-product id (use id field)
+                const map = new Map();
+                listA.forEach((it) => { if (it && it.id) map.set(it.id, it); });
+                listB.forEach((it) => { if (it && it.id) map.set(it.id, it); });
+
+                const merged = Array.from(map.values());
+
+                // Client-side pagination of merged results
+                const total = merged.length;
+                const pages = Math.max(1, Math.ceil(total / size));
+                const start = pageNumber * size;
+                const end = start + size;
+                const pageItems = merged.slice(start, end);
+
+                setProducts(pageItems);
+                setTotalPages(pages);
+                setPage(pageNumber);
+            } else {
+                // No query -> use server-side pagination/filtering
+                const params = {
+                    minPrice: searchFilters.minPrice !== "" ? searchFilters.minPrice : undefined,
+                    maxPrice: searchFilters.maxPrice !== "" ? searchFilters.maxPrice : undefined,
+                    deliveryDateTimes: searchFilters.deliveryDateTimes !== "" ? searchFilters.deliveryDateTimes : undefined,
+                    isActive: searchFilters.isActive === "" ? undefined : (String(searchFilters.isActive) === "true"),
+                    page: pageNumber,
+                    size: size,
+                };
+
+                const result = await getProducts(params);
+                setProducts(result?.content || []);
+                setTotalPages(result?.totalPages || 0);
+                setPage(pageNumber);
+            }
         } catch (err) {
             console.error(err);
             setProducts([]);
@@ -49,20 +95,24 @@ export default function ProductManagement() {
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, []);
 
+    // On mount, load all products so clicking Sidebar -> Product Management shows the full list
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        loadProducts(0);
+        // use current filters (which are the defaults on first mount) to load all products
+        loadProducts(0, filters);
+        // We intentionally keep dependencies minimal so this runs only on mount
     }, [loadProducts]);
 
     const handleSearch = () => {
-        loadProducts(0);
+        // Trigger API call using the current filters state
+        loadProducts(0, filters);
     };
 
     const handleReset = () => {
-        // Reset only the filter fields requested
-        setFilters({ ...filters, minPrice: "", maxPrice: "", deliveryDateTimes: "", isActive: "" });
-        loadProducts(0);
+        // Reset only the filter fields requested; do not auto-trigger search
+        setFilters((prev) => ({ ...prev, minPrice: "", maxPrice: "", deliveryDateTimes: "", isActive: "" }));
     };
 
     return (
@@ -73,13 +123,15 @@ export default function ProductManagement() {
 
             {/* Search */}
             <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl shadow-sm border border-blue-200 mt-4">
-                <input
-                    type="text"
-                    value={filters.productId || ""}
-                    onChange={(e) => setFilters({ ...filters, productId: e.target.value })}
-                    placeholder="Search by productId or supplierId..."
-                    className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-blue-500"
-                />
+                <div className="flex flex-1">
+                    <input
+                        type="text"
+                        value={filters.query || ""}
+                        onChange={(e) => setFilters({ ...filters, query: e.target.value })}
+                        placeholder="Search by productId or supplierId..."
+                        className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-blue-500"
+                    />
+                </div>
                 <button onClick={handleSearch} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white">Search</button>
             </div>
 
@@ -116,8 +168,8 @@ export default function ProductManagement() {
                         className="h-10 px-3 rounded-lg border border-gray-300 text-sm outline-none bg-white"
                     >
                         <option value="">All</option>
-                        <option value={true}>Active</option>
-                        <option value={false}>Inactive</option>
+                        <option value={"true"}>Active</option>
+                        <option value={"false"}>Inactive</option>
                     </select>
 
                     {/* Buttons: on md+ screens occupy the 5th column to stay on the same row */}
@@ -190,7 +242,7 @@ export default function ProductManagement() {
                     <div className="flex items-center gap-3">
                         <button
                             disabled={page === 0}
-                            onClick={() => { if (page > 0) { loadProducts(page - 1); } }}
+                            onClick={() => { if (page > 0) { loadProducts(page - 1, filters); } }}
                             className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700"
                         >
                             Previous
@@ -200,7 +252,7 @@ export default function ProductManagement() {
 
                         <button
                             disabled={page + 1 >= totalPages || totalPages === 0}
-                            onClick={() => { if (page + 1 < totalPages) { loadProducts(page + 1); } }}
+                            onClick={() => { if (page + 1 < totalPages) { loadProducts(page + 1, filters); } }}
                             className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700"
                         >
                             Next
