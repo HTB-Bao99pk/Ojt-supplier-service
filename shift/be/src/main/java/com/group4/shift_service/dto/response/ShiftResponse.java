@@ -20,4 +20,5 @@ public class ShiftResponse {
     String branchId;
     String createBy;
     LocalDateTime createAt;
+    String status;
 }
