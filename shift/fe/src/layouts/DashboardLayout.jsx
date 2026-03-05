@@ -1,20 +1,31 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar.jsx";
-import AppHeader from "../components/AppHeader.jsx";
+import AppHeader from "../components/AppHeader";
+import Sidebar from "../components/Sidebar";
+import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 
 export default function DashboardLayout() {
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    // Trạng thái thu phóng của Sidebar
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     return (
-        <div className="flex h-screen w-full bg-gray-50 overflow-hidden">
-            {/* Thanh Sidebar bên trái */}
-            <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <div className="flex min-h-screen">
+            {/* Sidebar (Cố định góc trái) - Truyền hàm toggle xuống */}
+            <Sidebar
+                isCollapsed={isSidebarCollapsed}
+                onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            />
 
-            {/* Khu vực nội dung chính */}
-            <div className="flex flex-1 flex-col overflow-hidden">
-                <AppHeader />
-                <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+            <div className="flex-1 flex flex-col bg-gray-50 transition-all duration-300">
+                {/* App Header (Thanh trên) - Cần biết trạng thái thu phóng để căn lề trái */}
+                <AppHeader isSidebarCollapsed={isSidebarCollapsed} />
+
+                {/* Main Content (Nội dung chính) - Tự động giãn margin theo Sidebar */}
+                <main
+                    className="flex-1 p-6 transition-all duration-300"
+                    style={{ marginLeft: isSidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
+                >
+                    {/* Nơi hiển thị các trang con */}
                     <Outlet />
                 </main>
             </div>

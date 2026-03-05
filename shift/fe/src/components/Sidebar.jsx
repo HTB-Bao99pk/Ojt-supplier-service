@@ -1,87 +1,88 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Menu, X, Coffee, CheckCircle } from "lucide-react";
+import {
+    LayoutDashboard,
+    CalendarDays,
+    CalendarPlus,
+    Users,
+    Settings,
+    Coffee,
+    ChevronLeft,
+    ChevronRight
+} from "lucide-react";
+import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 
-export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
+export default function Sidebar({ isCollapsed, onToggle }) {
     const location = useLocation();
 
-    // Menu chỉ giữ lại Dashboard, Supplier Management và Supplier (approved view)
-    const navigationItems = [
-        { path: "/", label: "Dashboard", icon: LayoutDashboard },
-        { path: "/suppliers", label: "Supplier Management", icon: Users },
-        { path: "/suppliers/approved", label: "Supplier", icon: CheckCircle },
+    const menuItems = [
+        { name: "Dashboard", path: "/", icon: LayoutDashboard },
+        { name: "All Shifts", path: "/shifts", icon: CalendarDays },
+        { name: "Create Shift", path: "/shifts/create", icon: CalendarPlus },
+        { name: "Staff Directory", path: "/staff", icon: Users },
+        { name: "Settings", path: "/settings", icon: Settings },
     ];
-
-    const isActive = (path) => {
-        // root exact
-        if (path === "/") return location.pathname === "/";
-
-        // make approved page exact-match so it doesn't unintentionally activate the parent
-        if (path === "/suppliers/approved") return location.pathname === "/suppliers/approved";
-
-        // for the Supplier Management parent, match /suppliers and its subpaths except /suppliers/approved
-        if (path === "/suppliers") {
-            return (
-                location.pathname === "/suppliers" ||
-                (location.pathname.startsWith("/suppliers/") && !location.pathname.startsWith("/suppliers/approved"))
-            );
-        }
-
-        // fallback: startsWith
-        return location.pathname.startsWith(path);
-    };
 
     return (
         <aside
-            className={`${
-                sidebarOpen ? 'w-64' : 'w-20'
-            } bg-gradient-to-b from-amber-900 to-amber-950 text-white transition-all duration-300 flex flex-col z-20 shrink-0`}
+            className="bg-slate-900 text-white flex flex-col h-screen fixed left-0 top-0 z-20 transition-all duration-300 border-r border-slate-800"
+            style={{ width: isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
         >
-            {/* Logo */}
-            <div className="p-4 flex items-center gap-3 border-b border-amber-800">
-                <div className="bg-amber-600 p-2 rounded-lg flex-shrink-0">
-                    <Coffee className="w-6 h-6" />
-                </div>
-                {sidebarOpen && (
-                    <div className="overflow-hidden whitespace-nowrap">
-                        <h1 className="font-bold text-lg leading-tight">Capital Coffee</h1>
-                        <p className="text-xs text-amber-300">Supply Chain Hub</p>
+            {/* ================= LOGO & BRANDING ================= */}
+            <div className="h-16 flex items-center px-5 border-b border-slate-800 shrink-0 overflow-hidden">
+                <Coffee className={`h-8 w-8 text-amber-500 shrink-0 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
+
+                {!isCollapsed && (
+                    <div className="flex flex-col whitespace-nowrap">
+                        <span className="text-sm font-bold tracking-widest text-white leading-tight">
+                            CAPITAL COFFEE
+                        </span>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">
+                            Supply Chain Hub
+                        </span>
                     </div>
                 )}
             </div>
 
-            {/* Navigation Menu */}
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                {navigationItems.map((item) => {
+            {/* ================= NAVIGATION MENU ================= */}
+            <nav className={`flex-1 ${isCollapsed ? 'py-6 px-2' : 'py-6 px-3'} space-y-2 overflow-y-auto scrollbar-hide`}>
+                {menuItems.map((item) => {
                     const Icon = item.icon;
-                    const active = isActive(item.path);
+                    const isActive = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== "/");
+
                     return (
                         <Link
-                            key={item.path}
+                            key={item.name}
                             to={item.path}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-                                active
-                                    ? 'bg-amber-600 text-white shadow-sm'
-                                    : 'text-amber-100 hover:bg-amber-800'
-                            }`}
+                            className={`flex items-center rounded-lg transition-all group ${
+                                isActive
+                                    ? "bg-amber-600 text-white shadow-md"
+                                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                            } ${isCollapsed ? 'justify-center py-3' : 'px-3 py-2.5'}`}
+                            title={isCollapsed ? item.name : ''}
                         >
-                            <Icon className="w-5 h-5 flex-shrink-0" />
-                            {sidebarOpen && (
-                                <span className="text-sm font-medium whitespace-nowrap">
-                                    {item.label}
-                                </span>
+                            <Icon className={`h-5 w-5 shrink-0 ${isCollapsed ? '' : 'mr-3'} ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`} />
+                            {!isCollapsed && (
+                                <span className="font-medium text-sm whitespace-nowrap">{item.name}</span>
                             )}
                         </Link>
                     );
                 })}
             </nav>
 
-            {/* Nút Thu gọn / Mở rộng Sidebar */}
-            <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-4 border-t border-amber-800 hover:bg-amber-800 transition-colors flex justify-center items-center"
-            >
-                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+            {/* ================= BOTTOM TOGGLE BUTTON ================= */}
+            <div className="h-14 border-t border-slate-800 flex items-center justify-center shrink-0">
+                <button
+                    onClick={onToggle}
+                    className="p-2 rounded-lg text-slate-400 hover:bg-slate-700 hover:text-white transition-colors focus:outline-none"
+                    title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+                >
+                    {isCollapsed ? (
+                        <ChevronRight className="h-5 w-5" />
+                    ) : (
+                        <ChevronLeft className="h-5 w-5" />
+                    )}
+                </button>
+            </div>
         </aside>
     );
 }

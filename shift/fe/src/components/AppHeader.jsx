@@ -1,70 +1,39 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Search, Bell, User, Settings, LogOut, Package } from "lucide-react";
+import { Bell, Search, Coffee } from "lucide-react";
+import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 
-export default function AppHeader() {
-    const [userMenuOpen, setUserMenuOpen] = useState(false);
-    const navigate = useNavigate();
-
-    const currentUser = {
-        name: "John Anderson",
-        role: "Admin",
-        email: "john@capitalcoffee.com",
-        avatar: "JA"
-    };
-
+export default function AppHeader({ isSidebarCollapsed }) {
     return (
-        <header className="relative z-10 flex h-[72px] shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
-            <button
-                onClick={() => navigate("/")}
-                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2.5 text-xl font-bold text-white shadow-md transition-all hover:from-amber-600 hover:to-amber-700 hover:shadow-lg"
-            >
-                <Package className="h-6 w-6" />
-                Supplier Portal
-            </button>
-            
+        <header
+            className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-10 transition-all duration-300"
+            style={{ marginLeft: isSidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
+        >
+            {/* Left side: Logo & BRAND NAME (Mới thêm) */}
             <div className="flex items-center gap-4">
-                <button className="relative flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-gray-100">
-                    <Bell className="h-5 w-5 text-gray-600" />
-                    <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full border-2 border-white bg-red-500"></span>
-                </button>
-                <div className="relative">
-                    <button
-                        onClick={() => setUserMenuOpen(!userMenuOpen)}
-                        className={`flex items-center gap-3 rounded-lg border p-1 pr-1.5 transition-all ${
-                            userMenuOpen ? "border-gray-300 bg-gray-50 shadow-sm" : "border-transparent hover:border-gray-200 hover:bg-gray-50"
-                        }`}
-                    >
-                        <div className="hidden pl-2 text-right md:block">
-                            <p className="text-sm font-medium leading-tight text-gray-900">{currentUser.name}</p>
-                            <p className="text-xs leading-tight text-gray-500">{currentUser.role}</p>
-                        </div>
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-600">
-                            <span className="text-sm font-medium text-white">{currentUser.avatar}</span>
-                        </div>
-                    </button>
-                    {userMenuOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg">
-                            <div className="border-b border-gray-100 px-4 py-3">
-                                <p className="font-medium text-gray-900">{currentUser.name}</p>
-                                <p className="text-sm text-gray-500">{currentUser.email}</p>
-                            </div>
-                            <div className="py-1">
-                                <Link to="/profile" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setUserMenuOpen(false)}>
-                                    <User className="h-4 w-4 text-gray-500" /> My Profile
-                                </Link>
-                                <Link to="/settings" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setUserMenuOpen(false)}>
-                                    <Settings className="h-4 w-4 text-gray-500" /> Settings
-                                </Link>
-                            </div>
-                            <div className="mt-1 border-t border-gray-100 py-1">
-                                <button onClick={() => navigate("/login")} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <LogOut className="h-4 w-4 text-gray-500" /> Sign Out
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                <div className="flex items-center">
+                    <Coffee className="h-7 w-7 text-blue-500 mr-2.5" />
+                    <span className="text-xl font-bold tracking-wider">SHIFT<span className="text-blue-400">SYNC</span></span>
                 </div>
+                <div className="text-gray-300 text-2xl font-extralight">|</div>
+                <h2 className="text-sm font-medium text-gray-500">Shift Management</h2>
+            </div>
+
+            {/* Right side: Search & Bell actions */}
+            <div className="flex items-center gap-4 flex-1 justify-end">
+                <div className="relative w-80">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Search shifts, staff, branches..."
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    />
+                </div>
+
+                <button className="relative p-2 text-gray-400 hover:bg-gray-100 rounded-full transition-colors">
+                    <Bell className="h-5 w-5" />
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                </button>
             </div>
         </header>
     );
