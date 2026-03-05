@@ -2,6 +2,7 @@ package com.group4.supplier_service.service.impl;
 
 import com.group4.supplier_service.dto.request.SupplierProductUpdateRequest;
 import com.group4.supplier_service.dto.request.SupplierProductCreateRequest;
+import com.group4.supplier_service.dto.request.SupplierProductFilterRequest;
 import com.group4.supplier_service.dto.response.ProductResponse;
 import com.group4.supplier_service.dto.response.SupplierComparisonResponse;
 import com.group4.supplier_service.entity.Supplier;
@@ -12,6 +13,7 @@ import com.group4.supplier_service.exception.ErrorCode;
 import com.group4.supplier_service.repository.SupplierProductRepository;
 import com.group4.supplier_service.repository.SupplierRepository;
 import com.group4.supplier_service.service.SupplierProductService;
+import com.group4.supplier_service.specification.SupplierProductSpecification;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,6 +21,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -34,6 +37,33 @@ public class SupplierProductServiceImpl implements SupplierProductService {
     SupplierRepository supplierRepository;
     SupplierProductRepository supplierProductRepository;
     ModelMapper modelMapper;
+
+    @Override
+    public Page<ProductResponse> getSupplierProducts(SupplierProductFilterRequest request, Pageable pageable) {
+        // Build specification
+        var spec = SupplierProductSpecification.fromFilter(request);
+
+        // Apply sorting if pageable has none but request contains sort info - caller should set pageable normally
+        Pageable pageToUse = pageable;
+        Page<SupplierProduct> page = supplierProductRepository.findAll(spec, pageToUse);
+        return page.map(this::mapToProductResponseWithSupplier);
+    }
+
+    private ProductResponse mapToProductResponseWithSupplier(SupplierProduct product) {
+        ProductResponse.ProductResponseBuilder builder = ProductResponse.builder()
+                .id(product.getId())
+                .productId(product.getProductId())
+                .price(product.getPrice())
+                .deliveryDateTimes(product.getDeliveryDateTimes())
+                .isActive(product.getIsActive())
+                .createAt(product.getCreateAt())
+                .updateAt(product.getUpdateAt());
+
+        if (product.getSupplier() != null) {
+            builder.supplierId(product.getSupplier().getId());
+        }
+        return builder.build();
+    }
 
     @Override
     public Page<ProductResponse> getProductBySupplierId(String supplierId, int page, int size) {
@@ -71,6 +101,9 @@ public class SupplierProductServiceImpl implements SupplierProductService {
                 .price(product.getPrice())
                 .deliveryDateTimes(product.getDeliveryDateTimes())
                 .isActive(product.getIsActive())
+                .supplierId(product.getSupplier() != null ? product.getSupplier().getId() : null)
+                .createAt(product.getCreateAt())
+                .updateAt(product.getUpdateAt())
                 .build();
     }
 

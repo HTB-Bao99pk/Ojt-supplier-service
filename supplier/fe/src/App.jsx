@@ -9,6 +9,7 @@ import CreateSupplier from './pages/supplier/CreateSupplier';
 import ViewApprovedSupplier from './pages/supplier/ViewApprovedSupplier';
 import CompareSuppliers from './pages/supplier/CompareSuppliers';
 import SupplierAuditLogs from "./pages/supplier/SupplierAuditLogs";
+import ProductManagement from "./pages/supplier/ProductManagement";
 
 function App() {
     return (
@@ -27,6 +28,7 @@ function App() {
                 <Route path="/suppliers/create" element={<CreateSupplier />} />
                 <Route path="suppliers/compare/:productId" element={<CompareSuppliers />} />
                 <Route path="suppliers/:id/audit" element={<SupplierAuditLogs />} />
+                <Route path="products" element={<ProductManagement />} />
             </Route>
         </Routes>
     );
