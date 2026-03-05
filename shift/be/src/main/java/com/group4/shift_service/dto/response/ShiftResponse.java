@@ -21,4 +21,5 @@ public class ShiftResponse {
     String createBy;
     LocalDateTime createAt;
     String status;
+    int staffCount;
 }
