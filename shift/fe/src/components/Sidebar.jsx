@@ -18,6 +18,7 @@ export default function Sidebar({ isCollapsed, onToggle }) {
         { name: "Dashboard", path: "/", icon: LayoutDashboard },
         { name: "All Shifts", path: "/shifts", icon: CalendarDays },
         { name: "Create Shift", path: "/shifts/create", icon: CalendarPlus },
+        { name: "Attendance", path: "/attendance", icon: CalendarDays },
         { name: "Staff Directory", path: "/staff", icon: Users },
         { name: "Settings", path: "/settings", icon: Settings },
     ];

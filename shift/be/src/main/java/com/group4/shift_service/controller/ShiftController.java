@@ -4,14 +4,19 @@ import com.group4.shift_service.dto.request.ShiftCreateRequest;
 import com.group4.shift_service.dto.request.ShiftUpdateRequest;
 import com.group4.shift_service.dto.response.ApiResponse;
 import com.group4.shift_service.dto.response.ShiftResponse;
+import com.group4.shift_service.dto.response.StaffResponse;
 import com.group4.shift_service.service.ShiftService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/shifts")
@@ -33,15 +38,25 @@ public class ShiftController {
                 .build();
     }
 
-    // GỘP LẠI THÀNH 1 API DUY NHẤT: Hỗ trợ phân trang
     @GetMapping
-    public ApiResponse<Page<ShiftResponse>> getAllShifts(
+    public ApiResponse<?> getAllShifts(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
+
+        if (date != null) {
+            return ApiResponse.<List<ShiftResponse>>builder()
+                    .code(200)
+                    .message("Fetch shifts by date successfully")
+                    .result(shiftService.getShiftsByDate(date))
+                    .build();
+        }
+
         return ApiResponse.<Page<ShiftResponse>>builder()
                 .code(200)
                 .message("Fetch shifts successfully")
-                .result(shiftService.getAllShifts(page, size)) // Gọi hàm có 2 tham số
+                .result(shiftService.getAllShifts(page, size))
                 .build();
     }
 
@@ -72,6 +87,16 @@ public class ShiftController {
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Shift deleted successfully")
+                .build();
+    }
+
+    @GetMapping("/{shiftId}/staff")
+    public ApiResponse<List<StaffResponse>> getStaffByShift(
+            @PathVariable String shiftId) {
+        return ApiResponse.<List<StaffResponse>>builder()
+                .code(200)
+                .message("Fetch staff by shift successfully")
+                .result(shiftService.getStaffByShift(shiftId))
                 .build();
     }
 }
