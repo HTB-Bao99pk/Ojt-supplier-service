@@ -2,20 +2,20 @@ import { Routes, Route } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ShiftDashboard from "./pages/shift/ShiftDashboard";
 import CreateShift from "./pages/shift/CreateShift";
+import ShiftList from "./pages/shift/ShiftList";
+import UpdateShift from "./pages/shift/UpdateShift";
 
 function App() {
     return (
         <Routes>
             <Route path="/" element={<DashboardLayout />}>
-                {/* Trang chủ mặc định là Shift Dashboard */}
                 <Route index element={<ShiftDashboard />} />
 
-                {/* Các route của Shift */}
+                {/* Router cho Shift */}
+                <Route path="shifts" element={<ShiftList />} />
                 <Route path="shifts/create" element={<CreateShift />} />
+                <Route path="shifts/update/:id" element={<UpdateShift />} />
 
-                {/* Tạm thời index trỏ về Create Shift */}
-                {/* <Route path="shifts" element={<ShiftList />} /> */}
-                {/* <Route path="staff" element={<StaffList />} /> */}
             </Route>
         </Routes>
     );

@@ -234,4 +234,15 @@ export const getSupplierAuditLogs = async (supplierId, page = 0, size = 10) => {
     if (!res.ok) throw new Error("Unable to fetch audit logs.");
     const data = await res.json();
     return data.result;
+
+};
+export const deleteShift = async (id) => {
+    const res = await fetch(`${BASE_URL}/shifts/${id}`, {
+        method: "DELETE",
+    });
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to delete shift");
+    }
+    return true;
 };
