@@ -9,6 +9,7 @@ import {
   MapPin,
   FileText,
   Factory,
+  Loader,
 } from "lucide-react";
 import { createSupplier } from "../../api/supplierApi";
 import { useAuth } from "../../context/AuthContext";
@@ -16,30 +17,43 @@ import { useAuth } from "../../context/AuthContext";
 export default function CreateSupplier() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  
   const [fieldErrors, setFieldErrors] = useState({
     contactEmail: "",
     name: "",
     taxCode: "",
+    phone: "",
   });
+
   const [formData, setFormData] = useState({
     name: "",
     contactEmail: "",
     phone: "",
-    region: "Asia",
+    region: "ASIA",
     taxCode: "",
     address: "",
     materialType: "",
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFieldErrors({});
+    setSuccessMessage("");
+    setIsSubmitting(true);
 
     try {
       await createSupplier(formData, currentUser);
-      alert("Supplier created successfully!");
-      navigate("/suppliers");
+      setSuccessMessage("Supplier created successfully!");
+      
+      // Giữ trạng thái isSubmitting = true để nút luôn mờ cho đến khi chuyển trang
+      setTimeout(() => {
+        navigate("/suppliers");
+      }, 2000);
     } catch (err) {
+      setIsSubmitting(false); // Mở lại nút nếu có lỗi để người dùng sửa
       if (err.errors && typeof err.errors === "object") {
         setFieldErrors(err.errors);
       } else {
@@ -47,6 +61,7 @@ export default function CreateSupplier() {
       }
     }
   };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -81,7 +96,6 @@ export default function CreateSupplier() {
               Basic Information
             </h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {/* Company Name (Chiếm trọn 2 cột) */}
               <div className="sm:col-span-2">
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Company Name *
@@ -99,13 +113,10 @@ export default function CreateSupplier() {
                   />
                 </div>
                 {fieldErrors.name && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {fieldErrors.name}
-                  </p>
+                  <p className="mt-1 text-xs text-red-500">{fieldErrors.name}</p>
                 )}
               </div>
 
-              {/* Email Address */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Email Address *
@@ -123,16 +134,13 @@ export default function CreateSupplier() {
                   />
                 </div>
                 {fieldErrors.contactEmail && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {fieldErrors.contactEmail}
-                  </p>
+                  <p className="mt-1 text-xs text-red-500">{fieldErrors.contactEmail}</p>
                 )}
               </div>
 
-              {/* Phone Number */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Phone Number
+                  Phone Number *
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -146,7 +154,11 @@ export default function CreateSupplier() {
                     className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
+                {fieldErrors.phone && (
+                  <p className="mt-1 text-xs text-red-500">{fieldErrors.phone}</p>
+                )}
               </div>
+
               <div className="sm:col-span-2">
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Supplier Type *
@@ -172,7 +184,6 @@ export default function CreateSupplier() {
               Location & Legal
             </h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {/* Region Select */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Operating Region
@@ -195,10 +206,9 @@ export default function CreateSupplier() {
                 </div>
               </div>
 
-              {/* Tax ID */}
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Tax ID / Registration No.
+                  Tax ID / Registration No. *
                 </label>
                 <div className="relative">
                   <FileText className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -213,16 +223,13 @@ export default function CreateSupplier() {
                   />
                 </div>
                 {fieldErrors.taxCode && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {fieldErrors.taxCode}
-                  </p>
+                  <p className="mt-1 text-xs text-red-500">{fieldErrors.taxCode}</p>
                 )}
               </div>
 
-              {/* Full Address (Textarea) */}
               <div className="sm:col-span-2">
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Full Address
+                  Full Address *
                 </label>
                 <textarea
                   name="address"
@@ -238,22 +245,38 @@ export default function CreateSupplier() {
           </div>
         </div>
 
-        {/* Footer: Nút Hành động */}
-        <div className="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50/80 px-6 py-4">
-          <button
-            type="button"
-            onClick={() => navigate("/suppliers")}
-            className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            <Save className="h-4 w-4" />
-            Save Supplier
-          </button>
+        {/* Footer: Thông báo và Nút Hành động */}
+        <div className="flex flex-col items-end gap-3 border-t border-gray-200 bg-gray-50/80 px-6 py-4">
+          {successMessage && (
+            <div className="flex items-center gap-2 text-sm font-medium text-green-600 animate-pulse">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              {successMessage}
+            </div>
+          )}
+          
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/suppliers")}
+              className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <Loader className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {isSubmitting ? "Saving..." : "Save Supplier"}
+            </button>
+          </div>
         </div>
       </form>
     </div>

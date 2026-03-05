@@ -4,5 +4,6 @@ public enum AuditAction {
     CREATE,
     UPDATE,
     APPROVE,
-    SUSPEND
+    SUSPEND,
+    REJECT,
 }

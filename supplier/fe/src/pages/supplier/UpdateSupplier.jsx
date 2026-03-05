@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Activity } from 'lucide-react';
+import { ArrowLeft, Save, Activity, Loader } from 'lucide-react';
 import { getSupplierById, updateSupplier } from '../../api/supplierApi';
 import { useAuth } from '../../context/AuthContext';
 
@@ -10,6 +10,7 @@ export default function UpdateSupplier() {
     const { currentUser } = useAuth();
 
     const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -28,7 +29,6 @@ export default function UpdateSupplier() {
         const fetchSupplier = async () => {
             try {
                 const data = await getSupplierById(id);
-
                 setFormData({
                     name: data.name || '',
                     contactEmail: data.contactEmail || '',
@@ -54,6 +54,7 @@ export default function UpdateSupplier() {
         e.preventDefault();
         setSuccessMsg('');
         setErrorMsg('');
+        setIsSubmitting(true);
 
         const payload = {
             name: formData.name,
@@ -66,15 +67,14 @@ export default function UpdateSupplier() {
 
         try {
             await updateSupplier(id, payload, currentUser);
-
             setSuccessMsg('✅ Supplier updated successfully');
-
             setTimeout(() => {
                 navigate(`/suppliers`);
-            }, 1200);
+            }, 500);
 
         } catch (err) {
             setErrorMsg(err.message || '❌ Update supplier failed');
+            setIsSubmitting(false); // Chỉ mở lại nút nếu lưu thất bại
         }
     };
 
@@ -83,12 +83,16 @@ export default function UpdateSupplier() {
     };
 
     if (loading) {
-        return <div className="p-10 text-gray-500">Loading supplier data...</div>;
+        return (
+            <div className="flex flex-col items-center justify-center p-20 text-gray-500">
+                <Loader className="h-8 w-8 animate-spin mb-2" />
+                <p>Loading supplier data...</p>
+            </div>
+        );
     }
 
     return (
         <div className="max-w-4xl space-y-6">
-
             <div className="flex items-center gap-4">
                 <Link
                     to={`/suppliers/${id}`}
@@ -103,23 +107,21 @@ export default function UpdateSupplier() {
             </div>
 
             {successMsg && (
-                <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 animate-in fade-in duration-300">
                     {successMsg}
                 </div>
             )}
 
             {errorMsg && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-in fade-in duration-300">
                     {errorMsg}
                 </div>
             )}
 
             <form onSubmit={handleSubmit} className="rounded-xl border border-gray-200 bg-white shadow-sm">
                 <div className="space-y-8 p-6 sm:p-8">
-
                     <div>
                         <h3 className="mb-4 border-b pb-2 text-lg font-medium">Basic Information</h3>
-
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div className="sm:col-span-2">
                                 <label className="block text-sm font-medium">Company Name</label>
@@ -128,7 +130,8 @@ export default function UpdateSupplier() {
                                     value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    className="mt-1 w-full rounded-lg border px-4 py-2.5"
+                                    disabled={isSubmitting}
+                                    className="mt-1 w-full rounded-lg border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50"
                                 />
                             </div>
 
@@ -136,10 +139,12 @@ export default function UpdateSupplier() {
                                 <label className="block text-sm font-medium">Email</label>
                                 <input
                                     name="contactEmail"
+                                    type="email"
                                     value={formData.contactEmail}
                                     onChange={handleChange}
                                     required
-                                    className="mt-1 w-full rounded-lg border px-4 py-2.5"
+                                    disabled={isSubmitting}
+                                    className="mt-1 w-full rounded-lg border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50"
                                 />
                             </div>
 
@@ -149,7 +154,8 @@ export default function UpdateSupplier() {
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    className="mt-1 w-full rounded-lg border px-4 py-2.5"
+                                    disabled={isSubmitting}
+                                    className="mt-1 w-full rounded-lg border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50"
                                 />
                             </div>
                         </div>
@@ -157,7 +163,6 @@ export default function UpdateSupplier() {
 
                     <div>
                         <h3 className="mb-4 border-b pb-2 text-lg font-medium">Business Info</h3>
-
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <label className="block text-sm font-medium">Region</label>
@@ -165,7 +170,8 @@ export default function UpdateSupplier() {
                                     name="region"
                                     value={formData.region}
                                     onChange={handleChange}
-                                    className="mt-1 w-full rounded-lg border px-4 py-2.5"
+                                    disabled={isSubmitting}
+                                    className="mt-1 w-full rounded-lg border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50"
                                 >
                                     <option value="North">North</option>
                                     <option value="South">South</option>
@@ -181,7 +187,8 @@ export default function UpdateSupplier() {
                                     name="materialType"
                                     value={formData.materialType}
                                     onChange={handleChange}
-                                    className="mt-1 w-full rounded-lg border px-4 py-2.5"
+                                    disabled={isSubmitting}
+                                    className="mt-1 w-full rounded-lg border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50"
                                 />
                             </div>
 
@@ -202,7 +209,8 @@ export default function UpdateSupplier() {
                                     value={formData.address}
                                     onChange={handleChange}
                                     rows={3}
-                                    className="mt-1 w-full rounded-lg border px-4 py-2.5"
+                                    disabled={isSubmitting}
+                                    className="mt-1 w-full rounded-lg border px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50"
                                 />
                             </div>
                         </div>
@@ -225,27 +233,30 @@ export default function UpdateSupplier() {
                                     }`}
                             />
                         </div>
-                        <p className="mt-1 text-xs text-gray-500 italic">
-                            Status is managed in Supplier List (Approve / Suspend)
-                        </p>
                     </div>
                 </div>
 
                 <div className="flex justify-end gap-3 border-t bg-gray-50 px-6 py-4">
                     <button
                         type="button"
+                        disabled={isSubmitting}
                         onClick={() => navigate(`/suppliers/${id}`)}
-                        className="rounded-lg border bg-white px-5 py-2.5 text-sm"
+                        className="rounded-lg border bg-white px-5 py-2.5 text-sm hover:bg-gray-50 disabled:opacity-50"
                     >
                         Cancel
                     </button>
 
                     <button
                         type="submit"
-                        className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                        disabled={isSubmitting}
+                        className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                        <Save className="h-4 w-4" />
-                        Save Changes
+                        {isSubmitting ? (
+                            <Loader className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Save className="h-4 w-4" />
+                        )}
+                        {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
             </form>

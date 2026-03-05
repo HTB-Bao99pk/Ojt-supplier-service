@@ -47,6 +47,7 @@ export default function SupplierAuditLogs() {
         { key: "status", label: "Status" },
         { key: "region", label: "Region" },
         { key: "taxCode", label: "Tax Code" },
+        { key: "rejectionReason", label: "Rejection Reason" },
       ];
 
       return (
@@ -62,7 +63,9 @@ export default function SupplierAuditLogs() {
                     className="flex justify-between border-b border-black/5 pb-1"
                   >
                     <span className="font-bold opacity-70">{field.label}:</span>
-                    <span>{String(data[field.key])}</span>
+                    <span className={field.key === "rejectionReason" ? "text-red-600 font-semibold" : ""}>
+                        {String(data[field.key])}
+                    </span>
                   </li>
                 ),
             )}
@@ -96,6 +99,11 @@ export default function SupplierAuditLogs() {
         return {
           bg: "bg-green-100 text-green-700",
           icon: <CheckCircle className="w-3 h-3" />,
+        };
+        case "REJECT":
+        return {
+          bg: "bg-red-100 text-red-700",
+          icon: <AlertCircle className="w-3 h-3" />,
         };
       default:
         return {
