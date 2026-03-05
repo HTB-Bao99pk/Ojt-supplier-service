@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Menu, X, Coffee, CheckCircle } from "lucide-react";
+import { LayoutDashboard, Users, Menu, X, Coffee, CheckCircle, Package } from "lucide-react";
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
     const location = useLocation();
@@ -8,6 +8,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
     const navigationItems = [
         { path: "/", label: "Dashboard", icon: LayoutDashboard },
         { path: "/suppliers", label: "Supplier Management", icon: Users },
+        { path: "/products", label: "Product Management", icon: Package },
         { path: "/suppliers/approved", label: "Supplier", icon: CheckCircle },
     ];
 

@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 @Data
 @Builder
 @NoArgsConstructor
@@ -12,7 +13,10 @@ import java.math.BigDecimal;
 public class ProductResponse {
     String id;
     String productId;
+    String supplierId;
     BigDecimal price;
     Integer deliveryDateTimes;
     Boolean isActive;
+    LocalDateTime createAt;
+    LocalDateTime updateAt;
 }
