@@ -1,5 +1,5 @@
 const BASE_URL   = "http://localhost:8081";
-const MANAGER_ID = "manager-001";
+const MANAGER_ID = "admin_01"; // Đã đồng bộ với header USER bên BE
 
 /* =========================
    FETCH WRAPPER
@@ -40,8 +40,7 @@ export async function fetchStaffByShift(shiftId) {
 }
 
 /* =========================
-   ATTENDANCE
-   Tất cả dùng /shifts/... (khớp với AttendanceController đã sửa)
+   ATTENDANCE & ASSIGNMENT
 ========================= */
 
 // GET /shifts/{shiftId}/attendance
@@ -62,6 +61,14 @@ export async function updateAttendance(shiftId, attendanceId, staffId, status, n
     return http(`/shifts/${shiftId}/attendance/${attendanceId}`, {
         method: "PATCH",
         body: JSON.stringify({ staffId, status, note }),
+    });
+}
+
+// HÀM MỚI ĐƯỢC THÊM: Phân công nhân viên vào ca
+export async function assignStaffToShift(shiftId, staffId) {
+    return http(`/shifts/${shiftId}/assign`, {
+        method: "POST",
+        body: JSON.stringify({ staffId }),
     });
 }
 

@@ -17,4 +17,5 @@ public interface ShiftService {
     List<ShiftResponse> getShiftsByDate(LocalDate date);
     List<StaffResponse> getStaffByShift(String shiftId);
     Page<ShiftResponse> getAllShifts(int page, int size);
+    void assignStaffToShift(String shiftId, String staffId, String assignedBy);
 }

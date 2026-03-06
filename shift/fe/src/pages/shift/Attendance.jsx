@@ -1,13 +1,27 @@
-// Route: /attendance
-// Danh sách shifts theo ngày → click → /attendance/:shiftId
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchShiftsByDate, todayDate } from "../../api/attendanceApi";
 
-const fmt = (t) => t?.slice(0, 5) ?? "—";
+// HÀM BẢO VỆ LỖI FORMAT THỜI GIAN
+const formatTime = (time) => {
+    if (!time) return "—";
+    if (typeof time === "string") return time.substring(0, 5);
+    if (Array.isArray(time)) return `${String(time[0]).padStart(2, '0')}:${String(time[1] || 0).padStart(2, '0')}`;
+    return "—";
+};
+
+// HÀM FORMAT ID NGẮN GỌN (CHUYỂN THÀNH SH-XXXXX)
+const formatShiftId = (id) => {
+    if (!id) return "—";
+    return `SH-${id.substring(0, 5).toUpperCase()}`;
+};
 
 function getPeriod(startTime) {
-    const h = parseInt(startTime ?? "0");
+    // Xử lý đọc giờ linh hoạt (string hoặc mảng)
+    let h = 0;
+    if (Array.isArray(startTime)) h = parseInt(startTime[0] ?? "0");
+    else if (typeof startTime === "string") h = parseInt(startTime.split(":")[0] ?? "0");
+
     if (h >= 5  && h < 12) return { label: "Morning",   color: "#f97316", bg: "#fff7ed", emoji: "🌅" };
     if (h >= 12 && h < 18) return { label: "Afternoon", color: "#3b82f6", bg: "#eff6ff", emoji: "☀️"  };
     return                        { label: "Night",      color: "#8b5cf6", bg: "#f5f3ff", emoji: "🌙" };
@@ -63,7 +77,8 @@ function ShiftCard({ shift, onClick }) {
                         {period.emoji}
                     </div>
                     <div>
-                        <div style={{ fontWeight: 800, fontSize: 14, color: "#111827" }}>{shift.id}</div>
+                        {/* ĐÃ FIX: IN TÊN CA NGẮN GỌN */}
+                        <div style={{ fontWeight: 800, fontSize: 14, color: "#111827" }}>{formatShiftId(shift.id)}</div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: period.color }}>{period.label} Shift</div>
                     </div>
                 </div>
@@ -80,9 +95,9 @@ function ShiftCard({ shift, onClick }) {
             {/* Details */}
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {[
-                    { icon: "⏰", text: `${fmt(shift.startTime)} – ${fmt(shift.endTime)}` },
+                    { icon: "⏰", text: `${formatTime(shift.startTime)} – ${formatTime(shift.endTime)}` },
                     { icon: "📍", text: shift.branchId ?? "—" },
-                    { icon: "👥", text: `${shift.staffCount ?? "—"} staff assigned` },
+                    { icon: "👥", text: `${shift.staffCount ?? "0"} staff assigned` },
                 ].map(({ icon, text }) => (
                     <div key={text} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: "#374151" }}>
                         <span style={{ fontSize: 14 }}>{icon}</span> {text}
@@ -122,7 +137,10 @@ export default function Attendance() {
     const load = (d) => {
         setLoading(true); setError(null);
         fetchShiftsByDate(d)
-            .then((data) => setShifts(Array.isArray(data) ? data : []))
+            .then((data) => {
+                const list = data?.content || (Array.isArray(data) ? data : []);
+                setShifts(list);
+            })
             .catch((e)   => setError(e.message))
             .finally(()  => setLoading(false));
     };

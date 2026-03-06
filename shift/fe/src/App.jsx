@@ -12,7 +12,7 @@ import ShiftAttendance from "./pages/shift/ShiftAttendance";
 import StaffList from "./pages/staff/StaffList";
 import CreateStaff from "./pages/staff/CreateStaff";
 import UpdateStaff from "./pages/staff/UpdateStaff";
-
+import AssignStaff from "./pages/shift/AssignStaff";
 function App() {
   return (
     <Routes>
@@ -24,7 +24,7 @@ function App() {
         <Route path="shifts" element={<ShiftList />} />
         <Route path="shifts/create" element={<CreateShift />} />
         <Route path="shifts/update/:id" element={<UpdateShift />} />
-
+          <Route path="shifts/assign" element={<AssignStaff />} />
         {/* Router cho Attendance */}
         <Route path="attendance" element={<Attendance />} />
         <Route path="attendance/:shiftId" element={<ShiftAttendance />} />
