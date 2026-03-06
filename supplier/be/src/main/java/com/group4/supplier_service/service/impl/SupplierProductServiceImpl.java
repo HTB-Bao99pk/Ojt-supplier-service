@@ -6,10 +6,13 @@ import com.group4.supplier_service.dto.request.SupplierProductFilterRequest;
 import com.group4.supplier_service.dto.response.ProductResponse;
 import com.group4.supplier_service.dto.response.SupplierComparisonResponse;
 import com.group4.supplier_service.entity.Supplier;
+import com.group4.supplier_service.entity.SupplierAuditLog;
 import com.group4.supplier_service.entity.SupplierProduct;
+import com.group4.supplier_service.enums.AuditAction;
 import com.group4.supplier_service.enums.SupplierStatus;
 import com.group4.supplier_service.exception.AppException;
 import com.group4.supplier_service.exception.ErrorCode;
+import com.group4.supplier_service.repository.SupplierAuditLogRepository;
 import com.group4.supplier_service.repository.SupplierProductRepository;
 import com.group4.supplier_service.repository.SupplierRepository;
 import com.group4.supplier_service.service.SupplierProductService;
@@ -37,6 +40,8 @@ public class SupplierProductServiceImpl implements SupplierProductService {
     SupplierRepository supplierRepository;
     SupplierProductRepository supplierProductRepository;
     ModelMapper modelMapper;
+    SupplierAuditLogRepository auditLogRepository;
+    tools.jackson.databind.ObjectMapper objectMapper;
 
     @Override
     public Page<ProductResponse> getSupplierProducts(SupplierProductFilterRequest request, Pageable pageable) {
@@ -81,6 +86,9 @@ public class SupplierProductServiceImpl implements SupplierProductService {
     public ProductResponse createSupplierProduct(String supplierId, SupplierProductCreateRequest request) {
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+        if (supplierProductRepository.findBySupplierIdAndProductId(supplierId, request.getProductId()).isPresent()) {
+            throw new AppException(ErrorCode.PRODUCT_OR_SUPPLIER_ALREADY_EXISTS );
+        }
 
         SupplierProduct supplierProduct = SupplierProduct.builder()
                 .supplier(supplier)
@@ -91,6 +99,7 @@ public class SupplierProductServiceImpl implements SupplierProductService {
                 .build();
 
         SupplierProduct saved = supplierProductRepository.save(supplierProduct);
+        saveProductAuditLog(supplier, null, saved, "admin_user", AuditAction.CREATE);
         return mapToProductResponse(saved);
     }
 
@@ -218,5 +227,29 @@ public class SupplierProductServiceImpl implements SupplierProductService {
         double finalScore = ratingScore + priceScore + deliveryScore;
 
         return Math.round(finalScore * 100.0) / 100.0;
+    }
+
+    private String toJson(Object obj) {
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (Exception e) {
+            return "{}";
+        }
+    }
+
+    private void saveProductAuditLog(Supplier supplier, SupplierProduct oldData, SupplierProduct newData, String performedBy, com.group4.supplier_service.enums.AuditAction action) {
+        String oldDataJson = (oldData != null) ? toJson(oldData) : null;
+        String newDataJson = (newData != null) ? toJson(newData) : null;
+
+        SupplierAuditLog auditLog = com.group4.supplier_service.entity.SupplierAuditLog.builder()
+                .supplier(supplier)
+                .action(action)
+                .oldData(oldDataJson)
+                .newData(newDataJson)
+                .performedBy(performedBy)
+                .performedAt(java.time.LocalDateTime.now())
+                .build();
+
+        auditLogRepository.save(auditLog);
     }
 }
