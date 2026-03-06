@@ -1,139 +1,63 @@
 // Route: /attendance/:shiftId
-// Fix chính: load fetchStaffByShift + fetchAttendanceByShift song song
-// rồi merge lại → rows luôn có đủ staff dù chưa mark lần nào
+// - Đẹp hơn với design tinh tế, card layout
+// - Nếu shift không phải OPEN → read-only, không cho chỉnh status
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
     fetchStaffByShift,
     fetchAttendanceByShift,
+    fetchShiftsByDate,
     bulkMarkAttendance,
-    updateAttendance,
+    todayDate,
 } from "../../api/attendanceApi";
 
 /* ── Status config ───────────────────────────────────────────────────────── */
 const STATUS_CFG = {
-    PRESENT:     { label: "Present",     bg: "bg-green-100",  text: "text-green-700",  border: "border-green-300", dot: "bg-green-500",  icon: "✓" },
-    LATE:        { label: "Late",        bg: "bg-amber-100",  text: "text-amber-700",  border: "border-amber-300", dot: "bg-amber-500",  icon: "◔" },
-    ABSENT:      { label: "Absent",      bg: "bg-red-100",    text: "text-red-700",    border: "border-red-300",   dot: "bg-red-500",    icon: "✗" },
-    EARLY_LEAVE: { label: "Early Leave", bg: "bg-blue-100",   text: "text-blue-700",   border: "border-blue-300",  dot: "bg-blue-500",   icon: "↩" },
+    PRESENT:     { label: "Present",     bg: "#dcfce7", text: "#15803d", border: "#86efac", dot: "#22c55e", icon: "✓", activeBg: "#f0fdf4" },
+    LATE:        { label: "Late",        bg: "#fef9c3", text: "#a16207", border: "#fde047", dot: "#eab308", icon: "⏰", activeBg: "#fefce8" },
+    ABSENT:      { label: "Absent",      bg: "#fee2e2", text: "#b91c1c", border: "#fca5a5", dot: "#ef4444", icon: "✗", activeBg: "#fef2f2" },
+    EARLY_LEAVE: { label: "Early Leave", bg: "#dbeafe", text: "#1d4ed8", border: "#93c5fd", dot: "#3b82f6", icon: "↩", activeBg: "#eff6ff" },
+};
+
+const SHIFT_STATUS_CFG = {
+    OPEN:      { label: "Open",      bg: "#dcfce7", text: "#15803d", dot: "#22c55e", glow: "rgba(34,197,94,.15)"  },
+    PREPARING: { label: "Preparing", bg: "#fef9c3", text: "#a16207", dot: "#eab308", glow: "rgba(234,179,8,.15)"  },
+    CLOSED:    { label: "Closed",    bg: "#f3f4f6", text: "#6b7280", dot: "#9ca3af", glow: "rgba(156,163,175,.1)" },
 };
 
 const STATUSES = Object.keys(STATUS_CFG);
-
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
-const ACLRS    = ["#f97316","#3b82f6","#22c55e","#8b5cf6","#ef4444","#eab308","#06b6d4"];
+const ACLRS    = ["#f97316","#3b82f6","#22c55e","#8b5cf6","#ef4444","#eab308","#06b6d4","#ec4899"];
 const avatarBg = (n) => ACLRS[(n?.charCodeAt(0) ?? 0) % ACLRS.length];
+const fmt      = (t) => t?.slice(0,5) ?? "—";
 
-function Avatar({ name = "?", size = 36 }) {
+/* ── Avatar ──────────────────────────────────────────────────────────────── */
+function Avatar({ name = "?", size = 38 }) {
     return (
         <div style={{
-            width: size, height: size, borderRadius: Math.round(size * .3),
+            width: size, height: size, borderRadius: Math.round(size * .32),
             background: avatarBg(name), flexShrink: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", fontWeight: 700, fontSize: size * .4,
+            color: "#fff", fontWeight: 800, fontSize: size * .38,
+            boxShadow: `0 2px 8px ${avatarBg(name)}50`,
         }}>
             {name.charAt(0)}
         </div>
     );
 }
 
+/* ── StatusBadge ─────────────────────────────────────────────────────────── */
 function StatusBadge({ status }) {
     const c = STATUS_CFG[status];
     if (!c) return null;
     return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${c.bg} ${c.text} ${c.border}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`}/>
+        <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+            background: c.bg, color: c.text, border: `1.5px solid ${c.border}`,
+        }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot }}/>
             {c.label}
         </span>
-    );
-}
-
-/* ── EditModal ───────────────────────────────────────────────────────────── */
-function EditModal({ record, staffMember, currentStatus, currentNote, onSave, onClose }) {
-    const [status, setStatus] = useState(currentStatus);
-    const [note,   setNote]   = useState(currentNote ?? "");
-    const [saving, setSaving] = useState(false);
-
-    async function handleSave() {
-        if (!status) return;
-        setSaving(true);
-        await onSave(record, status, note);
-        setSaving(false);
-    }
-
-    return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={(e) => e.target === e.currentTarget && onClose()}
-        >
-            <div className="bg-white rounded-2xl shadow-2xl w-[460px] p-7">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-5">
-                    <div className="flex items-center gap-3">
-                        <Avatar name={staffMember?.name ?? "?"} size={44}/>
-                        <div>
-                            <div className="font-bold text-gray-900">{staffMember?.name}</div>
-                            <div className="text-xs text-gray-400">{staffMember?.email}</div>
-                        </div>
-                    </div>
-                    <button onClick={onClose} className="w-8 h-8 rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 text-sm">✕</button>
-                </div>
-
-                {/* Originally marked */}
-                <div className="bg-gray-50 rounded-xl px-4 py-3 mb-5 flex justify-between items-center">
-                    <div>
-                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Originally Marked</div>
-                        <div className="text-sm text-gray-700">🕐 {new Date(record.markedAt).toLocaleString("en-US")}</div>
-                    </div>
-                    <StatusBadge status={currentStatus}/>
-                </div>
-
-                {/* New status */}
-                <div className="mb-4">
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">New Status</div>
-                    <div className="flex gap-2 flex-wrap">
-                        {STATUSES.map((key) => {
-                            const c = STATUS_CFG[key];
-                            return (
-                                <button key={key} onClick={() => setStatus(key)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all ${
-                                        status === key
-                                            ? `${c.bg} ${c.text} ${c.border}`
-                                            : "bg-gray-50 text-gray-400 border-gray-200 hover:border-gray-300"
-                                    }`}>
-                                    {c.icon} {c.label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Note */}
-                <div className="mb-6">
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Note</div>
-                    <input
-                        type="text" value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        placeholder="Add a note…"
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                    />
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3">
-                    <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-500 font-semibold text-sm hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving || !status}
-                        className="flex-[2] py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                        {saving ? "Saving…" : "Update Record"}
-                    </button>
-                </div>
-            </div>
-        </div>
     );
 }
 
@@ -142,35 +66,38 @@ export default function ShiftAttendance() {
     const { shiftId } = useParams();
     const navigate    = useNavigate();
 
+    const [shift,     setShift]     = useState(null);   // full shift info incl. status
     const [staff,     setStaff]     = useState([]);
-    const [att,       setAtt]       = useState({});   // staffId → { status, note }
-    const [records,   setRecords]   = useState([]);   // saved từ BE
+    const [att,       setAtt]       = useState({});
+    const [records,   setRecords]   = useState([]);
     const [loading,   setLoading]   = useState(true);
     const [error,     setError]     = useState(null);
     const [saveState, setSaveState] = useState("idle");
-    const [editRec,   setEditRec]   = useState(null);
     const [filter,    setFilter]    = useState("ALL");
 
-    // ── KEY FIX: load staff + attendance cùng lúc, merge lại ──
     const loadData = useCallback(async () => {
         setLoading(true); setError(null);
         try {
-            const [staffData, recData] = await Promise.all([
+            // load shift info (to get status), staff, attendance concurrently
+            const [shifts, staffData, recData] = await Promise.all([
+                fetchShiftsByDate(todayDate()),
                 fetchStaffByShift(shiftId),
                 fetchAttendanceByShift(shiftId),
             ]);
 
+            const shiftInfo = Array.isArray(shifts)
+                ? shifts.find(s => s.id === shiftId) ?? null
+                : null;
+
             const staffList = Array.isArray(staffData) ? staffData : [];
             const recList   = Array.isArray(recData)   ? recData   : [];
 
+            setShift(shiftInfo);
             setStaff(staffList);
             setRecords(recList);
 
-            // Pre-fill att map từ records đã lưu trên BE
             const map = {};
-            recList.forEach((r) => {
-                map[r.staffId] = { status: r.status, note: r.note ?? "" };
-            });
+            recList.forEach(r => { map[r.staffId] = { status: r.status, note: r.note ?? "" }; });
             setAtt(map);
         } catch (e) {
             setError(e.message);
@@ -181,16 +108,20 @@ export default function ShiftAttendance() {
 
     useEffect(() => { loadData(); }, [loadData]);
 
-    /* ── state handlers ── */
+    const isOpen = shift?.status === "OPEN";   // only OPEN → editable
+
     function setStatus(staffId, val) {
-        setAtt((p) => ({ ...p, [staffId]: { ...p[staffId], status: val, note: p[staffId]?.note ?? "" } }));
+        if (!isOpen) return;
+        setAtt(p => ({ ...p, [staffId]: { ...p[staffId], status: val, note: p[staffId]?.note ?? "" } }));
         setSaveState("idle");
     }
     function setNote(staffId, val) {
-        setAtt((p) => ({ ...p, [staffId]: { ...p[staffId], note: val } }));
+        if (!isOpen) return;
+        setAtt(p => ({ ...p, [staffId]: { ...p[staffId], note: val } }));
     }
 
     async function handleSave() {
+        if (!isOpen) return;
         const payload = Object.entries(att)
             .filter(([, v]) => v?.status)
             .map(([staffId, v]) => ({ staffId, status: v.status, note: v.note || null }));
@@ -209,16 +140,8 @@ export default function ShiftAttendance() {
         }
     }
 
-    async function handleUpdate(rec, newStatus, newNote) {
-        await updateAttendance(shiftId, rec.id, rec.staffId, newStatus, newNote);
-        setAtt((p) => ({ ...p, [rec.staffId]: { status: newStatus, note: newNote } }));
-        const recs = await fetchAttendanceByShift(shiftId);
-        setRecords(Array.isArray(recs) ? recs : []);
-        setEditRec(null);
-    }
-
-    /* ── derived ── */
-    const markedCount = Object.values(att).filter((v) => v?.status).length;
+    /* derived */
+    const markedCount = Object.values(att).filter(v => v?.status).length;
     const pct         = staff.length ? Math.round((markedCount / staff.length) * 100) : 0;
     const counts      = Object.values(att).reduce((a, v) => {
         if (v?.status) a[v.status] = (a[v.status] || 0) + 1;
@@ -227,215 +150,296 @@ export default function ShiftAttendance() {
 
     const filteredStaff =
         filter === "ALL"      ? staff :
-        filter === "UNMARKED" ? staff.filter((s) => !att[s.id]?.status) :
-                                staff.filter((s) => att[s.id]?.status === filter);
+        filter === "UNMARKED" ? staff.filter(s => !att[s.id]?.status) :
+                                staff.filter(s => att[s.id]?.status === filter);
+
+    const shiftCfg = SHIFT_STATUS_CFG[shift?.status] ?? SHIFT_STATUS_CFG.CLOSED;
 
     const SAVE_CFG = {
-        idle:   { label: `Save Attendance${markedCount > 0 ? ` (${markedCount})` : ""}`, cls: "bg-amber-500 hover:bg-amber-600" },
-        saving: { label: "Saving…",          cls: "bg-amber-400" },
-        saved:  { label: "✓ Saved!",          cls: "bg-green-500" },
-        error:  { label: "⚠ Failed — retry",  cls: "bg-red-500"   },
+        idle:   { label: `Save Attendance${markedCount > 0 ? ` (${markedCount})` : ""}`, bg: "#f97316" },
+        saving: { label: "Saving…",         bg: "#fb923c" },
+        saved:  { label: "✓ Saved!",         bg: "#22c55e" },
+        error:  { label: "⚠ Retry",          bg: "#ef4444" },
     };
 
-    /* ── render ── */
     return (
-        <div>
-            {/* Breadcrumb */}
-            <div className="text-xs text-gray-400 mb-2 flex items-center gap-1.5">
-                <span className="text-amber-500 font-semibold cursor-pointer hover:underline" onClick={() => navigate("/attendance")}>
+        <div style={{ fontFamily: "'Plus Jakarta Sans','DM Sans',sans-serif" }}>
+            <style>{`
+                @keyframes slideUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+                @keyframes spin    { to{transform:rotate(360deg)} }
+                .att-row { transition: background .12s; }
+                .att-row:hover { background: #fafbfc !important; }
+                .status-btn { transition: all .13s ease; cursor: pointer; }
+                .status-btn:hover { transform: translateY(-1px); }
+                .status-btn:active { transform: scale(.97); }
+            `}</style>
+
+            {/* ── Breadcrumb ── */}
+            <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                <span onClick={() => navigate("/attendance")}
+                    style={{ color: "#f97316", fontWeight: 600, cursor: "pointer" }}
+                    onMouseEnter={e => e.target.style.textDecoration="underline"}
+                    onMouseLeave={e => e.target.style.textDecoration="none"}>
                     Attendance
                 </span>
-                <span>›</span>
-                <span className="text-gray-700 font-semibold">{shiftId}</span>
+                <span style={{ color: "#d1d5db" }}>›</span>
+                <span style={{ color: "#374151", fontWeight: 600 }}>{shiftId}</span>
             </div>
 
-            {/* Page header */}
-            <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => navigate("/attendance")}
-                        className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-colors"
-                    >
+            {/* ── Page header ── */}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button onClick={() => navigate("/attendance")} style={{
+                        background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8,
+                        padding: "7px 14px", fontSize: 13, fontWeight: 600, color: "#6b7280",
+                        cursor: "pointer", transition: "all .13s",
+                    }}
+                        onMouseEnter={e => e.currentTarget.style.background="#f9fafb"}
+                        onMouseLeave={e => e.currentTarget.style.background="#fff"}>
                         ← Back
                     </button>
                     <div>
-                        <h1 className="text-xl font-extrabold text-gray-900">{shiftId}</h1>
-                        <p className="text-sm text-gray-400">Mark or update staff attendance.</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 3 }}>
+                            <h1 style={{ fontSize: 20, fontWeight: 800, color: "#111827", margin: 0 }}>{shiftId}</h1>
+                            {shift && (
+                                <span style={{
+                                    display: "inline-flex", alignItems: "center", gap: 5,
+                                    padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                                    background: shiftCfg.bg, color: shiftCfg.text,
+                                }}>
+                                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: shiftCfg.dot }}/>
+                                    {shiftCfg.label}
+                                </span>
+                            )}
+                        </div>
+                        {shift && (
+                            <div style={{ fontSize: 12, color: "#9ca3af" }}>
+                                ⏰ {fmt(shift.startTime)} – {fmt(shift.endTime)} · 📍 {shift.branchId}
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <button
-                    onClick={handleSave}
-                    disabled={markedCount === 0 || saveState === "saving"}
-                    className={`px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${SAVE_CFG[saveState].cls}`}
-                >
-                    {SAVE_CFG[saveState].label}
-                </button>
+                {/* Save button — hidden when not OPEN */}
+                {isOpen ? (
+                    <button onClick={handleSave}
+                        disabled={markedCount === 0 || saveState === "saving"}
+                        style={{
+                            background: SAVE_CFG[saveState].bg, color: "#fff", border: "none",
+                            borderRadius: 10, padding: "10px 22px", fontSize: 13, fontWeight: 700,
+                            cursor: markedCount === 0 ? "not-allowed" : "pointer",
+                            opacity: markedCount === 0 ? .45 : 1,
+                            transition: "background .2s, opacity .2s",
+                            boxShadow: "0 2px 8px rgba(249,115,22,.25)",
+                        }}>
+                        {SAVE_CFG[saveState].label}
+                    </button>
+                ) : shift && (
+                    <div style={{
+                        padding: "10px 18px", borderRadius: 10, fontSize: 12, fontWeight: 600,
+                        background: shiftCfg.bg, color: shiftCfg.text, border: `1px solid ${shiftCfg.dot}30`,
+                    }}>
+                        {shift.status === "CLOSED" ? "🔒 Shift closed — read only" : "⏳ Shift not started — read only"}
+                    </div>
+                )}
             </div>
 
             {/* Error */}
             {error && (
-                <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex justify-between items-center">
+                <div style={{ padding: "11px 16px", borderRadius: 10, marginBottom: 14, background: "#fef2f2", border: "1px solid #fca5a5", color: "#b91c1c", fontSize: 13, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span>⚠ {error}</span>
-                    <button onClick={loadData} className="text-xs border border-red-300 rounded px-2 py-1 hover:bg-red-100">Retry</button>
+                    <button onClick={loadData} style={{ fontSize: 11, border: "1px solid #fca5a5", borderRadius: 6, padding: "3px 10px", background: "transparent", color: "#b91c1c", cursor: "pointer" }}>Retry</button>
                 </div>
             )}
 
             {loading ? (
-                <div className="flex items-center justify-center py-20 text-gray-400 text-sm gap-2">
-                    <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 72, gap: 10, color: "#9ca3af", fontSize: 13 }}>
+                    <svg style={{ animation: "spin 1s linear infinite", width: 18, height: 18 }} viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10" stroke="#e5e7eb" strokeWidth="3"/>
-                        <path d="M12 2a10 10 0 0 1 10 10" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round"/>
+                        <path d="M12 2a10 10 0 0 1 10 10" stroke="#f97316" strokeWidth="3" strokeLinecap="round"/>
                     </svg>
-                    Loading staff…
+                    Loading…
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e5e7eb", boxShadow: "0 1px 6px rgba(0,0,0,.06)", overflow: "hidden" }}>
 
-                    {/* Progress */}
-                    <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="flex gap-4 flex-wrap">
-                                {STATUSES.map((k) => (
-                                    <span key={k} className="text-xs text-gray-500 flex items-center gap-1">
-                                        <span className={`w-2 h-2 rounded-full ${STATUS_CFG[k].dot}`}/>
-                                        {STATUS_CFG[k].label}: <b className="text-gray-800 ml-0.5">{counts[k] || 0}</b>
+                    {/* ── Stats bar ── */}
+                    <div style={{ padding: "14px 20px", borderBottom: "1px solid #f0f2f5", background: "#fafafa", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                            {STATUSES.map(k => (
+                                <div key={k} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: STATUS_CFG[k].dot, flexShrink: 0 }}/>
+                                    <span style={{ fontSize: 12, color: "#6b7280" }}>
+                                        {STATUS_CFG[k].label}: <b style={{ color: "#111827" }}>{counts[k] || 0}</b>
                                     </span>
-                                ))}
-                                <span className="text-xs text-gray-500">
-                                    Unmarked: <b className="text-amber-600">{staff.length - markedCount}</b>
+                                </div>
+                            ))}
+                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#d1d5db", flexShrink: 0 }}/>
+                                <span style={{ fontSize: 12, color: "#6b7280" }}>
+                                    Unmarked: <b style={{ color: "#f97316" }}>{staff.length - markedCount}</b>
                                 </span>
                             </div>
-                            <span className="text-sm font-extrabold text-amber-600">{markedCount}/{staff.length} · {pct}%</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                            <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-red-500 transition-all duration-500" style={{ width: `${pct}%` }}/>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: "#f97316" }}>
+                                {markedCount}/{staff.length} · {pct}%
+                            </span>
                         </div>
                     </div>
 
-                    {/* Toolbar */}
-                    <div className="px-5 py-2.5 border-b border-gray-100 flex justify-between items-center flex-wrap gap-2">
-                        {/* Filter tabs */}
-                        <div className="flex gap-1.5 flex-wrap">
+                    {/* ── Progress bar ── */}
+                    <div style={{ height: 4, background: "#f3f4f6" }}>
+                        <div style={{ height: "100%", width: `${pct}%`, transition: "width .5s ease", background: pct === 100 ? "#22c55e" : "linear-gradient(90deg,#f97316,#ef4444)" }}/>
+                    </div>
+
+                    {/* ── Toolbar ── */}
+                    <div style={{ padding: "10px 20px", borderBottom: "1px solid #f0f2f5", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                        {/* Filters */}
+                        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                             {[
                                 { key: "ALL",      label: `All (${staff.length})` },
                                 { key: "UNMARKED", label: `Unmarked (${staff.length - markedCount})` },
-                                ...STATUSES.map((k) => ({ key: k, label: `${STATUS_CFG[k].label} (${counts[k] || 0})` })),
-                            ].map((tab) => (
-                                <button key={tab.key} onClick={() => setFilter(tab.key)}
-                                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-colors ${
-                                        filter === tab.key
-                                            ? "bg-amber-500 text-white"
-                                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                                    }`}>
+                                ...STATUSES.map(k => ({ key: k, label: `${STATUS_CFG[k].label} (${counts[k]||0})` })),
+                            ].map(tab => (
+                                <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
+                                    padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600,
+                                    cursor: "pointer", transition: "all .12s",
+                                    background: filter === tab.key ? "#f97316" : "#f3f4f6",
+                                    color:      filter === tab.key ? "#fff"    : "#6b7280",
+                                    border:     filter === tab.key ? "1px solid #f97316" : "1px solid #e5e7eb",
+                                }}>
                                     {tab.label}
                                 </button>
                             ))}
                         </div>
 
-                        {/* Quick actions */}
-                        <div className="flex gap-2">
-                            <button onClick={() => staff.forEach((s) => setStatus(s.id, "PRESENT"))}
-                                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100">
-                                ✓ All Present
-                            </button>
-                            <button onClick={() => { setAtt({}); setSaveState("idle"); }}
-                                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100">
-                                ↺ Clear All
-                            </button>
-                            <button onClick={loadData}
-                                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-gray-50 text-gray-500 border border-gray-200 hover:bg-gray-100">
-                                ↺ Reload
-                            </button>
+                        {/* Quick actions — only when OPEN */}
+                        <div style={{ display: "flex", gap: 6 }}>
+                            {isOpen && (
+                                <>
+                                    <button onClick={() => staff.forEach(s => setStatus(s.id, "PRESENT"))} style={{
+                                        padding: "4px 12px", borderRadius: 7, fontSize: 11, fontWeight: 700,
+                                        background: "#f0fdf4", color: "#15803d", border: "1px solid #86efac", cursor: "pointer",
+                                    }}>✓ All Present</button>
+                                    <button onClick={() => { setAtt({}); setSaveState("idle"); }} style={{
+                                        padding: "4px 12px", borderRadius: 7, fontSize: 11, fontWeight: 700,
+                                        background: "#fef2f2", color: "#b91c1c", border: "1px solid #fca5a5", cursor: "pointer",
+                                    }}>↺ Clear</button>
+                                </>
+                            )}
+                            <button onClick={loadData} style={{
+                                padding: "4px 12px", borderRadius: 7, fontSize: 11, fontWeight: 600,
+                                background: "#f9fafb", color: "#6b7280", border: "1px solid #e5e7eb", cursor: "pointer",
+                            }}>↺ Reload</button>
                         </div>
                     </div>
 
-                    {/* Table header */}
-                    <div className="grid px-5 py-2 bg-gray-50 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider"
-                        style={{ gridTemplateColumns: "36px 180px 1fr 72px" }}>
-                        <span>#</span><span>Staff</span><span>Status & Note</span><span></span>
+                    {/* ── Read-only banner ── */}
+                    {!isOpen && shift && (
+                        <div style={{ padding: "10px 20px", background: `${shiftCfg.glow}`, borderBottom: "1px solid #f0f2f5", display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: shiftCfg.text, fontWeight: 600 }}>
+                            <span style={{ fontSize: 14 }}>{shift.status === "CLOSED" ? "🔒" : "⏳"}</span>
+                            {shift.status === "CLOSED"
+                                ? "This shift is closed. Attendance records are view-only."
+                                : "This shift hasn't started yet. Attendance cannot be marked."}
+                        </div>
+                    )}
+
+                    {/* ── Table header ── */}
+                    <div style={{ display: "grid", gridTemplateColumns: "44px 1fr 1fr", padding: "9px 20px", background: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
+                        {["#", "Staff Member", isOpen ? "Mark Status" : "Status"].map((h, i) => (
+                            <div key={i} style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: .6 }}>{h}</div>
+                        ))}
                     </div>
 
-                    {/* Rows */}
+                    {/* ── Rows ── */}
                     {staff.length === 0 ? (
-                        <div className="py-16 text-center text-gray-400 text-sm">No staff assigned to this shift.</div>
+                        <div style={{ padding: 60, textAlign: "center", color: "#9ca3af", fontSize: 14 }}>
+                            <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
+                            No staff assigned to this shift.
+                        </div>
                     ) : filteredStaff.length === 0 ? (
-                        <div className="py-10 text-center text-gray-400 text-sm">No staff in this filter.</div>
+                        <div style={{ padding: 40, textAlign: "center", color: "#9ca3af", fontSize: 13 }}>No staff in this filter.</div>
                     ) : filteredStaff.map((s, i) => {
                         const cur       = att[s.id];
-                        const rec       = records.find((r) => r.staffId === s.id);
-                        const globalIdx = staff.findIndex((x) => x.id === s.id) + 1;
+                        const rec       = records.find(r => r.staffId === s.id);
+                        const globalIdx = staff.findIndex(x => x.id === s.id) + 1;
+                        const activeCfg = cur?.status ? STATUS_CFG[cur.status] : null;
+
                         return (
-                            <div key={s.id}
-                                className={`grid px-5 py-3 border-b border-gray-50 transition-colors ${cur?.status ? "bg-white" : "bg-gray-50/50"}`}
-                                style={{ gridTemplateColumns: "36px 180px 1fr 72px" }}>
+                            <div key={s.id} className="att-row" style={{
+                                display: "grid", gridTemplateColumns: "44px 1fr 1fr",
+                                padding: "13px 20px", borderBottom: "1px solid #f3f4f6",
+                                background: activeCfg ? `${activeCfg.activeBg}` : "#fff",
+                                animation: `slideUp .2s ease ${i * 25}ms both`,
+                            }}>
                                 {/* # */}
-                                <div className="flex items-center text-xs text-gray-300 font-semibold">{globalIdx}</div>
+                                <div style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: "#d1d5db" }}>{globalIdx}</span>
+                                </div>
 
-                                {/* Staff */}
-                                <div className="flex items-center gap-2.5">
-                                    <Avatar name={s.name} size={34}/>
+                                {/* Staff info */}
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                    <Avatar name={s.name} size={38}/>
                                     <div>
-                                        <div className="text-sm font-semibold text-gray-900">{s.name}</div>
-                                        <div className="text-xs text-gray-400">{s.email}</div>
+                                        <div style={{ fontWeight: 700, fontSize: 13, color: "#111827", marginBottom: 2 }}>{s.name}</div>
+                                        <div style={{ fontSize: 11, color: "#9ca3af" }}>{s.email}</div>
+                                        {rec && <div style={{ marginTop: 4 }}><StatusBadge status={rec.status}/></div>}
                                     </div>
                                 </div>
 
-                                {/* Status + note */}
-                                <div className="flex flex-col gap-2 justify-center">
-                                    <div className="flex gap-1.5 flex-wrap">
-                                        {STATUSES.map((key) => {
-                                            const c = STATUS_CFG[key];
-                                            return (
-                                                <button key={key}
-                                                    onClick={() => setStatus(s.id, cur?.status === key ? null : key)}
-                                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border-2 transition-all ${
-                                                        cur?.status === key
-                                                            ? `${c.bg} ${c.text} ${c.border}`
-                                                            : "bg-gray-50 text-gray-400 border-gray-200 hover:border-gray-300"
-                                                    }`}>
-                                                    {c.icon} {c.label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    {cur?.status && cur.status !== "PRESENT" && (
-                                        <input
-                                            placeholder="Add a note (optional)…"
-                                            value={cur.note || ""}
-                                            onChange={(e) => setNote(s.id, e.target.value)}
-                                            className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 w-4/5 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                        />
+                                {/* Status column */}
+                                <div style={{ display: "flex", flexDirection: "column", gap: 7, justifyContent: "center" }}>
+                                    {isOpen ? (
+                                        /* ── Editable: status buttons ── */
+                                        <>
+                                            <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                                {STATUSES.map(key => {
+                                                    const c   = STATUS_CFG[key];
+                                                    const sel = cur?.status === key;
+                                                    return (
+                                                        <button key={key} className="status-btn"
+                                                            onClick={() => setStatus(s.id, sel ? null : key)}
+                                                            style={{
+                                                                padding: "5px 11px", borderRadius: 8,
+                                                                fontSize: 11, fontWeight: 700, border: "2px solid",
+                                                                background: sel ? c.bg      : "#f9fafb",
+                                                                color:      sel ? c.text    : "#9ca3af",
+                                                                borderColor:sel ? c.border  : "#e5e7eb",
+                                                                boxShadow:  sel ? `0 2px 8px ${c.dot}30` : "none",
+                                                            }}>
+                                                            {c.icon} {c.label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            {cur?.status && cur.status !== "PRESENT" && (
+                                                <input
+                                                    placeholder="Add a note (optional)…"
+                                                    value={cur.note || ""}
+                                                    onChange={e => setNote(s.id, e.target.value)}
+                                                    style={{
+                                                        border: "1px solid #e5e7eb", borderRadius: 8,
+                                                        padding: "6px 10px", fontSize: 12, color: "#374151",
+                                                        width: "75%", outline: "none", background: "#fff",
+                                                        transition: "border .15s",
+                                                    }}
+                                                    onFocus={e => e.target.style.borderColor="#f97316"}
+                                                    onBlur={e  => e.target.style.borderColor="#e5e7eb"}
+                                                />
+                                            )}
+                                        </>
+                                    ) : (
+                                        /* ── Read-only: show badge or dash ── */
+                                        cur?.status
+                                            ? <StatusBadge status={cur.status}/>
+                                            : <span style={{ fontSize: 12, color: "#d1d5db", fontStyle: "italic" }}>Not marked</span>
                                     )}
-                                </div>
-
-                                {/* Edit */}
-                                <div className="flex items-center justify-end">
-                                    {rec ? (
-                                        <button onClick={() => setEditRec(rec)}
-                                            className="px-2.5 py-1 rounded-lg border border-gray-200 text-[11px] font-semibold text-gray-500 hover:bg-gray-50">
-                                            ✏ Edit
-                                        </button>
-                                    ) : cur?.status ? (
-                                        <div className={`w-2 h-2 rounded-full ${STATUS_CFG[cur.status]?.dot}`}/>
-                                    ) : null}
                                 </div>
                             </div>
                         );
                     })}
                 </div>
-            )}
-
-            {/* Edit modal */}
-            {editRec && (
-                <EditModal
-                    record={editRec}
-                    staffMember={staff.find((s) => s.id === editRec.staffId)}
-                    currentStatus={att[editRec.staffId]?.status}
-                    currentNote={att[editRec.staffId]?.note ?? ""}
-                    onSave={handleUpdate}
-                    onClose={() => setEditRec(null)}
-                />
             )}
         </div>
     );
