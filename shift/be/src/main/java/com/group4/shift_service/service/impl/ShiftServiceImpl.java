@@ -33,8 +33,8 @@ import java.util.List;
 public class ShiftServiceImpl implements ShiftService {
 
     ShiftRepository shiftRepository;
-    ShiftAssignmentRepository shiftAssignmentRepository;  // ← thêm mới
-    StaffRepository staffRepository;            // ← thêm mới
+    ShiftAssignmentRepository shiftAssignmentRepository;
+    StaffRepository staffRepository;
 
     @Override
     public ShiftResponse createShift(ShiftCreateRequest request, String user) {
@@ -127,14 +127,50 @@ public class ShiftServiceImpl implements ShiftService {
                 .toList();
     }
 
-    private String calculateStatus(Shift shift) {
-        LocalDateTime now        = LocalDateTime.now();
-        LocalDateTime shiftStart = LocalDateTime.of(shift.getDate(), shift.getStartTime());
-        LocalDateTime shiftEnd   = LocalDateTime.of(shift.getDate(), shift.getEndTime());
+    @Override
+    @Transactional
+    public void assignStaffToShift(String shiftId, String staffId, String assignedBy) {
+        Shift shift = shiftRepository.findById(shiftId)
+                .orElseThrow(() -> new RuntimeException("Shift not found"));
 
-        if (now.isBefore(shiftStart)) return "PREPARING";
-        if (now.isAfter(shiftEnd))    return "CLOSED";
-        return "OPEN";
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new RuntimeException("Staff not found"));
+
+        boolean alreadyAssigned = shiftAssignmentRepository.findAllByShiftId(shiftId)
+                .stream().anyMatch(a -> a.getStaffId().equals(staffId));
+
+        if (alreadyAssigned) {
+            throw new RuntimeException("Nhân viên này đã có trong ca làm việc!");
+        }
+
+        ShiftAssignment assignment = ShiftAssignment.builder()
+                .shiftId(shiftId)
+                .staffId(staffId)
+                .assignedBy(assignedBy)
+                .build();
+
+        shiftAssignmentRepository.save(assignment);
+    }
+
+    /**
+     * LOGIC CẬP NHẬT: Cho phép trạng thái OPEN trước 30 phút
+     */
+    private String calculateStatus(Shift shift) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime shiftStart = LocalDateTime.of(shift.getDate(), shift.getStartTime());
+        LocalDateTime shiftEnd = LocalDateTime.of(shift.getDate(), shift.getEndTime());
+
+        // Thời điểm bắt đầu cho phép điểm danh (Giờ bắt đầu trừ 30 phút)
+        LocalDateTime allowCheckInTime = shiftStart.minusMinutes(30);
+
+        if (now.isBefore(allowCheckInTime)) {
+            return "PREPARING";
+        } else if (now.isAfter(shiftEnd)) {
+            return "CLOSED";
+        } else {
+            // Nằm trong khoảng [Giờ bắt đầu - 30p] đến [Giờ kết thúc]
+            return "OPEN";
+        }
     }
 
     private ShiftResponse mapToResponse(Shift shift) {

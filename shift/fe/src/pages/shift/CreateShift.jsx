@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarPlus, Clock, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, MapPin } from "lucide-react";
 import { createShift } from "../../api/shiftApi";
+
+const CURRENT_BRANCH_ID = "BR-001";
 
 export default function CreateShift() {
     const navigate = useNavigate();
@@ -12,7 +14,7 @@ export default function CreateShift() {
         date: "",
         startTime: "",
         endTime: "",
-        branchId: "BR-001" // Tạm fix cứng nhánh mẫu
+        branchId: CURRENT_BRANCH_ID, // Gán cứng
     });
 
     const handleChange = (e) => {
@@ -24,15 +26,17 @@ export default function CreateShift() {
         setLoading(true);
         setError(null);
 
+        // Kiểm tra logic giờ
+        if (formData.startTime >= formData.endTime) {
+            setError("End time must be after start time!");
+            setLoading(false);
+            return;
+        }
+
         try {
-            await createShift({
-                date: formData.date,
-                startTime: formData.startTime + ":00", // Backend yêu cầu HH:mm:ss
-                endTime: formData.endTime + ":00",
-                branchId: formData.branchId
-            });
+            await createShift(formData);
             alert("Shift created successfully!");
-            navigate("/shifts"); // Quay lại trang danh sách (sẽ làm sau)
+            navigate("/shifts");
         } catch (err) {
             setError(err.message);
         } finally {
@@ -42,123 +46,94 @@ export default function CreateShift() {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
-            {/* Header */}
             <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                    <ArrowLeft className="h-5 w-5 text-gray-600" />
+                <button onClick={() => navigate(-1)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <ArrowLeft size={20} className="text-gray-600"/>
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Create New Shift</h1>
-                    <p className="text-sm text-gray-500">Schedule a new working shift for a branch.</p>
+                    <p className="text-sm text-gray-500">Thêm ca làm việc cho chi nhánh của bạn.</p>
                 </div>
             </div>
 
-            {/* Form Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                {error && (
-                    <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded-r-lg">
-                        {error}
-                    </div>
-                )}
+            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
+                {error && <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg text-sm font-medium">{error}</div>}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Date */}
+                <div className="grid grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Shift Date <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Work Date <span className="text-red-500">*</span></label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <CalendarPlus className="h-5 w-5 text-gray-400" />
-                            </div>
+                            <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                             <input
-                                type="date"
                                 name="date"
+                                type="date"
                                 required
                                 value={formData.date}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 transition-all"
                             />
                         </div>
                     </div>
 
-                    {/* Time Grid */}
-                    <div className="grid grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Start Time <span className="text-red-500">*</span></label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Clock className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="time"
-                                    name="startTime"
-                                    required
-                                    value={formData.startTime}
-                                    onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">End Time <span className="text-red-500">*</span></label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Clock className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="time"
-                                    name="endTime"
-                                    required
-                                    value={formData.endTime}
-                                    onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Branch (Tạm thời là select mẫu) */}
+                    {/* KHÓA CỨNG BRANCH TẠI ĐÂY */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Branch <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Branch</label>
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <MapPin className="h-5 w-5 text-gray-400" />
-                            </div>
+                            <MapPin className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                             <select
                                 name="branchId"
-                                value={formData.branchId}
-                                onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none bg-white"
+                                value={CURRENT_BRANCH_ID}
+                                disabled
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg appearance-none bg-gray-100 text-gray-500 cursor-not-allowed font-medium"
                             >
-                                <option value="BR-001">Ho Chi Minh Central Branch</option>
-                                <option value="BR-002">Da Nang Branch</option>
-                                <option value="BR-003">Ha Noi Branch</option>
+                                <option value="BR-001">Ho Chi Minh Central (BR-001)</option>
+                                <option value="BR-002">Da Nang Branch (BR-002)</option>
                             </select>
                         </div>
                     </div>
+                </div>
 
-                    {/* Submit Button */}
-                    <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={() => navigate(-1)}
-                            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
-                        >
-                            {loading ? "Creating..." : "Create Shift"}
-                        </button>
+                <div className="grid grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Time <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <Clock className="absolute left-3 top-2.5 text-gray-400" size={18}/>
+                            <input
+                                name="startTime"
+                                type="time"
+                                required
+                                value={formData.startTime}
+                                onChange={handleChange}
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                            />
+                        </div>
                     </div>
-                </form>
-            </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">End Time <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <Clock className="absolute left-3 top-2.5 text-gray-400" size={18}/>
+                            <input
+                                name="endTime"
+                                type="time"
+                                required
+                                value={formData.endTime}
+                                onChange={handleChange}
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
+                    <button type="button" onClick={() => navigate(-1)} className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" disabled={loading} className="px-5 py-2.5 text-sm font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors">
+                        {loading ? "Processing..." : "Save Shift"}
+                    </button>
+                </div>
+            </form>
         </div>
     );
 }

@@ -4,11 +4,12 @@ import {
     CalendarDays,
     CalendarPlus,
     Users,
-    Settings,
     Coffee,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    UserCheck
 } from "lucide-react";
+
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 
 export default function Sidebar({ isCollapsed, onToggle }) {
@@ -18,9 +19,10 @@ export default function Sidebar({ isCollapsed, onToggle }) {
         { name: "Dashboard", path: "/", icon: LayoutDashboard },
         { name: "All Shifts", path: "/shifts", icon: CalendarDays },
         { name: "Create Shift", path: "/shifts/create", icon: CalendarPlus },
+        { name: "Assign Staff", path: "/shifts/assign", icon: UserCheck }, // <-- ĐÃ THÊM MỤC NÀY
         { name: "Attendance", path: "/attendance", icon: CalendarDays },
         { name: "Staff Directory", path: "/staff", icon: Users },
-        { name: "Settings", path: "/settings", icon: Settings },
+        // Đã xóa Settings theo yêu cầu
     ];
 
     return (
@@ -38,7 +40,7 @@ export default function Sidebar({ isCollapsed, onToggle }) {
                             CAPITAL COFFEE
                         </span>
                         <span className="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">
-                            Supply Chain Hub
+                            Shift Management
                         </span>
                     </div>
                 )}
@@ -48,6 +50,7 @@ export default function Sidebar({ isCollapsed, onToggle }) {
             <nav className={`flex-1 ${isCollapsed ? 'py-6 px-2' : 'py-6 px-3'} space-y-2 overflow-y-auto scrollbar-hide`}>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
+                    // Xử lý Active state thông minh (kể cả khi ở path con)
                     const isActive = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== "/");
 
                     return (

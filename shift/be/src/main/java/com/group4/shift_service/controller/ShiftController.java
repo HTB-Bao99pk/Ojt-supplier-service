@@ -1,5 +1,6 @@
 package com.group4.shift_service.controller;
 
+import com.group4.shift_service.dto.request.ShiftAssignmentRequest;
 import com.group4.shift_service.dto.request.ShiftCreateRequest;
 import com.group4.shift_service.dto.request.ShiftUpdateRequest;
 import com.group4.shift_service.dto.response.ApiResponse;
@@ -97,6 +98,18 @@ public class ShiftController {
                 .code(200)
                 .message("Fetch staff by shift successfully")
                 .result(shiftService.getStaffByShift(shiftId))
+                .build();
+    }
+    @PostMapping("/{shiftId}/assign")
+    public ApiResponse<Void> assignStaffToShift(
+            @PathVariable String shiftId,
+            @RequestBody @Valid ShiftAssignmentRequest request,
+            @RequestHeader(value = "USER", defaultValue = "admin_01") String assignedBy) { // <--- Lấy ID Admin
+        shiftService.assignStaffToShift(shiftId, request.getStaffId(), assignedBy);
+
+        return ApiResponse.<Void>builder()
+                .code(200)
+                .message("Đã gán nhân viên vào ca thành công!")
                 .build();
     }
 }
