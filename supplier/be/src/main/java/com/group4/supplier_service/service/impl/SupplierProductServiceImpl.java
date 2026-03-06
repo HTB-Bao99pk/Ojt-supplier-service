@@ -183,6 +183,18 @@ public class SupplierProductServiceImpl implements SupplierProductService {
 
         boolean isChanged = false;
 
+        //clone dữ liệu cũ
+        SupplierProduct oldData = SupplierProduct.builder()
+                .id(supplierProduct.getId())
+                .supplier(supplierProduct.getSupplier())
+                .productId(supplierProduct.getProductId())
+                .price(supplierProduct.getPrice())
+                .deliveryDateTimes(supplierProduct.getDeliveryDateTimes())
+                .isActive(supplierProduct.getIsActive())
+                .createAt(supplierProduct.getCreateAt())
+                .updateAt(supplierProduct.getUpdateAt())
+                .build();
+
         if (request.getPrice() != null && request.getPrice().compareTo(supplierProduct.getPrice()) != 0) {
             supplierProduct.setPrice(request.getPrice());
             isChanged = true;
@@ -200,6 +212,7 @@ public class SupplierProductServiceImpl implements SupplierProductService {
 
         if (isChanged) {
             supplierProduct = supplierProductRepository.save(supplierProduct);
+            saveProductAuditLog(supplierProduct.getSupplier(), oldData, supplierProduct, "admin_user", AuditAction.UPDATE);
         }
         return modelMapper.map(supplierProduct, ProductResponse.class);
     }
@@ -241,7 +254,7 @@ public class SupplierProductServiceImpl implements SupplierProductService {
         String oldDataJson = (oldData != null) ? toJson(oldData) : null;
         String newDataJson = (newData != null) ? toJson(newData) : null;
 
-        SupplierAuditLog auditLog = com.group4.supplier_service.entity.SupplierAuditLog.builder()
+        SupplierAuditLog auditLog = SupplierAuditLog.builder()
                 .supplier(supplier)
                 .action(action)
                 .oldData(oldDataJson)
