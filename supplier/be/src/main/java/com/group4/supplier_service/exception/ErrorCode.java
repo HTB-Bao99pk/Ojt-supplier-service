@@ -18,7 +18,7 @@ public enum ErrorCode {
 
     // -- SUPPLIER PRODUCT SERVICE ERRORS (501 -> 600) --
     PRODUCT_NOT_FOUND(501, "Product not found", HttpStatus.NOT_FOUND),
-    DELIVERY_TIME_MUST_BE_POSITIVE(502, "Delivery time must be a positive integer", HttpStatus.BAD_REQUEST),
+    DELIVERY_TIME_MUST_BE_AT_LEAST_1(502, "Delivery time must be greater than or equal 1", HttpStatus.BAD_REQUEST),
     PRICE_MUST_BE_POSITIVE(503, "Price must be a positive number", HttpStatus.BAD_REQUEST),
     PRODUCT_OR_SUPPLIER_ALREADY_EXISTS(504, "Product or supplier already exists for this supplier", HttpStatus.CONFLICT);
     private final int code;
