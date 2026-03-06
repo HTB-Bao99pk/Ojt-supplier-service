@@ -122,23 +122,38 @@ public class SupplierProductServiceImpl implements SupplierProductService {
         if (products.isEmpty()) {
             throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
         }
+        // Filter out products whose suppliers are not approved
+        List<SupplierProduct> validProducts = new ArrayList<>();
+        for (SupplierProduct p : products) {
+            if (p.getSupplier() != null && p.getSupplier().getStatus() == SupplierStatus.APPROVED) {
+                validProducts.add(p);
+            }
+        }
+
+        if (validProducts.isEmpty()) {
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
 
         //Find min price and quick delivery
         double minPrice = Double.MAX_VALUE;
         int minDeliveryDays = Integer.MAX_VALUE;
 
         for (SupplierProduct p : products) {
-            if (p.getPrice() != null && p.getPrice().doubleValue() < minPrice) {
+            if (p.getPrice() != null && p.getPrice().doubleValue() > 0 && p.getPrice().doubleValue() < minPrice) {
                 minPrice = p.getPrice().doubleValue();
             }
-            if (p.getDeliveryDateTimes() != null && p.getDeliveryDateTimes() < minDeliveryDays) {
+            if (p.getDeliveryDateTimes() != null && p.getDeliveryDateTimes() > 0 &&  p.getDeliveryDateTimes() < minDeliveryDays) {
                 minDeliveryDays = p.getDeliveryDateTimes();
             }
         }
 
+        // Handle case where all products have null price or delivery days
+        if (minPrice == Double.MAX_VALUE) minPrice = 0.0;
+        if (minDeliveryDays == Integer.MAX_VALUE) minDeliveryDays = 1;
+
         // Calculate score for each supplier and prepare response
         List<SupplierComparisonResponse> resultList = new ArrayList<>();
-        for (SupplierProduct product : products) {
+        for (SupplierProduct product : validProducts) {
             double price = 0;
             if (product.getPrice() != null) {
                 price = product.getPrice().doubleValue();
