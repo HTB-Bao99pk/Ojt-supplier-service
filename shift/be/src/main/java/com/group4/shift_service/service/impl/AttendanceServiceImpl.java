@@ -28,10 +28,10 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AttendanceServiceImpl implements AttendanceService {
 
-    AttendanceRepository      attendanceRepository;
-    ShiftRepository           shiftRepository;
+    AttendanceRepository attendanceRepository;
+    ShiftRepository shiftRepository;
     ShiftAssignmentRepository shiftAssignmentRepository;
-    StaffRepository           staffRepository;
+    StaffRepository staffRepository;
 
     @Override
     @Transactional
