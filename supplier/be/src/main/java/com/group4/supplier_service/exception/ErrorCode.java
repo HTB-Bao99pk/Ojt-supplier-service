@@ -15,6 +15,7 @@ public enum ErrorCode {
     INVALID_FORMAT(400, "Invalid data format", HttpStatus.BAD_REQUEST),
     PHONE_ALREADY_USED(409, "Phone number is already in use", HttpStatus.CONFLICT),
     SUPPLIER_NAME_ALREADY_USED(409, "Supplier name is already in use", HttpStatus.CONFLICT),
+    TAX_CODE_ALREADY_USED(409, "Tax code is already in use", HttpStatus.CONFLICT),
 
     // -- SUPPLIER PRODUCT SERVICE ERRORS (501 -> 600) --
     PRODUCT_NOT_FOUND(501, "Product not found", HttpStatus.NOT_FOUND),

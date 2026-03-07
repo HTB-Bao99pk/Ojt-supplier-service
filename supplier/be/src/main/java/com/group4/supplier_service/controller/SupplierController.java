@@ -99,7 +99,7 @@ public class SupplierController {
     @PutMapping("/{id}")
     public ApiResponse<SupplierResponse> updateSupplier(
             @PathVariable String id,
-            @RequestBody SupplierUpdateRequest dto,
+            @RequestBody @Valid SupplierUpdateRequest dto,
             @RequestHeader("USER") String user
     ) {
         return ApiResponse.<SupplierResponse>builder()
