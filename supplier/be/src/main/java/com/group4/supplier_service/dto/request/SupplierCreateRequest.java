@@ -2,28 +2,30 @@ package com.group4.supplier_service.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 public record SupplierCreateRequest(
-        @NotBlank(message = "Supplier name must not be blank")
+        @NotBlank(message = "SUPPLIER_NAME_NOT_BLANK")
         String name,
 
-        @Email(message = "Invalid email format")
-        @NotBlank(message = "Contact email must not be blank")
+        @Email(message = "INVALID_EMAIL_FORMAT")
+        @NotBlank(message = "CONTACT_EMAIL_NOT_BLANK")
         String contactEmail,
 
-        @NotBlank(message = "Tax code must not be blank")
+        @NotBlank(message = "TAX_CODE_NOT_BLANK")
         String taxCode,
 
-        @NotBlank(message = "Material type must not be blank")
+        @NotBlank(message = "MATERIALS_NOT_BLANK")
         String materialType,
 
         @NotBlank(message = "Phone number must not be blank")
+        @Pattern(regexp = "^(0[3|5|7|8|9])+([0-9]{8})$", message = "INVALID_PHONE_FORMAT")
         String phone,
 
-        @NotBlank(message = "Address must not be blank")
+        @NotBlank(message = "ADDRESS_NOT_BLANK")
         String address,
 
-        @NotBlank(message = "Region must not be blank")
+        @NotBlank(message = "REGION_NOT_BLANK")
         String region
 ) {
 }
