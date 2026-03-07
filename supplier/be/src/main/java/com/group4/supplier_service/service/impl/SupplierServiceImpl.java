@@ -60,6 +60,12 @@ public class SupplierServiceImpl implements SupplierService {
             }
         }
 
+        if (dto.taxCode() != null && !dto.taxCode().equals(supplier.getTaxCode())) {
+            if (supplierRepository.existsByTaxCode(dto.taxCode().trim())) {
+                throw new AppException(ErrorCode.TAX_CODE_ALREADY_USED);
+            }
+        }
+
         Supplier oldData = cloneSupplier(supplier);
         if (dto.name() != null) supplier.setName(dto.name());
         if (dto.contactEmail() != null) supplier.setContactEmail(dto.contactEmail());
@@ -67,6 +73,7 @@ public class SupplierServiceImpl implements SupplierService {
         if (dto.address() != null) supplier.setAddress(dto.address());
         if (dto.region() != null) supplier.setRegion(dto.region());
         if (dto.materialType() != null) supplier.setMaterialType(dto.materialType());
+        if (dto.taxCode() != null) supplier.setTaxCode(dto.taxCode());
 
         supplier.setUpdateBy(updatedBy);
 
