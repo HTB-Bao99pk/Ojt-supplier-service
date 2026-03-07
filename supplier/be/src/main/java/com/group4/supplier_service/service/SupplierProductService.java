@@ -15,4 +15,5 @@ public interface SupplierProductService {
     List<SupplierComparisonResponse> compareSuppliersByProduct(String productId);
     ProductResponse updateSupplierProduct(String productId, String supplierId, SupplierProductUpdateRequest request);
     ProductResponse createSupplierProduct(String supplierId, SupplierProductCreateRequest request);
+
 }

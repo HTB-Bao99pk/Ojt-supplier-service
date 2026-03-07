@@ -153,4 +153,14 @@ public class SupplierController {
                 .result(supplierService.getAuditLogsBySupplierId(id, page, size))
                 .build();
     }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteSupplier(
+            @PathVariable String id,
+            @RequestHeader(value = "USER", defaultValue = "admin_user") String deletedBy){
+        supplierService.deleteSupplier(id, deletedBy);
+        return ApiResponse.<Void>builder()
+                .message("Delete supplier successfully")
+                .build();
+    }
 }

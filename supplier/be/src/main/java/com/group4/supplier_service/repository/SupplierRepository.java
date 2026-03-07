@@ -23,4 +23,5 @@ public interface SupplierRepository extends JpaRepository<Supplier, String>, Jpa
 
     Page<Supplier> findByStatus(SupplierStatus status, Pageable pageable);
 
+    Page<Supplier> findByStatusNot(SupplierStatus status, Pageable pageable);
 }
