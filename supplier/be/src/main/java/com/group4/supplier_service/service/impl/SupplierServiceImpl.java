@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -99,7 +100,7 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public Page<SupplierResponse> getAllSuppliers(int page, int size) {
-        return supplierRepository.findAll(PageRequest.of(page, size))
+        return supplierRepository.findByStatusNot(SupplierStatus.DELETED, PageRequest.of(page, size))
                 .map(this::mapToResponse);
     }
 
@@ -121,6 +122,30 @@ public class SupplierServiceImpl implements SupplierService {
     public Page<SupplierAuditLog> getAuditLogsBySupplierId(String supplierId, int page, int size) {
         return auditLogRepository.findBySupplierIdOrderByPerformedAtDesc(
                 supplierId, PageRequest.of(page, size));
+    }
+
+    @Override
+    public void deleteSupplier(String supplierId, String deleteBy) {
+        Supplier supplier = supplierRepository.findById(supplierId)
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+        if(supplier.getStatus() == SupplierStatus.DELETED){
+            throw new AppException(ErrorCode.SUPPLIER_NOT_FOUND);
+        }
+        Supplier oldData = cloneSupplier(supplier);
+
+        supplier.setStatus(SupplierStatus.DELETED);
+        supplier.setUpdateBy(deleteBy);
+
+        //tạo mã ngắn (4 kí tự)
+        String shortcode = UUID.randomUUID().toString().substring(0,4);
+        supplier.setName(supplier.getName() + " (Del-" + shortcode + ")");
+
+        supplier.setContactEmail(null);
+        supplier.setPhone(null);
+        supplier.setTaxCode(null);
+
+        Supplier saved = supplierRepository.save(supplier);
+        auditLog(saved, oldData, saved, deleteBy, AuditAction.UPDATE);
     }
 
     @Override

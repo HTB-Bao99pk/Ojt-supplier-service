@@ -33,4 +33,6 @@ public interface SupplierService {
 
     Page<SupplierAuditLog> getAuditLogsBySupplierId(String supplierId, int page, int size);
 
+    void deleteSupplier(String supplierId, String deleteBy);
+
 }

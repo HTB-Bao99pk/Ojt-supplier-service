@@ -4,6 +4,7 @@ public enum SupplierStatus {
     PENDING,    // Chờ duyệt
     APPROVED,   // Đã duyệt
     SUSPENDED,   // Bị đình chỉ
-    REJECTED    // Bị từ chối
+    REJECTED,   // Bị từ chối
+    DELETED     // Đã xóa
 }
 
