@@ -154,13 +154,13 @@ public class SupplierServiceImpl implements SupplierService {
         validateBusinessRule(dto);
 
         Supplier supplier = Supplier.builder()
-                .name(dto.name().trim())
-                .contactEmail(dto.contactEmail().trim().toLowerCase())
-                .phone(dto.phone())
-                .address(dto.address())
-                .region(dto.region())
-                .taxCode(dto.taxCode())
-                .materialType(dto.materialType())
+                .name(dto.name() != null ? dto.name().trim() : null)
+                .contactEmail(dto.contactEmail() != null ? dto.contactEmail().trim().toLowerCase() : null)
+                .phone(dto.phone() != null ? dto.phone().trim() : null)
+                .address(dto.address() != null ? dto.address().trim() : null)
+                .region(dto.region() != null ? dto.region().trim() : null)
+                .taxCode(dto.taxCode() != null ? dto.taxCode().trim() : null)
+                .materialType(dto.materialType() != null ? dto.materialType().trim() : null)
                 .createBy(createdBy)
                 .status(SupplierStatus.PENDING)
                 .rating(BigDecimal.ZERO)
@@ -168,7 +168,7 @@ public class SupplierServiceImpl implements SupplierService {
 
         try {
             Supplier saved = supplierRepository.save(supplier);
-            saveAuditLog(saved, AuditAction.CREATE, createdBy);
+            auditLog(saved, null, saved, createdBy, AuditAction.CREATE);
             return mapToResponse(saved);
 
         } catch (DataIntegrityViolationException ex) {
