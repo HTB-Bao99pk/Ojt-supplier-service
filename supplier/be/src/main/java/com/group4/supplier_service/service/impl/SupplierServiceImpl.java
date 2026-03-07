@@ -41,10 +41,25 @@ public class SupplierServiceImpl implements SupplierService {
     public SupplierResponse updateSupplier(String supplierId, SupplierUpdateRequest dto, String updatedBy) {
 
         Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+        if (dto.contactEmail() != null && !dto.contactEmail().equalsIgnoreCase(supplier.getContactEmail())) {
+            if (supplierRepository.existsByContactEmail(dto.contactEmail().trim())) {
+                throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
+            }
+        }
+        if (dto.phone() != null && !dto.phone().equals(supplier.getPhone())) {
+            if (supplierRepository.existsByPhone(dto.phone().trim())) {
+                throw new AppException(ErrorCode.PHONE_ALREADY_USED);
+            }
+        }
+
+        if (dto.name() != null && !dto.name().equalsIgnoreCase(supplier.getName())) {
+            if (supplierRepository.existsByName(dto.name().trim())) {
+                throw new AppException(ErrorCode.SUPPLIER_NAME_ALREADY_USED);
+            }
+        }
 
         Supplier oldData = cloneSupplier(supplier);
-
         if (dto.name() != null) supplier.setName(dto.name());
         if (dto.contactEmail() != null) supplier.setContactEmail(dto.contactEmail());
         if (dto.phone() != null) supplier.setPhone(dto.phone());
