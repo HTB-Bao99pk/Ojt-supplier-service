@@ -42,9 +42,7 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public SupplierResponse updateSupplier(String supplierId, SupplierUpdateRequest dto, String updatedBy) {
-
-        Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+        Supplier supplier = getSupplierOrThrow(supplierId);
         if (dto.contactEmail() != null && !dto.contactEmail().equalsIgnoreCase(supplier.getContactEmail())) {
             if (supplierRepository.existsByContactEmail(dto.contactEmail().trim())) {
                 throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
@@ -89,8 +87,7 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     public SupplierResponse toggleSuspend(String supplierId, String updatedBy) {
 
-        Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
+        Supplier supplier = getSupplierOrThrow(supplierId);
 
         Supplier oldData = cloneSupplier(supplier);
 
@@ -115,9 +112,7 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public SupplierResponse getSupplierById(String supplierId) {
-        Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
-
+        Supplier supplier = getSupplierOrThrow(supplierId);
         return mapToResponse(supplier);
     }
     @Override
@@ -135,11 +130,7 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public void deleteSupplier(String supplierId, String deleteBy) {
-        Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
-        if(supplier.getStatus() == SupplierStatus.DELETED){
-            throw new AppException(ErrorCode.SUPPLIER_NOT_FOUND);
-        }
+        Supplier supplier = getSupplierOrThrow(supplierId);
         Supplier oldData = cloneSupplier(supplier);
 
         supplier.setStatus(SupplierStatus.DELETED);
@@ -203,8 +194,7 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public SupplierResponse reviewSupplier(String supplierId, SupplierStatus status, String reason, String reviewedBy) {
-        Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
+        Supplier supplier = getSupplierOrThrow(supplierId);
 
         Supplier oldData = cloneSupplier(supplier);
 
@@ -270,18 +260,18 @@ public class SupplierServiceImpl implements SupplierService {
         }
     }
 
-    private void saveAuditLog(Supplier supplier, AuditAction action, String performedBy) {
-        SupplierAuditLog auditLog = SupplierAuditLog.builder()
-                .supplier(supplier)
-                .action(action)
-                .oldData(null)
-                .newData(toJson(supplier))
-                .performedBy(performedBy)
-                .performedAt(LocalDateTime.now())
-                .build();
-
-        auditLogRepository.save(auditLog);
-    }
+//    private void saveAuditLog(Supplier supplier, AuditAction action, String performedBy) {
+//        SupplierAuditLog auditLog = SupplierAuditLog.builder()
+//                .supplier(supplier)
+//                .action(action)
+//                .oldData(null)
+//                .newData(toJson(supplier))
+//                .performedBy(performedBy)
+//                .performedAt(LocalDateTime.now())
+//                .build();
+//
+//        auditLogRepository.save(auditLog);
+//    }
 
     private SupplierResponse mapToResponse(Supplier supplier) {
 
@@ -339,5 +329,10 @@ public class SupplierServiceImpl implements SupplierService {
                 .build();
 
         auditLogRepository.save(auditLog);
+    }
+
+    private Supplier getSupplierOrThrow(String supplierId){
+        return supplierRepository.findByIdAndStatusNot(supplierId, SupplierStatus.DELETED)
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
     }
 }

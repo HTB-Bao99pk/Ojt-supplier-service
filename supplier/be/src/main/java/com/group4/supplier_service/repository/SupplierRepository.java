@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface SupplierRepository extends JpaRepository<Supplier, String>, JpaSpecificationExecutor<Supplier> {
     boolean existsByContactEmail(String contactEmail);
@@ -24,4 +26,6 @@ public interface SupplierRepository extends JpaRepository<Supplier, String>, Jpa
     Page<Supplier> findByStatus(SupplierStatus status, Pageable pageable);
 
     Page<Supplier> findByStatusNot(SupplierStatus status, Pageable pageable);
+    Optional<Supplier> findByIdAndStatusNot(String id, SupplierStatus status);
+
 }
