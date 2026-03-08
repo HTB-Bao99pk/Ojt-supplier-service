@@ -5,6 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,4 +22,8 @@ public interface SupplierProductRepository extends JpaRepository<SupplierProduct
     boolean existsBySupplierIdAndProductId(String supplierId, String productId);
 
     Optional<SupplierProduct> findBySupplierIdAndProductId(String supplierId, String productId );
+
+    @Modifying
+    @Query("UPDATE SupplierProduct sp SET sp.isActive = false WHERE sp.supplier.id = :supplierId")
+    void disableAllProductsBySupplierId(@Param("supplierId") String supplierId);
 }

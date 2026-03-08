@@ -10,6 +10,7 @@ import com.group4.supplier_service.enums.SupplierStatus;
 import com.group4.supplier_service.exception.AppException;
 import com.group4.supplier_service.exception.ErrorCode;
 import com.group4.supplier_service.repository.SupplierAuditLogRepository;
+import com.group4.supplier_service.repository.SupplierProductRepository;
 import com.group4.supplier_service.repository.SupplierRepository;
 import com.group4.supplier_service.service.SupplierService;
 import com.group4.supplier_service.specification.SupplierSpecification;
@@ -37,6 +38,7 @@ public class SupplierServiceImpl implements SupplierService {
     private final SupplierRepository supplierRepository;
     private final SupplierAuditLogRepository auditLogRepository;
     private final ObjectMapper objectMapper;
+    private final SupplierProductRepository supplierProductRepository;
 
     @Override
     public SupplierResponse updateSupplier(String supplierId, SupplierUpdateRequest dto, String updatedBy) {
@@ -152,6 +154,10 @@ public class SupplierServiceImpl implements SupplierService {
         supplier.setTaxCode(null);
 
         Supplier saved = supplierRepository.save(supplier);
+
+        //Vô hiệu hóa toàn bộ sản phẩm của nhà cung cấp này
+        supplierProductRepository.disableAllProductsBySupplierId(supplierId);
+
         auditLog(saved, oldData, saved, deleteBy, AuditAction.UPDATE);
     }
 
