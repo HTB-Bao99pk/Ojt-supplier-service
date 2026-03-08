@@ -18,7 +18,7 @@ public record SupplierCreateRequest(
         @NotBlank(message = "MATERIALS_NOT_BLANK")
         String materialType,
 
-        @NotBlank(message = "Phone number must not be blank")
+        @NotBlank(message = "PHONE_NOT_BLANK")
         @Pattern(regexp = "^(0[3|5|7|8|9])+([0-9]{8})$", message = "INVALID_PHONE_FORMAT")
         String phone,
 
