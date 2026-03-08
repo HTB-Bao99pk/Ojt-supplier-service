@@ -30,7 +30,10 @@ public enum ErrorCode {
     PRODUCT_NOT_FOUND(501, "Product not found", HttpStatus.NOT_FOUND),
     DELIVERY_TIME_MUST_BE_AT_LEAST_1(502, "Delivery time must be greater than or equal 1", HttpStatus.BAD_REQUEST),
     PRICE_MUST_BE_POSITIVE(503, "Price must be a positive number", HttpStatus.BAD_REQUEST),
-    PRODUCT_OR_SUPPLIER_ALREADY_EXISTS(504, "Product or supplier already exists for this supplier", HttpStatus.CONFLICT);
+    PRODUCT_OR_SUPPLIER_ALREADY_EXISTS(504, "Product or supplier already exists for this supplier", HttpStatus.CONFLICT),
+    PRODUCT_ID_NOT_BLANK(505, "Product ID must not be blank", HttpStatus.BAD_REQUEST),
+    PRICE_NOT_NULL(506, "Price must not be null", HttpStatus.BAD_REQUEST),
+    DELIVERY_TIME_NOT_NULL(507, "Delivery date times must not be null", HttpStatus.BAD_REQUEST);
     private final int code;
     private final String message;
     private final HttpStatus httpStatus;
