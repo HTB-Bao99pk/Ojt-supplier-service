@@ -24,6 +24,7 @@ public enum ErrorCode {
     INVALID_PHONE_FORMAT(414, "Phone number format is invalid (e.g. 0901234567)", HttpStatus.BAD_REQUEST),
     ADDRESS_NOT_BLANK(415, "Address must not be blank", HttpStatus.BAD_REQUEST),
     REGION_NOT_BLANK(416, "Region must not be blank", HttpStatus.BAD_REQUEST),
+    TAX_CODE_ALREADY_USED(417, "Tax code is already in use", HttpStatus.CONFLICT),
 
 
     // -- SUPPLIER PRODUCT SERVICE ERRORS (501 -> 600) --
