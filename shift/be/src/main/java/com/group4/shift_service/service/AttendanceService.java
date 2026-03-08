@@ -2,8 +2,11 @@ package com.group4.shift_service.service;
 
 import com.group4.shift_service.dto.request.AttendanceItemRequest;
 import com.group4.shift_service.dto.request.BulkMarkAttendanceRequest;
+import com.group4.shift_service.dto.response.AttendanceReportResponse;
 import com.group4.shift_service.dto.response.AttendanceResponse;
+import com.group4.shift_service.dto.response.DashboardOverviewResponse;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface AttendanceService {
@@ -16,4 +19,7 @@ public interface AttendanceService {
                                         String updatedBy);
 
     List<AttendanceResponse> getAttendanceByShift(String shiftId);
+
+    List<AttendanceReportResponse> getAttendanceReport();
+    DashboardOverviewResponse getDashboardOverview(LocalDate date);
 }

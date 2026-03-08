@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchShiftsByDate, todayDate } from "../../api/attendanceApi";
+import { fetchShiftsByDate } from "../../api/attendanceApi";
+
+// --- HÀM FIX LỖI NGÀY THÁNG (LẤY GIỜ LOCAL VIỆT NAM) ---
+const getTodayDateLocal = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
 // HÀM BẢO VỆ LỖI FORMAT THỜI GIAN
 const formatTime = (time) => {
@@ -17,7 +26,6 @@ const formatShiftId = (id) => {
 };
 
 function getPeriod(startTime) {
-    // Xử lý đọc giờ linh hoạt (string hoặc mảng)
     let h = 0;
     if (Array.isArray(startTime)) h = parseInt(startTime[0] ?? "0");
     else if (typeof startTime === "string") h = parseInt(startTime.split(":")[0] ?? "0");
@@ -63,7 +71,6 @@ function ShiftCard({ shift, onClick }) {
                 transition: "all .18s ease",
             }}
         >
-            {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{
@@ -77,7 +84,6 @@ function ShiftCard({ shift, onClick }) {
                         {period.emoji}
                     </div>
                     <div>
-                        {/* ĐÃ FIX: IN TÊN CA NGẮN GỌN */}
                         <div style={{ fontWeight: 800, fontSize: 14, color: "#111827" }}>{formatShiftId(shift.id)}</div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: period.color }}>{period.label} Shift</div>
                     </div>
@@ -92,7 +98,6 @@ function ShiftCard({ shift, onClick }) {
                 </span>
             </div>
 
-            {/* Details */}
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {[
                     { icon: "⏰", text: `${formatTime(shift.startTime)} – ${formatTime(shift.endTime)}` },
@@ -105,7 +110,6 @@ function ShiftCard({ shift, onClick }) {
                 ))}
             </div>
 
-            {/* CTA button */}
             <div style={{
                 padding: "10px 0",
                 borderRadius: 10,
@@ -129,10 +133,12 @@ function ShiftCard({ shift, onClick }) {
 
 export default function Attendance() {
     const navigate = useNavigate();
-    const [date,    setDate]    = useState(todayDate());
-    const [shifts,  setShifts]  = useState([]);
+
+    // Sử dụng hàm getTodayDateLocal mới tạo thay vì todayDate() từ API
+    const [date, setDate] = useState(getTodayDateLocal());
+    const [shifts, setShifts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error,   setError]   = useState(null);
+    const [error, setError] = useState(null);
 
     const load = (d) => {
         setLoading(true); setError(null);
@@ -149,7 +155,6 @@ export default function Attendance() {
 
     return (
         <div style={{ fontFamily: "'Plus Jakarta Sans','DM Sans',sans-serif" }}>
-            {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
                 <div>
                     <h1 style={{ fontSize: 22, fontWeight: 800, color: "#111827", margin: 0 }}>Attendance</h1>
@@ -164,7 +169,7 @@ export default function Attendance() {
                         className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
                     />
                     <button
-                        onClick={() => setDate(todayDate())}
+                        onClick={() => setDate(getTodayDateLocal())} // Fix nút Today
                         className="px-3 py-2 rounded-lg text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-colors"
                     >
                         Today
@@ -178,14 +183,12 @@ export default function Attendance() {
                 </div>
             </div>
 
-            {/* Error */}
             {error && (
                 <div style={{ padding: "12px 16px", borderRadius: 10, marginBottom: 16, background: "#fef2f2", border: "1px solid #fca5a5", color: "#b91c1c", fontSize: 13 }}>
                     ⚠ {error}
                 </div>
             )}
 
-            {/* Content */}
             {loading ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 72, gap: 10, color: "#9ca3af", fontSize: 14 }}>
                     <svg style={{ animation: "spin 1s linear infinite", width: 20, height: 20 }} viewBox="0 0 24 24" fill="none">

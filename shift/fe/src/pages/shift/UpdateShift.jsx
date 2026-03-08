@@ -17,6 +17,20 @@ export default function UpdateShift() {
         branchId: ""
     });
 
+    // Hàm format ID ngắn gọn để hiển thị trên tiêu đề
+    const shortenId = (uuid) => {
+        if (!uuid) return "";
+        return uuid.length > 8 ? `SH-${uuid.substring(0, 5).toUpperCase()}` : uuid;
+    };
+
+    // Hàm xử lý thời gian an toàn (String hoặc Array)
+    const formatTimeForInput = (time) => {
+        if (!time) return "";
+        if (typeof time === "string") return time.substring(0, 5);
+        if (Array.isArray(time)) return `${String(time[0]).padStart(2, '0')}:${String(time[1] || 0).padStart(2, '0')}`;
+        return "";
+    };
+
     // Tải dữ liệu cũ lên form
     useEffect(() => {
         const fetchShift = async () => {
@@ -24,19 +38,13 @@ export default function UpdateShift() {
                 const data = await getShiftById(id);
                 setFormData({
                     date: data.date,
-                    startTime: data.startTime.substring(0, 5), // Bỏ phần giây (VD: 08:00:00 -> 08:00)
-                    endTime: data.endTime.substring(0, 5),
+                    startTime: formatTimeForInput(data.startTime),
+                    endTime: formatTimeForInput(data.endTime),
                     branchId: data.branchId
                 });
             } catch (err) {
-                console.log("Dùng dữ liệu giả vì API GET chưa có");
-                // Mock data dự phòng
-                setFormData({
-                    date: "2026-03-10",
-                    startTime: "08:00",
-                    endTime: "12:00",
-                    branchId: "BR-001"
-                });
+                console.error("Lỗi tải dữ liệu ca:", err);
+                setError("Could not load shift data.");
             } finally {
                 setInitialLoading(false);
             }
@@ -56,21 +64,20 @@ export default function UpdateShift() {
         try {
             await updateShift(id, {
                 date: formData.date,
-                startTime: formData.startTime + ":00",
-                endTime: formData.endTime + ":00",
+                startTime: formData.startTime.length === 5 ? formData.startTime + ":00" : formData.startTime,
+                endTime: formData.endTime.length === 5 ? formData.endTime + ":00" : formData.endTime,
                 branchId: formData.branchId
             });
             alert("Shift updated successfully!");
             navigate("/shifts");
         } catch (err) {
-            alert("Đã gửi API PUT/Update. Sẽ chạy thật khi BE làm xong!");
-            navigate("/shifts");
+            alert("Lỗi khi cập nhật: " + (err.response?.data?.message || err.message));
         } finally {
             setLoading(false);
         }
     };
 
-    if (initialLoading) return <div className="p-10 text-center">Loading shift data...</div>;
+    if (initialLoading) return <div className="p-10 text-center text-gray-500">Loading shift data...</div>;
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
@@ -82,7 +89,10 @@ export default function UpdateShift() {
                     <ArrowLeft className="h-5 w-5 text-gray-600" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Update Shift {id}</h1>
+                    {/* ĐÃ CẬP NHẬT: Hiển thị ID rút gọn ở đây */}
+                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        Update Shift <span className="text-amber-600">{shortenId(id)}</span>
+                    </h1>
                     <p className="text-sm text-gray-500">Modify the schedule for this shift.</p>
                 </div>
             </div>
@@ -104,7 +114,7 @@ export default function UpdateShift() {
                                 required
                                 value={formData.date}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -123,7 +133,7 @@ export default function UpdateShift() {
                                     required
                                     value={formData.startTime}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                                 />
                             </div>
                         </div>
@@ -140,7 +150,7 @@ export default function UpdateShift() {
                                     required
                                     value={formData.endTime}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                                 />
                             </div>
                         </div>
@@ -157,7 +167,7 @@ export default function UpdateShift() {
                                 name="branchId"
                                 value={formData.branchId}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none bg-white"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none transition-all appearance-none bg-white"
                             >
                                 <option value="BR-001">BR-001 (Ho Chi Minh Central)</option>
                                 <option value="BR-002">BR-002 (Da Nang Branch)</option>

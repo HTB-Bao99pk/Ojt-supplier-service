@@ -7,22 +7,23 @@ import {
     Coffee,
     ChevronLeft,
     ChevronRight,
+    BarChart3,
     UserCheck
 } from "lucide-react";
-
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 
 export default function Sidebar({ isCollapsed, onToggle }) {
     const location = useLocation();
 
+    // ĐÃ SỬA ĐƯỜNG DẪN ASSIGN STAFF THÀNH /shifts/assign CHO KHỚP VỚI APP.JSX
     const menuItems = [
         { name: "Dashboard", path: "/", icon: LayoutDashboard },
         { name: "All Shifts", path: "/shifts", icon: CalendarDays },
         { name: "Create Shift", path: "/shifts/create", icon: CalendarPlus },
-        { name: "Assign Staff", path: "/shifts/assign", icon: UserCheck }, // <-- ĐÃ THÊM MỤC NÀY
+        { name: "Assign Staff", path: "/shifts/assign", icon: UserCheck }, // <-- Sửa chuẩn ở đây
         { name: "Attendance", path: "/attendance", icon: CalendarDays },
+        { name: "Reports & KPI", path: "/attendance-report", icon: BarChart3 },
         { name: "Staff Directory", path: "/staff", icon: Users },
-        // Đã xóa Settings theo yêu cầu
     ];
 
     return (
@@ -30,7 +31,6 @@ export default function Sidebar({ isCollapsed, onToggle }) {
             className="bg-slate-900 text-white flex flex-col h-screen fixed left-0 top-0 z-20 transition-all duration-300 border-r border-slate-800"
             style={{ width: isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
         >
-            {/* ================= LOGO & BRANDING ================= */}
             <div className="h-16 flex items-center px-5 border-b border-slate-800 shrink-0 overflow-hidden">
                 <Coffee className={`h-8 w-8 text-amber-500 shrink-0 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
 
@@ -40,17 +40,16 @@ export default function Sidebar({ isCollapsed, onToggle }) {
                             CAPITAL COFFEE
                         </span>
                         <span className="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">
-                            Shift Management
+                            Supply Chain Hub
                         </span>
                     </div>
                 )}
             </div>
 
-            {/* ================= NAVIGATION MENU ================= */}
             <nav className={`flex-1 ${isCollapsed ? 'py-6 px-2' : 'py-6 px-3'} space-y-2 overflow-y-auto scrollbar-hide`}>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
-                    // Xử lý Active state thông minh (kể cả khi ở path con)
+                    // Xử lý Active state: sáng đèn khi trùng path
                     const isActive = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== "/");
 
                     return (
@@ -73,7 +72,6 @@ export default function Sidebar({ isCollapsed, onToggle }) {
                 })}
             </nav>
 
-            {/* ================= BOTTOM TOGGLE BUTTON ================= */}
             <div className="h-14 border-t border-slate-800 flex items-center justify-center shrink-0">
                 <button
                     onClick={onToggle}

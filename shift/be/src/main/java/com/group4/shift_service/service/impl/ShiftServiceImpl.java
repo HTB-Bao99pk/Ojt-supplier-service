@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -153,22 +154,29 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     /**
-     * LOGIC CẬP NHẬT: Cho phép trạng thái OPEN trước 30 phút
+     * =================================================================
+     * LOGIC CẬP NHẬT: THÊM THỜI GIAN ÂN HẠN (GRACE PERIOD)
+     * =================================================================
      */
     private String calculateStatus(Shift shift) {
-        LocalDateTime now = LocalDateTime.now();
+        // Lấy giờ hệ thống chuẩn VN
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         LocalDateTime shiftStart = LocalDateTime.of(shift.getDate(), shift.getStartTime());
         LocalDateTime shiftEnd = LocalDateTime.of(shift.getDate(), shift.getEndTime());
 
-        // Thời điểm bắt đầu cho phép điểm danh (Giờ bắt đầu trừ 30 phút)
+        // 1. Cho phép Check-in sớm: Mở cửa trước 30 phút
         LocalDateTime allowCheckInTime = shiftStart.minusMinutes(30);
+
+        // 2. Cho phép Check-out trễ: Khóa sổ sau 30 phút kể từ lúc hết ca
+        // (Trong thời gian này Admin vẫn thoải mái thao tác)
+        LocalDateTime closeTime = shiftEnd.plusMinutes(30);
 
         if (now.isBefore(allowCheckInTime)) {
             return "PREPARING";
-        } else if (now.isAfter(shiftEnd)) {
+        } else if (now.isAfter(closeTime)) {
             return "CLOSED";
         } else {
-            // Nằm trong khoảng [Giờ bắt đầu - 30p] đến [Giờ kết thúc]
+            // Bao gồm từ [Bắt đầu - 30p] đến [Kết thúc + 30p]
             return "OPEN";
         }
     }

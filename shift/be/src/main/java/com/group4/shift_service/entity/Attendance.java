@@ -36,8 +36,13 @@ public class Attendance {
     @Column(nullable = false)
     AttendanceStatus status;
 
-    @Column(name = "note")
-    String note;
+    @Column(name = "late_minutes")
+    Integer lateMinutes;
+
+    @Column(name = "early_leave_minutes")
+    Integer earlyLeaveMinutes;
+
+
 
     @Column(name = "marked_by", nullable = false)
     String markedBy;

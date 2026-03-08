@@ -22,6 +22,10 @@ public class Staff {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
+    // LƯU TRỮ MÃ NHÂN VIÊN VÀO DB
+    @Column(name = "staff_code", unique = true)
+    String staffCode;
+
     @Column(nullable = false)
     String name;
 
@@ -34,12 +38,15 @@ public class Staff {
     @Column(unique = true)
     String phone;
 
+
+    @Column(name = "gender")
+    String gender;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
     StaffStatus status = StaffStatus.ACTIVE;
 
-    /** Must be >= 18 at time of creation */
     @Column(name = "date_of_birth")
     LocalDate dateOfBirth;
 

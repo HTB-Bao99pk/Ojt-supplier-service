@@ -79,3 +79,17 @@ export async function assignStaffToShift(shiftId, staffId) {
 export function todayDate() {
     return new Date().toISOString().slice(0, 10);
 }
+
+export const getAttendanceReport = async () => {
+    const response = await fetch(`${BASE_URL}/attendance-reports`); // ĐÃ SỬA ĐƯỜNG DẪN
+    if (!response.ok) throw new Error("Failed to fetch report");
+    const data = await response.json();
+    return data.result;
+};
+
+export const getDashboardOverview = async (date) => {
+    const response = await fetch(`${BASE_URL}/attendance-reports/dashboard?date=${date}`);
+    if (!response.ok) throw new Error("Failed to fetch dashboard data");
+    const data = await response.json();
+    return data.result;
+};
