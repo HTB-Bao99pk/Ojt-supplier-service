@@ -13,16 +13,14 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SupplierProductCreateRequest {
 
-    @NotBlank(message = "Product ID must not be blank")
+    @NotBlank(message = "PRODUCT_ID_NOT_BLANK")
     String productId;
 
-    @NotNull(message = "Price must not be null")
-    @DecimalMin(value = "0.0", inclusive = true, message = "Price must be non-negative")
-    @DecimalMax(value = "999999999.99", inclusive = true, message = "Price must be less than 999999999.99")
+    @NotNull(message = "PRICE_NOT_NULL")
+    @DecimalMin(value = "0.0", inclusive = true, message = "PRICE_MUST_BE_POSITIVE")
     BigDecimal price;
 
-    @NotNull(message = "Delivery date times must not be null")
-    @Min(value = 1, message = "Delivery date times must be at least 1")
-    @Max(value = 365, message = "Delivery date times must be at most 365")
+    @NotNull(message = "DELIVERY_TIME_NOT_NULL")
+    @Min(value = 1, message = "DELIVERY_TIME_MUST_BE_AT_LEAST_1")
     Integer deliveryDateTimes;
 }
