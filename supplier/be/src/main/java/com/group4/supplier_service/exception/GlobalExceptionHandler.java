@@ -35,4 +35,21 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(response);
     }
+
+    @ExceptionHandler(value = org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Object>> handleValidation(org.springframework.web.bind.MethodArgumentNotValidException ex){
+        String enumKey = ex.getFieldError().getDefaultMessage();
+        ErrorCode errorCode = ErrorCode.INVALID_INPUT;
+        try {
+            errorCode = ErrorCode.valueOf(enumKey);
+        } catch (IllegalArgumentException e) {
+        }
+
+        ApiResponse<Object> response = ApiResponse.builder()
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .build();
+
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
+    }
 }
