@@ -158,14 +158,12 @@ public class SupplierServiceImpl implements SupplierService {
         //Vô hiệu hóa toàn bộ sản phẩm của nhà cung cấp này
         supplierProductRepository.disableAllProductsBySupplierId(supplierId);
 
-        auditLog(saved, oldData, saved, deleteBy, AuditAction.UPDATE);
+        auditLog(saved, oldData, saved, deleteBy, AuditAction.DELETE);
     }
 
     @Override
     public SupplierResponse createSupplier(SupplierCreateRequest dto, String createdBy) {
-
         validateBusinessRule(dto);
-
         Supplier supplier = Supplier.builder()
                 .name(dto.name() != null ? dto.name().trim() : null)
                 .contactEmail(dto.contactEmail() != null ? dto.contactEmail().trim().toLowerCase() : null)
@@ -178,43 +176,29 @@ public class SupplierServiceImpl implements SupplierService {
                 .status(SupplierStatus.PENDING)
                 .rating(BigDecimal.ZERO)
                 .build();
-
         try {
             Supplier saved = supplierRepository.save(supplier);
             auditLog(saved, null, saved, createdBy, AuditAction.CREATE);
             return mapToResponse(saved);
-
         } catch (DataIntegrityViolationException ex) {
-
-            if (ex.getMessage().contains("contact_email")) {
-                throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
-            }
-
+            String errorMsg = ex.getMostSpecificCause().getMessage().toLowerCase();
+            if (errorMsg.contains("email")) throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
+            if (errorMsg.contains("phone")) throw new AppException(ErrorCode.PHONE_ALREADY_USED);
+            if (errorMsg.contains("name")) throw new AppException(ErrorCode.SUPPLIER_NAME_ALREADY_USED);
+            if (errorMsg.contains("tax_code") || errorMsg.contains("taxcode")) throw new AppException(ErrorCode.TAX_CODE_ALREADY_USED);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }
+
     private void validateBusinessRule(SupplierCreateRequest dto) {
-
-        Map<String, String> errors = new HashMap<>();
-
-        if (supplierRepository.existsByContactEmail(dto.contactEmail().trim())) {
-            errors.put("contactEmail", "Contact email is already in use");
-        }
-
-        if (supplierRepository.existsByTaxCode(dto.taxCode().trim())) {
-            errors.put("taxCode", "Tax code is already in use");
-        }
-
-        if (supplierRepository.existsByName(dto.name().trim())) {
-            errors.put("name", "Supplier name is already in use");
-        }
-        if (supplierRepository.existsByPhone(dto.phone().trim())) {
-            errors.put("phone", "Phone number is already in use");
-        }
-
-        if (!errors.isEmpty()) {
-            throw new AppException(ErrorCode.INVALID_INPUT, errors);
-        }
+        if (dto.contactEmail() != null && supplierRepository.existsByContactEmail(dto.contactEmail().trim()))
+            throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
+        if (dto.phone() != null && supplierRepository.existsByPhone(dto.phone().trim()))
+            throw new AppException(ErrorCode.PHONE_ALREADY_USED);
+        if (dto.name() != null && supplierRepository.existsByName(dto.name().trim()))
+            throw new AppException(ErrorCode.SUPPLIER_NAME_ALREADY_USED);
+        if (dto.taxCode() != null && supplierRepository.existsByTaxCode(dto.taxCode().trim()))
+            throw new AppException(ErrorCode.TAX_CODE_ALREADY_USED);
     }
 
     @Override
@@ -235,8 +219,10 @@ public class SupplierServiceImpl implements SupplierService {
         Supplier saved = supplierRepository.save(supplier);
 
         AuditAction action;
-        if (status == SupplierStatus.APPROVED || status == SupplierStatus.SUSPENDED) {
+        if (status == SupplierStatus.APPROVED) {
             action = AuditAction.APPROVE;
+        } else if (status == SupplierStatus.SUSPENDED) {
+            action = AuditAction.SUSPEND;
         } else if (status == SupplierStatus.REJECTED) {
             action = AuditAction.REJECT;
         } else {
