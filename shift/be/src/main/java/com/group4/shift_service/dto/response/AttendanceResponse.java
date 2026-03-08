@@ -3,7 +3,6 @@ package com.group4.shift_service.dto.response;
 import com.group4.shift_service.enums.AttendanceStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -17,7 +16,11 @@ public class AttendanceResponse {
     String staffId;
     String staffName;
     AttendanceStatus status;
-    String note;
+
+
+    Integer lateMinutes;
+    Integer earlyLeaveMinutes;
+
     String markedBy;
     LocalDateTime markedAt;
     LocalDateTime updatedAt;

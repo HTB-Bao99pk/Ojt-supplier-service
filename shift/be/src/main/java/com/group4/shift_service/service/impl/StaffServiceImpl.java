@@ -1,4 +1,3 @@
-// main/java/com/group4/shift_service/service/impl/StaffServiceImpl.java
 package com.group4.shift_service.service.impl;
 
 import com.group4.shift_service.dto.request.StaffCreateRequest;
@@ -15,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Random;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -26,13 +27,20 @@ public class StaffServiceImpl implements StaffService {
         if (staffRepository.existsByEmail(request.getEmail()))
             throw new RuntimeException("Email already exists");
 
+        // 1. Tạo entity Staff
         Staff staff = Staff.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .branchId(request.getBranchId())
                 .dateOfBirth(request.getDateOfBirth())
+                .gender(request.getGender())
                 .build();
+
+        // 2. Tự động sinh Staff Code ngay từ đầu (VD: NVA-54321)
+        staff.setStaffCode(generateStaffCode(staff.getName(), staff.getPhone()));
+
+        // 3. Lưu vào DB (Bây giờ chỉ cần lưu 1 lần duy nhất, cực kỳ tối ưu hiệu năng!)
         return mapToResponse(staffRepository.save(staff));
     }
 
@@ -45,6 +53,9 @@ public class StaffServiceImpl implements StaffService {
         staff.setPhone(request.getPhone());
         staff.setBranchId(request.getBranchId());
         staff.setDateOfBirth(request.getDateOfBirth());
+        staff.setGender(request.getGender());
+
+
 
         return mapToResponse(staffRepository.save(staff));
     }
@@ -68,13 +79,44 @@ public class StaffServiceImpl implements StaffService {
         return staffRepository.findAll(PageRequest.of(page, size)).map(this::mapToResponse);
     }
 
+
+
+    private String generateStaffCode(String name, String phone) {
+        String initials = extractInitials(name);
+        String numberPart;
+
+        // Lấy 5 số cuối của điện thoại.
+        // Trường hợp SĐT nhập bậy (dưới 5 số) -> Cho Random 5 số.
+        if (phone != null && phone.length() >= 5) {
+            numberPart = phone.substring(phone.length() - 5);
+        } else {
+            int randomNum = 10000 + new Random().nextInt(90000); // Từ 10000 đến 99999
+            numberPart = String.valueOf(randomNum);
+        }
+
+        return initials + "-" + numberPart;
+    }
+
+    private String extractInitials(String name) {
+        if (name == null || name.trim().isEmpty()) return "ST";
+        String[] words = name.trim().split("\\s+");
+        StringBuilder initials = new StringBuilder();
+        for (String word : words) {
+            initials.append(word.charAt(0));
+        }
+        String result = initials.toString().toUpperCase();
+        return result.length() > 4 ? result.substring(0, 4) : result; // Tối đa lấy 4 ký tự
+    }
+
     private StaffResponse mapToResponse(Staff s) {
         return StaffResponse.builder()
                 .id(s.getId())
+                .staffCode(s.getStaffCode())
                 .name(s.getName())
                 .email(s.getEmail())
                 .phone(s.getPhone())
                 .branchId(s.getBranchId())
+                .gender(s.getGender())
                 .status(s.getStatus())
                 .dateOfBirth(s.getDateOfBirth())
                 .createdAt(s.getCreatedAt())

@@ -26,6 +26,8 @@ public class StaffCreateRequest {
             message = "Phone must be a valid Vietnamese number (10 digits, starts with 03/05/07/08/09)"
     )
     String phone;
+    @NotBlank(message = "gender is required")
+    String gender;
 
     @NotBlank(message = "Branch is required")
     String branchId;

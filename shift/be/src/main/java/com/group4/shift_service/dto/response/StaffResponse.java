@@ -20,6 +20,7 @@ public class StaffResponse {
     String branchId;
     StaffStatus status;
     LocalDate dateOfBirth;
-    int age;
     LocalDateTime createdAt;
+    String staffCode;
+    String gender;
 }

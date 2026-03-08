@@ -19,5 +19,4 @@ public class AttendanceItemRequest {
     @NotNull(message = "status must not be null")
     AttendanceStatus status;
 
-    String note;
 }

@@ -55,3 +55,13 @@ export const deleteShift = async (id) => {
     }
     return true;
 };
+
+
+export const getShiftsByDate = async (date) => {
+    const res = await fetch(`${BASE_URL}/shifts?date=${date}`);
+    if (!res.ok) {
+        throw new Error("Failed to fetch shifts for date");
+    }
+    const data = await res.json();
+    return data.result;
+};
