@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -26,6 +28,15 @@ public interface SupplierRepository extends JpaRepository<Supplier, String>, Jpa
     Page<Supplier> findByStatus(SupplierStatus status, Pageable pageable);
 
     Page<Supplier> findByStatusNot(SupplierStatus status, Pageable pageable);
+
     Optional<Supplier> findByIdAndStatusNot(String id, SupplierStatus status);
 
+    long countByStatus(SupplierStatus status);
+
+    long countByCreateAtAfterAndStatusNot(LocalDateTime date, SupplierStatus status);
+
+    List<Supplier> findTop5ByStatusOrderByRatingDesc(SupplierStatus status);
+
+
+    long countByStatusNot(SupplierStatus status);
 }

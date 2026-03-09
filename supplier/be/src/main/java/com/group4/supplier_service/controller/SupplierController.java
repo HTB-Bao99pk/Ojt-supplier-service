@@ -1,5 +1,6 @@
 package com.group4.supplier_service.controller;
 
+import com.group4.supplier_service.dto.request.DashboardSummaryResponse;
 import com.group4.supplier_service.dto.response.ApiResponse;
 import com.group4.supplier_service.dto.request.SupplierCreateRequest;
 import com.group4.supplier_service.dto.response.SupplierResponse;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/suppliers")
@@ -161,6 +163,14 @@ public class SupplierController {
         supplierService.deleteSupplier(id, deletedBy);
         return ApiResponse.<Void>builder()
                 .message("Delete supplier successfully")
+                .build();
+    }
+
+    @GetMapping("/dashboard-summary")
+    public ApiResponse<DashboardSummaryResponse> getDashboardSummary() {
+        return ApiResponse.<DashboardSummaryResponse>builder()
+                .message("Get dashboard summary successfully")
+                .result(supplierService.getDashboardSummary())
                 .build();
     }
 }

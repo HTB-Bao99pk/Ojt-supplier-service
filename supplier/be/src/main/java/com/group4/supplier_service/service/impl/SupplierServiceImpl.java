@@ -1,5 +1,6 @@
 package com.group4.supplier_service.service.impl;
 
+import com.group4.supplier_service.dto.request.DashboardSummaryResponse;
 import com.group4.supplier_service.dto.request.SupplierCreateRequest;
 import com.group4.supplier_service.dto.request.SupplierUpdateRequest;
 import com.group4.supplier_service.dto.response.SupplierResponse;
@@ -26,6 +27,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -149,7 +152,58 @@ public class SupplierServiceImpl implements SupplierService {
         //Vô hiệu hóa toàn bộ sản phẩm của nhà cung cấp này
         supplierProductRepository.disableAllProductsBySupplierId(supplierId);
 
-        auditLog(saved, oldData, saved, deleteBy, AuditAction.DELETE);
+        auditLog(saved, oldData, saved, deleteBy, AuditAction.DELETED);
+    }
+
+    @Override
+    public DashboardSummaryResponse getDashboardSummary() {
+        //1. Thống kê nhà cung cấp
+        long totalSuppliers = supplierRepository.countByStatusNot(SupplierStatus.DELETED);
+
+        long pending = supplierRepository.countByStatus(SupplierStatus.PENDING);
+        long approved = supplierRepository.countByStatus(SupplierStatus.APPROVED);
+        long rejected = supplierRepository.countByStatus(SupplierStatus.REJECTED);
+        long deleted = supplierRepository.countByStatus(SupplierStatus.DELETED);
+        long suspended = supplierRepository.countByStatus(SupplierStatus.SUSPENDED);
+
+          //đếm nhà cung cấp mới trong tháng
+        LocalDateTime startOfMonth = YearMonth.now().atDay(1).atStartOfDay();
+        long newThisMonth = supplierRepository.countByCreateAtAfterAndStatusNot(startOfMonth, SupplierStatus.DELETED);
+
+        var supplierMetrics = DashboardSummaryResponse.SupplierMetrics.builder()
+                .total(totalSuppliers).pending(pending).approved(approved).suspended(suspended).rejected(rejected).deleted(deleted).newThisMonth(newThisMonth)
+                .build();
+
+        //2. Thống kê báo giá
+        long totalProducts = supplierProductRepository.count();
+        long activeProducts = supplierProductRepository.countByIsActiveTrue();
+        var productMetrics = DashboardSummaryResponse.ProductMetrics.builder()
+                .total(totalProducts)
+                .active(activeProducts)
+                .build();
+
+        //3.Top 5 nhà cung cấp uy tín nhất
+        var top5 = supplierRepository.findTop5ByStatusOrderByRatingDesc(SupplierStatus.APPROVED);
+        var topSuppliers = top5.stream()
+                .map(s -> DashboardSummaryResponse.TopSupplierResponse.builder().
+                        id(s.getId()).name(s.getName()).rating(s.getRating()).build()).toList();
+
+        //4. Hoạt động gần đây nhất
+        var recentLogs = auditLogRepository.findAllByOrderByPerformedAtDesc(PageRequest.of(0, 10));
+        var recentActivities = recentLogs.stream()
+                .map(log -> DashboardSummaryResponse.RecentActivityResponse.builder()
+                        .supplierName(log.getSupplier() != null ? log.getSupplier().getName() : "Unknown")
+                        .action(log.getAction().name())
+                        .performedBy(log.getPerformedBy())
+                        .performedAt(log.getPerformedAt())
+                        .build())
+                .toList();
+        return DashboardSummaryResponse.builder()
+                .supplierMetrics(supplierMetrics)
+                .productMetrics(productMetrics)
+                .topSuppliers(topSuppliers)
+                .recentActivities(recentActivities)
+                .build();
     }
 
     @Override

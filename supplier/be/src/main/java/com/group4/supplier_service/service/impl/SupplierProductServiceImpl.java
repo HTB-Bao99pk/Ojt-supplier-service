@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SupplierProductServiceImpl implements SupplierProductService {
     SupplierRepository supplierRepository;
@@ -77,6 +79,10 @@ public class SupplierProductServiceImpl implements SupplierProductService {
         if(supplier.getStatus() == SupplierStatus.REJECTED){
             throw new AppException(ErrorCode.SUPPLIER_NOT_FOUND);
         }
+        if(supplier.getStatus() == SupplierStatus.DELETED){
+            throw new AppException(ErrorCode.SUPPLIER_NOT_FOUND);
+        }
+
         Pageable pageable = PageRequest.of(page, size);
         return supplierProductRepository.findBySupplierId(supplierId, pageable)
                 .map(this::mapToProductResponse);
