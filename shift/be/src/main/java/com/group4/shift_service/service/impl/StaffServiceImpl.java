@@ -1,6 +1,7 @@
 package com.group4.shift_service.service.impl;
 
 import com.group4.shift_service.dto.request.StaffCreateRequest;
+import com.group4.shift_service.dto.request.StaffStatusRequest;
 import com.group4.shift_service.dto.response.StaffResponse;
 import com.group4.shift_service.entity.Staff;
 import com.group4.shift_service.exception.AppException;
@@ -59,6 +60,17 @@ public class StaffServiceImpl implements StaffService {
 
         return mapToResponse(staffRepository.save(staff));
     }
+
+    @Override
+    public StaffResponse updateStatus(String id, StaffStatusRequest request) {
+        Staff staff = staffRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND, id));
+
+        staff.setStatus(request.getStatus());
+
+        return mapToResponse(staffRepository.save(staff));
+    }
+
 
     @Override
     public void deleteStaff(String id) {
