@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchStaffByShift, fetchAttendanceByShift, bulkMarkAttendance } from "../../api/attendanceApi";
 import { getShiftById } from "../../api/shiftApi";
-import { CalendarDays, Clock, MapPin, CheckCircle2 } from "lucide-react"; // Import thêm icons cho đẹp
+import { CalendarDays, Clock, MapPin, CheckCircle2 } from "lucide-react";
 
 const STATUS_CFG = {
     PRESENT: { label: "Present (On Time)", bg: "#dcfce7", text: "#15803d", border: "#86efac", dot: "#22c55e", icon: "✓" },
@@ -40,8 +40,9 @@ const formatDateUI = (d) => {
 
 const formatShiftId = (id) => id ? `SH-${id.substring(0, 5).toUpperCase()}` : "—";
 
-function Avatar({ name = "?", size = 38 }) {
-    return <div style={{ width: size, height: size, borderRadius: Math.round(size * .32), background: avatarBg(name), flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: size * .38, boxShadow: `0 2px 8px ${avatarBg(name)}50` }}>{name.charAt(0)}</div>;
+// [CHANGE 1] Avatar nhận thêm prop inactive
+function Avatar({ name = "?", size = 38, inactive = false }) {
+    return <div style={{ width: size, height: size, borderRadius: Math.round(size * .32), background: inactive ? "#e5e7eb" : avatarBg(name), flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: inactive ? "#9ca3af" : "#fff", fontWeight: 800, fontSize: size * .38, boxShadow: inactive ? "none" : `0 2px 8px ${avatarBg(name)}50` }}>{name.charAt(0)}</div>;
 }
 
 function StatusBadge({ status }) {
@@ -79,11 +80,10 @@ export default function ShiftAttendance() {
 
             if (shiftInfo.status === "CLOSED") {
                 const existingRecIds = recList.map(r => r.staffId);
+                // [CHANGE 2] Auto-absent chỉ cho active staff
                 const autoAbsents = staffList
-                    .filter(s => !existingRecIds.includes(s.id))
-                    .map(s => ({
-                        staffId: s.id, status: "ABSENT", lateMinutes: 0, earlyLeaveMinutes: 0, isAuto: true
-                    }));
+                    .filter(s => s.status !== "INACTIVE" && !existingRecIds.includes(s.id))
+                    .map(s => ({ staffId: s.id, status: "ABSENT", lateMinutes: 0, earlyLeaveMinutes: 0, isAuto: true }));
                 recList = [...recList, ...autoAbsents];
             }
 
@@ -97,10 +97,7 @@ export default function ShiftAttendance() {
                 if (r.status === "ABSENT") actionUI = "ABSENT";
                 map[r.staffId] = { action: actionUI };
             });
-
-            staffList.forEach(s => {
-                if (!map[s.id]) map[s.id] = { action: null };
-            });
+            staffList.forEach(s => { if (!map[s.id]) map[s.id] = { action: null }; });
             setAtt(map);
         } catch (e) { setError(e.message); } finally { setLoading(false); }
     }, [shiftId]);
@@ -109,16 +106,24 @@ export default function ShiftAttendance() {
 
     const isOpen = shift?.status === "OPEN" || shift?.status === "PREPARING";
 
+    // [CHANGE 3] Phân loại active / inactive
+    const activeStaff   = staff.filter(s => s.status !== "INACTIVE");
+    const inactiveStaff = staff.filter(s => s.status === "INACTIVE");
+
     const handleMarkAction = (staffId, actionType) => {
         if (!isOpen) return;
+        // Chặn mark INACTIVE
+        if (staff.find(s => s.id === staffId)?.status === "INACTIVE") return;
         setAtt(p => ({ ...p, [staffId]: { action: p[staffId]?.action === actionType ? null : actionType } }));
         setSaveState("idle");
     };
 
     async function handleSave() {
         if (!isOpen) return;
+        // [CHANGE 4] Lọc bỏ INACTIVE khỏi payload
+        const activeIds = new Set(activeStaff.map(s => s.id));
         const payload = Object.entries(att)
-            .filter(([, v]) => v?.action)
+            .filter(([staffId, v]) => v?.action && activeIds.has(staffId))
             .map(([staffId, v]) => ({ staffId, status: v.action }));
 
         if (!payload.length) return;
@@ -132,21 +137,31 @@ export default function ShiftAttendance() {
         catch (e) { setError(e.message); setSaveState("error"); setTimeout(() => setSaveState("idle"), 3000); }
     }
 
-    const markedCount = Object.values(att).filter(v => v?.action).length;
-    const pct = staff.length ? Math.round((markedCount / staff.length) * 100) : 0;
-    const counts = Object.values(att).reduce((a, v) => { if (v?.action) a[v.action] = (a[v.action] || 0) + 1; return a; }, {});
-    const filteredStaff = filter === "ALL" ? staff : filter === "UNMARKED" ? staff.filter(s => !att[s.id]?.action) : staff.filter(s => att[s.id]?.action === filter);
+    // Count chỉ tính active staff
+    const markedCount = Object.entries(att).filter(([id, v]) => v?.action && activeStaff.some(s => s.id === id)).length;
+    const pct = activeStaff.length ? Math.round((markedCount / activeStaff.length) * 100) : 0;
+    const counts = Object.entries(att)
+        .filter(([id]) => activeStaff.some(s => s.id === id))
+        .reduce((a, [, v]) => { if (v?.action) a[v.action] = (a[v.action] || 0) + 1; return a; }, {});
+
+    const filteredStaff =
+        filter === "ALL"      ? staff :
+        filter === "INACTIVE" ? inactiveStaff :
+        filter === "UNMARKED" ? activeStaff.filter(s => !att[s.id]?.action) :
+                                activeStaff.filter(s => att[s.id]?.action === filter);
+
     const shiftCfg = SHIFT_STATUS_CFG[shift?.status] ?? SHIFT_STATUS_CFG.CLOSED;
 
     const pendingCount = Object.entries(att).filter(([id, v]) => {
+        if (!activeStaff.some(s => s.id === id)) return false;
         const rec = records.find(r => r.staffId === id);
         if (!rec && v.action) return true;
-        if (rec && v.action && rec.status !== v.action) return true;
         let recAction = "";
         if (rec?.status === "PRESENT" || rec?.status === "LATE") recAction = "PRESENT";
         if (rec?.status === "EARLY_LEAVE") recAction = "EARLY_LEAVE";
         if (rec?.status === "ABSENT") recAction = "ABSENT";
         if (recAction && v.action && recAction !== v.action) return true;
+        if (!recAction && v.action) return true;
         return false;
     }).length;
 
@@ -158,52 +173,40 @@ export default function ShiftAttendance() {
         <div style={{ fontFamily: "'Plus Jakarta Sans','DM Sans',sans-serif" }} className="pb-10">
             <style>{`@keyframes slideUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} } .att-row { transition: background .12s; } .att-row:hover { background: #fafbfc !important; } .status-btn { transition: all .13s ease; cursor: pointer; } .status-btn:hover { transform: translateY(-1px); } .status-btn:active { transform: scale(.97); }`}</style>
 
-            {/* BREADCRUMB NÂNG CẤP */}
             <div className="flex items-center gap-2 text-sm font-medium mb-6">
                 <button onClick={() => navigate("/attendance")} className="text-gray-400 hover:text-amber-600 transition-colors">Danh sách ca</button>
                 <span className="text-gray-300">/</span>
                 <span className="text-gray-900 font-bold">Điểm danh nhân viên</span>
             </div>
 
-            {/* HEADER THÔNG TIN CA ĐƯỢC THIẾT KẾ LẠI */}
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6 relative overflow-hidden">
-                {/* Decoration nhẹ */}
                 <div className="absolute -right-6 -top-6 text-slate-50 opacity-50 pointer-events-none">
                     <CheckCircle2 size={120} />
                 </div>
-
                 <div className="relative z-10 space-y-4">
                     <div className="flex items-center gap-3">
                         <h1 className="text-2xl font-black text-gray-900 m-0">Shift: {formatShiftId(shift?.id)}</h1>
                         {shift && <StatusBadge status={shift.status} />}
                     </div>
-
                     {shift && (
                         <div className="flex flex-wrap items-center gap-3">
                             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-sm font-bold border border-amber-100">
-                                <CalendarDays size={16} />
-                                {formatDateUI(shift.date)}
+                                <CalendarDays size={16} />{formatDateUI(shift.date)}
                             </div>
                             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-bold border border-blue-100">
-                                <Clock size={16} />
-                                {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
+                                <Clock size={16} />{formatTime(shift.startTime)} - {formatTime(shift.endTime)}
                             </div>
                             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-700 rounded-lg text-sm font-bold border border-slate-200">
-                                <MapPin size={16} />
-                                {shift.branchId}
+                                <MapPin size={16} />{shift.branchId}
                             </div>
                         </div>
                     )}
                 </div>
-
                 <div className="relative z-10 flex-shrink-0">
                     {isOpen ? (
-                        <button
-                            onClick={handleSave}
-                            disabled={pendingCount === 0 || saveState === "saving"}
+                        <button onClick={handleSave} disabled={pendingCount === 0 || saveState === "saving"}
                             className="px-6 py-3 rounded-xl font-bold text-sm text-white shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                            style={{ background: SAVE_CFG[saveState].bg }}
-                        >
+                            style={{ background: SAVE_CFG[saveState].bg }}>
                             {SAVE_CFG[saveState].label}
                         </button>
                     ) : (
@@ -215,58 +218,99 @@ export default function ShiftAttendance() {
                 </div>
             </div>
 
+            {/* [CHANGE 5] Warning banner cho inactive staff */}
+            {inactiveStaff.length > 0 && (
+                <div className="mb-4 p-4 rounded-xl border border-red-200 bg-red-50 flex items-start gap-3">
+                    <span className="text-lg mt-0.5">⚠️</span>
+                    <div>
+                        <div className="text-sm font-bold text-red-700">
+                            {inactiveStaff.length} nhân viên đã nghỉ việc trong ca này — không thể điểm danh
+                        </div>
+                        <div className="text-xs text-red-500 mt-1">
+                            {inactiveStaff.map(s => s.name).join(", ")}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {loading ? <div className="py-20 text-center text-gray-500 font-medium">Đang tải dữ liệu điểm danh...</div> : (
                 <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e5e7eb", overflow: "hidden" }}>
 
                     <div style={{ padding: "14px 20px", background: "#fafafa", borderBottom: "1px solid #f0f2f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div style={{ display: "flex", gap: 16 }}>
+                        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
                             {STATUSES.map(k => <div key={k} style={{ fontSize: 12, color: "#6b7280" }}>{STATUS_CFG[k].label}: <b style={{ color: "#111827" }}>{counts[k] || 0}</b></div>)}
-                            <div style={{ fontSize: 12, color: "#6b7280" }}>Unmarked: <b style={{ color: "#f97316" }}>{staff.length - markedCount}</b></div>
+                            <div style={{ fontSize: 12, color: "#6b7280" }}>Unmarked: <b style={{ color: "#f97316" }}>{activeStaff.length - markedCount}</b></div>
+                            {inactiveStaff.length > 0 && <div style={{ fontSize: 12, color: "#b91c1c" }}>Nghỉ việc: <b>{inactiveStaff.length}</b></div>}
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: "#f97316" }}>{pct}% Complete</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: "#f97316" }}>{markedCount}/{activeStaff.length} ({pct}%) Complete</span>
                     </div>
-                    <div style={{ height: 4, background: "#f3f4f6" }}><div style={{ height: "100%", width: `${pct}%`, background: "#f97316", transition: "width .5s" }}/></div>
-                    <div style={{ padding: "10px 20px", borderBottom: "1px solid #f0f2f5", display: "flex", gap: 8 }}>
-                        {[{ key: "ALL", label: `All (${staff.length})` }, ...STATUSES.map(k => ({ key: k, label: `${STATUS_CFG[k].label} (${counts[k]||0})` }))].map(tab => (
-                            <button key={tab.key} onClick={() => setFilter(tab.key)} style={{ padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", background: filter === tab.key ? "#f97316" : "#f3f4f6", color: filter === tab.key ? "#fff" : "#6b7280", border: "none" }}>{tab.label}</button>
+
+                    <div style={{ height: 4, background: "#f3f4f6" }}><div style={{ height: "100%", width: `${pct}%`, background: pct === 100 ? "#22c55e" : "#f97316", transition: "width .5s" }}/></div>
+
+                    <div style={{ padding: "10px 20px", borderBottom: "1px solid #f0f2f5", display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {[
+                            { key: "ALL",      label: `All (${staff.length})` },
+                            ...STATUSES.map(k => ({ key: k, label: `${STATUS_CFG[k].label} (${counts[k]||0})` })),
+                            ...(inactiveStaff.length > 0 ? [{ key: "INACTIVE", label: `Nghỉ việc (${inactiveStaff.length})` }] : []),
+                        ].map(tab => (
+                            <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
+                                padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", border: "none",
+                                background: filter === tab.key ? (tab.key === "INACTIVE" ? "#fee2e2" : "#f97316") : "#f3f4f6",
+                                color: filter === tab.key ? (tab.key === "INACTIVE" ? "#b91c1c" : "#fff") : "#6b7280",
+                            }}>{tab.label}</button>
                         ))}
                     </div>
+
                     <div style={{ display: "grid", gridTemplateColumns: "44px 1fr 1fr", padding: "12px 20px", background: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
                         {["#", "Staff Member", isOpen ? "Action" : "Result"].map((h, i) => <div key={i} style={{ fontSize: 11, fontWeight: 800, color: "#6b7280", textTransform: "uppercase" }}>{h}</div>)}
                     </div>
 
                     {filteredStaff.map((s, i) => {
                         const curAction = att[s.id]?.action;
-                        const rec = records.find(r => r.staffId === s.id);
+                        const rec       = records.find(r => r.staffId === s.id);
+                        const inactive  = s.status === "INACTIVE";
 
                         return (
-                            <div key={s.id || `staff-${i}`} className="att-row" style={{ display: "grid", gridTemplateColumns: "44px 1fr 1fr", padding: "16px 20px", borderBottom: "1px solid #f3f4f6" }}>
-                                <div style={{ display: "flex", alignItems: "center" }}><span style={{ fontSize: 13, fontWeight: 700, color: "#d1d5db" }}>{i+1}</span></div>
+                            <div key={s.id || `staff-${i}`} className="att-row" style={{
+                                display: "grid", gridTemplateColumns: "44px 1fr 1fr",
+                                padding: "16px 20px", borderBottom: "1px solid #f3f4f6",
+                                background: inactive ? "#fff8f8" : "transparent",
+                            }}>
+                                <div style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ fontSize: 13, fontWeight: 700, color: "#d1d5db" }}>{i+1}</span>
+                                </div>
+
                                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                    <Avatar name={s.name || s.staffName} size={42}/>
+                                    <Avatar name={s.name || s.staffName} size={42} inactive={inactive}/>
                                     <div>
-                                        <div style={{ fontWeight: 800, fontSize: 14, color: "#111827" }}>{s.name || s.staffName || "Nhân viên"}</div>
+                                        <div style={{ fontWeight: 800, fontSize: 14, color: inactive ? "#9ca3af" : "#111827", display: "flex", alignItems: "center", gap: 6 }}>
+                                            {s.name || s.staffName || "Nhân viên"}
+                                            {inactive && (
+                                                <span style={{ fontSize: 10, fontWeight: 600, color: "#b91c1c", background: "#fee2e2", padding: "1px 7px", borderRadius: 10, border: "1px solid #fca5a5" }}>
+                                                    Nghỉ việc
+                                                </span>
+                                            )}
+                                        </div>
                                         <div style={{ fontSize: 12, color: "#6b7280" }}>{s.email || "No Email"}</div>
 
-                                        {rec && (
+                                        {rec && !inactive && (
                                             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
                                                 {rec.lateMinutes === 0 && (rec.status === "PRESENT" || rec.status === "EARLY_LEAVE") && <span style={{ fontSize: 11, color: "#15803d", fontWeight: 700, background: "#dcfce7", padding: "2px 8px", borderRadius: 12 }}>✓ Check-in Đúng giờ</span>}
                                                 {rec.lateMinutes > 0 && <span style={{ fontSize: 11, color: "#b91c1c", fontWeight: 700, background: "#fee2e2", padding: "2px 8px", borderRadius: 12 }}>⏰ Đi trễ {rec.lateMinutes} phút</span>}
-
                                                 {rec.earlyLeaveMinutes === 0 && (rec.status === "PRESENT" || rec.status === "LATE") && rec.updatedAt && !rec.isAuto && <span style={{ fontSize: 11, color: "#15803d", fontWeight: 700, background: "#dcfce7", padding: "2px 8px", borderRadius: 12 }}>🚪 Check-out Đúng giờ</span>}
                                                 {rec.earlyLeaveMinutes > 0 && <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700, background: "#dbeafe", padding: "2px 8px", borderRadius: 12 }}>↩ Về sớm {rec.earlyLeaveMinutes} phút</span>}
-
-                                                {rec.status === "ABSENT" && (
-                                                    <span style={{ fontSize: 11, color: "#b91c1c", fontWeight: 700, background: "#fee2e2", padding: "2px 8px", borderRadius: 12 }}>
-                                                        {rec.isAuto ? "✗ Vắng mặt (Hệ thống tự chốt)" : "✗ Vắng mặt"}
-                                                    </span>
-                                                )}
+                                                {rec.status === "ABSENT" && <span style={{ fontSize: 11, color: "#b91c1c", fontWeight: 700, background: "#fee2e2", padding: "2px 8px", borderRadius: 12 }}>{rec.isAuto ? "✗ Vắng mặt (Hệ thống tự chốt)" : "✗ Vắng mặt"}</span>}
                                             </div>
                                         )}
                                     </div>
                                 </div>
+
                                 <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                                    {isOpen ? (
+                                    {inactive ? (
+                                        <span style={{ fontSize: 12, color: "#fca5a5", fontStyle: "italic", fontWeight: 600 }}>
+                                            🚫 Không thể điểm danh
+                                        </span>
+                                    ) : isOpen ? (
                                         <div style={{ display: "flex", gap: 6 }}>
                                             <button className="status-btn" onClick={() => handleMarkAction(s.id, "PRESENT")} style={{ padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "2px solid", background: curAction === "PRESENT" ? "#dcfce7" : "#f9fafb", color: curAction === "PRESENT" ? "#15803d" : "#6b7280", borderColor: curAction === "PRESENT" ? "#86efac" : "#e5e7eb" }}>✓ Check In</button>
                                             <button className="status-btn" onClick={() => handleMarkAction(s.id, "EARLY_LEAVE")} style={{ padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "2px solid", background: curAction === "EARLY_LEAVE" ? "#dbeafe" : "#f9fafb", color: curAction === "EARLY_LEAVE" ? "#1d4ed8" : "#6b7280", borderColor: curAction === "EARLY_LEAVE" ? "#93c5fd" : "#e5e7eb" }}>🚪 Check Out</button>

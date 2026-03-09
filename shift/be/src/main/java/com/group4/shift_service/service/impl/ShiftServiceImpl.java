@@ -7,6 +7,7 @@ import com.group4.shift_service.dto.response.StaffResponse;
 import com.group4.shift_service.entity.Shift;
 import com.group4.shift_service.entity.ShiftAssignment;
 import com.group4.shift_service.entity.Staff;
+import com.group4.shift_service.enums.StaffStatus;
 import com.group4.shift_service.exception.AppException;
 import com.group4.shift_service.exception.ErrorCode;
 import com.group4.shift_service.repository.ShiftAssignmentRepository;
@@ -137,6 +138,10 @@ public class ShiftServiceImpl implements ShiftService {
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new RuntimeException("Staff not found"));
 
+        if (staff.getStatus() == StaffStatus.INACTIVE) {
+            throw new AppException(ErrorCode.STAFF_INACTIVE);
+        }
+
         boolean alreadyAssigned = shiftAssignmentRepository.findAllByShiftId(shiftId)
                 .stream().anyMatch(a -> a.getStaffId().equals(staffId));
 
@@ -214,6 +219,7 @@ public class ShiftServiceImpl implements ShiftService {
                 .name(s.getName())
                 .email(s.getEmail())
                 .branchId(s.getBranchId())
+                .status(s.getStatus())
                 .build();
     }
 }
