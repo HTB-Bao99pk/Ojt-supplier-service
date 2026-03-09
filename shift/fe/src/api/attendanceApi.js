@@ -98,3 +98,15 @@ export const getDashboardOverview = async (date) => {
     const data = await response.json();
     return data.result;
 };
+
+export const getStaffAttendanceHistory = async (staffId, month, year, date) => {
+    const queryParams = new URLSearchParams();
+    if (month) queryParams.append('month', month);
+    if (year) queryParams.append('year', year);
+    if (date) queryParams.append('exactDate', date); // Tên param khớp với BE
+
+    const response = await fetch(`${BASE_URL}/attendance-reports/staff/${staffId}?${queryParams.toString()}`);
+    if (!response.ok) throw new Error("Lỗi khi tải lịch sử nhân viên");
+    const data = await response.json();
+    return data.result;
+};

@@ -59,4 +59,17 @@ public class AttendanceReportController {
                 .result(attendanceService.getDashboardOverview(date))
                 .build();
     }
+
+    @GetMapping("/staff/{staffId}")
+    public ApiResponse<List<com.group4.shift_service.dto.response.StaffAttendanceDetailsResponse>> getStaffHistory(
+            @org.springframework.web.bind.annotation.PathVariable String staffId,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate exactDate) {
+
+        return ApiResponse.<List<com.group4.shift_service.dto.response.StaffAttendanceDetailsResponse>>builder()
+                .message("Lấy lịch sử nhân viên thành công")
+                .result(attendanceService.getStaffAttendanceHistory(staffId, month, year, exactDate))
+                .build();
+    }
 }

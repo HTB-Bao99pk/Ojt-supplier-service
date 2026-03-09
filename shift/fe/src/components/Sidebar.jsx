@@ -8,7 +8,8 @@ import {
     ChevronLeft,
     ChevronRight,
     BarChart3,
-    UserCheck
+    UserCheck,
+    Search
 } from "lucide-react";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 
@@ -24,6 +25,7 @@ export default function Sidebar({ isCollapsed, onToggle }) {
         { name: "Attendance", path: "/attendance", icon: CalendarDays },
         { name: "Reports & KPI", path: "/attendance-report", icon: BarChart3 },
         { name: "Staff Directory", path: "/staff", icon: Users },
+        { name: "Staff History", path: "/attendance-history", icon: Search },
     ];
 
     return (
