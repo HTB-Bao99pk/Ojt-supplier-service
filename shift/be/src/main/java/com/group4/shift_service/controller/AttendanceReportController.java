@@ -28,10 +28,17 @@ public class AttendanceReportController {
     // 1. API CHO TRANG ATTENDANCE COVERAGE REPORT
     // Phản hồi tại: GET http://localhost:8081/attendance-reports
     @GetMapping
-    public ApiResponse<List<AttendanceReportResponse>> getReport() {
+    public ApiResponse<List<AttendanceReportResponse>> getReport(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
+
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        int targetMonth = (month != null) ? month : now.getMonthValue();
+        int targetYear = (year != null) ? year : now.getYear();
+
         return ApiResponse.<List<AttendanceReportResponse>>builder()
                 .message("Lấy báo cáo chuyên cần thành công")
-                .result(attendanceService.getAttendanceReport())
+                .result(attendanceService.getAttendanceReport(targetMonth, targetYear))
                 .build();
     }
 
@@ -50,6 +57,19 @@ public class AttendanceReportController {
         return ApiResponse.<DashboardOverviewResponse>builder()
                 .message("Lấy dữ liệu Dashboard thành công")
                 .result(attendanceService.getDashboardOverview(date))
+                .build();
+    }
+
+    @GetMapping("/staff/{staffId}")
+    public ApiResponse<List<com.group4.shift_service.dto.response.StaffAttendanceDetailsResponse>> getStaffHistory(
+            @org.springframework.web.bind.annotation.PathVariable String staffId,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate exactDate) {
+
+        return ApiResponse.<List<com.group4.shift_service.dto.response.StaffAttendanceDetailsResponse>>builder()
+                .message("Lấy lịch sử nhân viên thành công")
+                .result(attendanceService.getStaffAttendanceHistory(staffId, month, year, exactDate))
                 .build();
     }
 }

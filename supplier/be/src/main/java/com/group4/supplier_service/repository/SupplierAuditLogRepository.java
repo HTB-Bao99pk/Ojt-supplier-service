@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 public interface SupplierAuditLogRepository extends JpaRepository<SupplierAuditLog, String> {
     Page<SupplierAuditLog> findBySupplierIdOrderByPerformedAtDesc(String supplierId, Pageable pageable);
 
+    Page<SupplierAuditLog> findAllByOrderByPerformedAtDesc(Pageable pageable);
 }

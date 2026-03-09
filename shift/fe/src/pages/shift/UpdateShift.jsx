@@ -3,6 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Clock, MapPin } from "lucide-react";
 import { getShiftById, updateShift } from "../../api/shiftApi";
 
+// FIX CỨNG CHI NHÁNH GIỐNG TRANG CREATE
+const CURRENT_BRANCH_ID = "BR-001";
+const CURRENT_BRANCH_NAME = "Ho Chi Minh Central";
+
 export default function UpdateShift() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -14,16 +18,14 @@ export default function UpdateShift() {
         date: "",
         startTime: "",
         endTime: "",
-        branchId: ""
+        branchId: CURRENT_BRANCH_ID // Gán mặc định
     });
 
-    // Hàm format ID ngắn gọn để hiển thị trên tiêu đề
     const shortenId = (uuid) => {
         if (!uuid) return "";
         return uuid.length > 8 ? `SH-${uuid.substring(0, 5).toUpperCase()}` : uuid;
     };
 
-    // Hàm xử lý thời gian an toàn (String hoặc Array)
     const formatTimeForInput = (time) => {
         if (!time) return "";
         if (typeof time === "string") return time.substring(0, 5);
@@ -31,7 +33,6 @@ export default function UpdateShift() {
         return "";
     };
 
-    // Tải dữ liệu cũ lên form
     useEffect(() => {
         const fetchShift = async () => {
             try {
@@ -40,7 +41,7 @@ export default function UpdateShift() {
                     date: data.date,
                     startTime: formatTimeForInput(data.startTime),
                     endTime: formatTimeForInput(data.endTime),
-                    branchId: data.branchId
+                    branchId: CURRENT_BRANCH_ID // Luôn ép về nhánh cố định
                 });
             } catch (err) {
                 console.error("Lỗi tải dữ liệu ca:", err);
@@ -58,6 +59,12 @@ export default function UpdateShift() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (formData.startTime >= formData.endTime) {
+            setError("End Time must be after Start Time!");
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -66,7 +73,7 @@ export default function UpdateShift() {
                 date: formData.date,
                 startTime: formData.startTime.length === 5 ? formData.startTime + ":00" : formData.startTime,
                 endTime: formData.endTime.length === 5 ? formData.endTime + ":00" : formData.endTime,
-                branchId: formData.branchId
+                branchId: CURRENT_BRANCH_ID // Đảm bảo payload gửi đi luôn là nhánh cứng
             });
             alert("Shift updated successfully!");
             navigate("/shifts");
@@ -89,7 +96,6 @@ export default function UpdateShift() {
                     <ArrowLeft className="h-5 w-5 text-gray-600" />
                 </button>
                 <div>
-                    {/* ĐÃ CẬP NHẬT: Hiển thị ID rút gọn ở đây */}
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                         Update Shift <span className="text-amber-600">{shortenId(id)}</span>
                     </h1>
@@ -106,7 +112,8 @@ export default function UpdateShift() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Shift Date <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <CalendarPlus className="h-5 w-5 text-gray-400" />
+                                {/* Thêm màu cho icon */}
+                                <CalendarPlus className="h-5 w-5 text-blue-500" />
                             </div>
                             <input
                                 type="date"
@@ -125,7 +132,8 @@ export default function UpdateShift() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">Start Time <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Clock className="h-5 w-5 text-gray-400" />
+                                    {/* Thêm màu cho icon */}
+                                    <Clock className="h-5 w-5 text-emerald-500" />
                                 </div>
                                 <input
                                     type="time"
@@ -142,7 +150,8 @@ export default function UpdateShift() {
                             <label className="block text-sm font-medium text-gray-700 mb-2">End Time <span className="text-red-500">*</span></label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Clock className="h-5 w-5 text-gray-400" />
+                                    {/* Thêm màu cho icon */}
+                                    <Clock className="h-5 w-5 text-rose-500" />
                                 </div>
                                 <input
                                     type="time"
@@ -156,24 +165,23 @@ export default function UpdateShift() {
                         </div>
                     </div>
 
-                    {/* Branch */}
+                    {/* Branch - Fix cứng và thay select bằng thẻ input readOnly */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Branch <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Branch</label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <MapPin className="h-5 w-5 text-gray-400" />
+                                {/* Thêm màu cho icon */}
+                                <MapPin className="h-5 w-5 text-amber-500" />
                             </div>
-                            <select
-                                name="branchId"
-                                value={formData.branchId}
-                                onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none transition-all appearance-none bg-white"
-                            >
-                                <option value="BR-001">BR-001 (Ho Chi Minh Central)</option>
-                                <option value="BR-002">BR-002 (Da Nang Branch)</option>
-                                <option value="BR-003">BR-003 (Ha Noi Branch)</option>
-                            </select>
+                            <input
+                                type="text"
+                                value={`${CURRENT_BRANCH_NAME} (${CURRENT_BRANCH_ID})`}
+                                readOnly
+                                disabled
+                                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500 cursor-not-allowed focus:outline-none"
+                            />
                         </div>
+                        <p className="text-xs text-gray-400 mt-1.5 ml-1">* Chi nhánh được cố định cho tài khoản Franchise Manager</p>
                     </div>
 
                     <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">

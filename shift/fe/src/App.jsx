@@ -13,6 +13,7 @@ import StaffList from "./pages/staff/StaffList";
 import CreateStaff from "./pages/staff/CreateStaff";
 import UpdateStaff from "./pages/staff/UpdateStaff";
 import AssignStaff from "./pages/shift/AssignStaff";
+import StaffAttendanceHistory from "./pages/shift/StaffAttendanceHistory";
 function App() {
   return (
     <Routes>
@@ -29,6 +30,7 @@ function App() {
         <Route path="attendance" element={<Attendance />} />
         <Route path="attendance/:shiftId" element={<ShiftAttendance />} />
           <Route path="attendance-report" element={<AttendanceReport />} />
+          <Route path="attendance-history" element={<StaffAttendanceHistory />} />
         {/* Router cho Staff */}
         <Route path="staff" element={<StaffList />} />
         <Route path="staff/create" element={<CreateStaff />} />
