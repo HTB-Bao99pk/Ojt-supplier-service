@@ -26,4 +26,7 @@ public interface SupplierProductRepository extends JpaRepository<SupplierProduct
     @Modifying
     @Query("UPDATE SupplierProduct sp SET sp.isActive = false WHERE sp.supplier.id = :supplierId")
     void disableAllProductsBySupplierId(@Param("supplierId") String supplierId);
+
+    long countByIsActiveTrue();
+
 }
