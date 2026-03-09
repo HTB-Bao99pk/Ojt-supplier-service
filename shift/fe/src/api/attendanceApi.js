@@ -80,8 +80,13 @@ export function todayDate() {
     return new Date().toISOString().slice(0, 10);
 }
 
-export const getAttendanceReport = async () => {
-    const response = await fetch(`${BASE_URL}/attendance-reports`); // ĐÃ SỬA ĐƯỜNG DẪN
+export const getAttendanceReport = async (month, year) => {
+
+    const queryParams = new URLSearchParams();
+    if (month) queryParams.append('month', month);
+    if (year) queryParams.append('year', year);
+
+    const response = await fetch(`${BASE_URL}/attendance-reports?${queryParams.toString()}`);
     if (!response.ok) throw new Error("Failed to fetch report");
     const data = await response.json();
     return data.result;

@@ -134,9 +134,14 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AttendanceReportResponse> getAttendanceReport() {
+    public List<AttendanceReportResponse> getAttendanceReport(int month, int year) {
         List<Staff> staffs = staffRepository.findAll();
-        List<Shift> allShifts = shiftRepository.findAll();
+
+        // ĐÃ CẬP NHẬT: Chỉ lấy các ca làm việc thuộc tháng và năm được yêu cầu
+        List<Shift> allShifts = shiftRepository.findAll().stream()
+                .filter(s -> s.getDate().getMonthValue() == month && s.getDate().getYear() == year)
+                .toList();
+
         List<ShiftAssignment> assignments = shiftAssignmentRepository.findAll();
         List<Attendance> attendances = attendanceRepository.findAll();
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
@@ -144,6 +149,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         return staffs.stream().map(staff -> {
             int totalAssignedMins = 0, penaltyMins = 0, presentCount = 0, absentCount = 0, lateMins = 0, earlyMins = 0, validShiftsCount = 0;
 
+            // Lọc ra các ca mà nhân viên này được phân công (đã bị giới hạn trong tháng ở trên)
             List<Shift> staffShifts = assignments.stream()
                     .filter(a -> a.getStaffId().equals(staff.getId()))
                     .map(a -> allShifts.stream().filter(s -> s.getId().equals(a.getShiftId())).findFirst().orElse(null))
@@ -178,7 +184,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 }
             }
 
-            double coverage = 100.0;
+            double coverage = 0.0; // Mặc định là 0 nếu không có ca nào
             if (totalAssignedMins > 0) {
                 int workedMins = Math.max(0, totalAssignedMins - penaltyMins);
                 coverage = Math.round(((double) workedMins / totalAssignedMins) * 100.0);

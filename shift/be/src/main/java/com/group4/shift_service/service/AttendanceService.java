@@ -19,7 +19,7 @@ public interface AttendanceService {
                                         String updatedBy);
 
     List<AttendanceResponse> getAttendanceByShift(String shiftId);
-
-    List<AttendanceReportResponse> getAttendanceReport();
+    
     DashboardOverviewResponse getDashboardOverview(LocalDate date);
+    List<AttendanceReportResponse> getAttendanceReport(int month, int year);
 }
