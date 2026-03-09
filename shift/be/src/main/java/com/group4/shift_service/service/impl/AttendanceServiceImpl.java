@@ -5,8 +5,8 @@ import com.group4.shift_service.dto.request.BulkMarkAttendanceRequest;
 import com.group4.shift_service.dto.response.AttendanceReportResponse;
 import com.group4.shift_service.dto.response.AttendanceResponse;
 import com.group4.shift_service.dto.response.DashboardOverviewResponse;
+import com.group4.shift_service.dto.response.StaffAttendanceDetailsResponse;
 import com.group4.shift_service.dto.response.TimelineItemResponse;
-import com.group4.shift_service.dto.response.StaffAttendanceDetailsResponse; // ĐÃ THÊM IMPORT NÀY!
 import com.group4.shift_service.entity.Attendance;
 import com.group4.shift_service.entity.Shift;
 import com.group4.shift_service.entity.ShiftAssignment;
@@ -55,7 +55,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .stream().map(ShiftAssignment::getStaffId).collect(Collectors.toSet());
 
         List<String> requestedStaffIds = request.getAttendances().stream()
-                .map(AttendanceItemRequest::getStaffId).distinct().toList();
+                .map(AttendanceItemRequest::getStaffId).distinct().collect(Collectors.toList());
 
         Map<String, String> staffNameMap = staffRepository.findAllById(requestedStaffIds)
                 .stream().collect(Collectors.toMap(Staff::getId, Staff::getName));
@@ -75,28 +75,30 @@ public class AttendanceServiceImpl implements AttendanceService {
             Attendance existing = existingMap.get(item.getStaffId());
             AttendanceStatus actualStatus = item.getStatus();
 
-            Integer lateMins = existing != null ? existing.getLateMinutes() : null;
+            Integer lateMins  = existing != null ? existing.getLateMinutes()       : null;
             Integer earlyMins = existing != null ? existing.getEarlyLeaveMinutes() : null;
 
             if (item.getStatus() == AttendanceStatus.PRESENT) {
                 LocalDateTime shiftStart = LocalDateTime.of(shift.getDate(), shift.getStartTime());
                 long diff = Duration.between(shiftStart, now).toMinutes();
-                lateMins = Math.max(0, (int) diff);
+                lateMins     = (int) Math.max(0, diff);
                 actualStatus = lateMins > 0 ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
-            }
-            else if (item.getStatus() == AttendanceStatus.EARLY_LEAVE) {
+                earlyMins    = 0;
+            } else if (item.getStatus() == AttendanceStatus.EARLY_LEAVE) {
                 LocalDateTime shiftEnd = LocalDateTime.of(shift.getDate(), shift.getEndTime());
                 long diff = Duration.between(now, shiftEnd).toMinutes();
-                earlyMins = Math.max(0, (int) diff);
+                earlyMins = (int) Math.max(0, diff);
                 if (earlyMins > 0) {
                     actualStatus = AttendanceStatus.EARLY_LEAVE;
                 } else {
-                    actualStatus = (existing != null && existing.getStatus() == AttendanceStatus.LATE) ? AttendanceStatus.LATE : AttendanceStatus.PRESENT;
+                    actualStatus = (existing != null && existing.getStatus() == AttendanceStatus.LATE)
+                            ? AttendanceStatus.LATE
+                            : AttendanceStatus.PRESENT;
                 }
-            }
-            else if (item.getStatus() == AttendanceStatus.ABSENT) {
+            } else if (item.getStatus() == AttendanceStatus.ABSENT) {
                 actualStatus = AttendanceStatus.ABSENT;
-                lateMins = 0; earlyMins = 0;
+                lateMins  = 0;
+                earlyMins = 0;
             }
 
             if (existing != null) {
@@ -129,8 +131,9 @@ public class AttendanceServiceImpl implements AttendanceService {
         Map<String, String> staffNameMap = staffRepository
                 .findAllById(list.stream().map(Attendance::getStaffId).collect(Collectors.toList()))
                 .stream().collect(Collectors.toMap(Staff::getId, Staff::getName));
-
-        return list.stream().map(a -> toResponse(a, staffNameMap.getOrDefault(a.getStaffId(), "Unknown"))).collect(Collectors.toList());
+        return list.stream()
+                .map(a -> toResponse(a, staffNameMap.getOrDefault(a.getStaffId(), "Unknown")))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -143,64 +146,72 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .collect(Collectors.toList());
 
         List<ShiftAssignment> assignments = shiftAssignmentRepository.findAll();
-        List<Attendance> attendances = attendanceRepository.findAll();
+        List<Attendance> attendances      = attendanceRepository.findAll();
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         return staffs.stream().map(staff -> {
-            int totalAssignedMins = 0, penaltyMins = 0, presentCount = 0, absentCount = 0, lateMins = 0, earlyMins = 0, validShiftsCount = 0;
+                    int totalAssignedMins = 0, penaltyMins = 0;
+                    int presentCount = 0, absentCount = 0;
+                    int totalLateMins = 0, totalEarlyMins = 0;
+                    int validShiftsCount = 0;
 
-            List<Shift> staffShifts = assignments.stream()
-                    .filter(a -> a.getStaffId().equals(staff.getId()))
-                    .map(a -> allShifts.stream().filter(s -> s.getId().equals(a.getShiftId())).findFirst().orElse(null))
-                    .filter(s -> s != null).collect(Collectors.toList());
+                    List<Shift> staffShifts = assignments.stream()
+                            .filter(a -> a.getStaffId().equals(staff.getId()))
+                            .map(a -> allShifts.stream().filter(s -> s.getId().equals(a.getShiftId())).findFirst().orElse(null))
+                            .filter(s -> s != null).collect(Collectors.toList());
 
-            for (Shift shift : staffShifts) {
-                LocalDateTime shiftStart = LocalDateTime.of(shift.getDate(), shift.getStartTime());
-                if (!now.isBefore(shiftStart)) {
-                    validShiftsCount++;
-                    int shiftDuration = (int) Duration.between(shift.getStartTime(), shift.getEndTime()).toMinutes();
-                    totalAssignedMins += shiftDuration;
+                    for (Shift shift : staffShifts) {
+                        LocalDateTime shiftStart = LocalDateTime.of(shift.getDate(), shift.getStartTime());
+                        if (!now.isBefore(shiftStart)) {
+                            validShiftsCount++;
+                            int shiftDuration = (int) Duration.between(shift.getStartTime(), shift.getEndTime()).toMinutes();
+                            totalAssignedMins += shiftDuration;
 
-                    Attendance record = attendances.stream()
-                            .filter(a -> a.getShiftId().equals(shift.getId()) && a.getStaffId().equals(staff.getId()))
-                            .findFirst().orElse(null);
+                            Attendance record = attendances.stream()
+                                    .filter(a -> a.getShiftId().equals(shift.getId()) && a.getStaffId().equals(staff.getId()))
+                                    .findFirst().orElse(null);
 
-                    if (record != null) {
-                        if (record.getStatus() == AttendanceStatus.ABSENT) {
-                            absentCount++; penaltyMins += shiftDuration;
-                        } else {
-                            presentCount++;
-                            lateMins += (record.getLateMinutes() != null ? record.getLateMinutes() : 0);
-                            earlyMins += (record.getEarlyLeaveMinutes() != null ? record.getEarlyLeaveMinutes() : 0);
-                            penaltyMins += (lateMins + earlyMins);
-                        }
-                    } else {
-                        LocalDateTime shiftEnd = LocalDateTime.of(shift.getDate(), shift.getEndTime()).plusMinutes(30);
-                        if (now.isAfter(shiftEnd)) {
-                            absentCount++; penaltyMins += shiftDuration;
+                            if (record != null) {
+                                if (record.getStatus() == AttendanceStatus.ABSENT) {
+                                    absentCount++;
+                                    penaltyMins += shiftDuration;
+                                } else {
+                                    presentCount++;
+                                    int recLateMins  = record.getLateMinutes()       != null ? record.getLateMinutes()       : 0;
+                                    int recEarlyMins = record.getEarlyLeaveMinutes() != null ? record.getEarlyLeaveMinutes() : 0;
+                                    totalLateMins  += recLateMins;
+                                    totalEarlyMins += recEarlyMins;
+                                    penaltyMins    += recLateMins + recEarlyMins;
+                                }
+                            } else {
+                                LocalDateTime shiftEnd = LocalDateTime.of(shift.getDate(), shift.getEndTime()).plusMinutes(30);
+                                if (now.isAfter(shiftEnd)) {
+                                    absentCount++;
+                                    penaltyMins += shiftDuration;
+                                }
+                            }
                         }
                     }
-                }
-            }
 
-            double coverage = 0.0;
-            if (totalAssignedMins > 0) {
-                int workedMins = Math.max(0, totalAssignedMins - penaltyMins);
-                coverage = Math.round(((double) workedMins / totalAssignedMins) * 100.0);
-            }
+                    double coverage = 0.0;
+                    if (totalAssignedMins > 0) {
+                        int workedMins = Math.max(0, totalAssignedMins - penaltyMins);
+                        coverage = Math.round(((double) workedMins / totalAssignedMins) * 100.0);
+                    }
 
-            return AttendanceReportResponse.builder()
-                    .staffId(staff.getId())
-                    .staffCode(staff.getStaffCode() != null ? staff.getStaffCode() : "N/A")
-                    .staffName(staff.getName())
-                    .assignedShifts(validShiftsCount)
-                    .presentCount(presentCount)
-                    .absentCount(absentCount)
-                    .totalLateMins(lateMins)
-                    .totalEarlyMins(earlyMins)
-                    .coveragePercentage(coverage)
-                    .build();
-        }).sorted((a, b) -> Double.compare(b.getCoveragePercentage(), a.getCoveragePercentage())).collect(Collectors.toList());
+                    return AttendanceReportResponse.builder()
+                            .staffId(staff.getId())
+                            .staffCode(staff.getStaffCode() != null ? staff.getStaffCode() : "N/A")
+                            .staffName(staff.getName())
+                            .assignedShifts(validShiftsCount)
+                            .presentCount(presentCount)
+                            .absentCount(absentCount)
+                            .totalLateMins(totalLateMins)
+                            .totalEarlyMins(totalEarlyMins)
+                            .coveragePercentage(coverage)
+                            .build();
+                }).sorted((a, b) -> Double.compare(b.getCoveragePercentage(), a.getCoveragePercentage()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -214,7 +225,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         for (Shift shift : shifts) {
             List<ShiftAssignment> assignments = shiftAssignmentRepository.findAllByShiftId(shift.getId());
-            List<Attendance> attendances = attendanceRepository.findAllByShiftId(shift.getId());
+            List<Attendance> attendances      = attendanceRepository.findAllByShiftId(shift.getId());
 
             int shiftAssignedCount = assignments.size();
             totalAssigned += shiftAssignedCount;
@@ -226,7 +237,9 @@ public class AttendanceServiceImpl implements AttendanceService {
                         .findFirst().orElse(null);
 
                 if (record != null) {
-                    if (record.getStatus() == AttendanceStatus.PRESENT || record.getStatus() == AttendanceStatus.LATE || record.getStatus() == AttendanceStatus.EARLY_LEAVE) {
+                    if (record.getStatus() == AttendanceStatus.PRESENT
+                            || record.getStatus() == AttendanceStatus.LATE
+                            || record.getStatus() == AttendanceStatus.EARLY_LEAVE) {
                         presentCount++; shiftPresentCount++;
                     } else if (record.getStatus() == AttendanceStatus.ABSENT) {
                         absentCount++;
@@ -238,9 +251,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                 }
             }
 
-            boolean isFull = (shiftPresentCount == shiftAssignedCount) && (shiftAssignedCount > 0);
-            String timeStr = shift.getStartTime().toString().substring(0, 5) + " - " + shift.getEndTime().toString().substring(0, 5);
-
+            boolean isFull  = (shiftPresentCount == shiftAssignedCount) && (shiftAssignedCount > 0);
+            String timeStr  = shift.getStartTime().toString().substring(0, 5) + " - " + shift.getEndTime().toString().substring(0, 5);
             String currentStatus = calculateShiftStatus(shift, now);
 
             timeline.add(TimelineItemResponse.builder()
@@ -267,7 +279,6 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .build();
     }
 
-    // TÍNH NĂNG TRA CỨU LỊCH SỬ ĐIỂM DANH
     @Override
     @Transactional(readOnly = true)
     public List<StaffAttendanceDetailsResponse> getStaffAttendanceHistory(String staffId, Integer month, Integer year, LocalDate exactDate) {
@@ -279,9 +290,13 @@ public class AttendanceServiceImpl implements AttendanceService {
         List<Shift> shifts = shiftRepository.findAllById(assignedShiftIds);
 
         if (exactDate != null) {
-            shifts = shifts.stream().filter(s -> s.getDate().equals(exactDate)).collect(Collectors.toList());
+            shifts = shifts.stream()
+                    .filter(s -> s.getDate().equals(exactDate))
+                    .collect(Collectors.toList());
         } else if (month != null && year != null) {
-            shifts = shifts.stream().filter(s -> s.getDate().getMonthValue() == month && s.getDate().getYear() == year).collect(Collectors.toList());
+            shifts = shifts.stream()
+                    .filter(s -> s.getDate().getMonthValue() == month && s.getDate().getYear() == year)
+                    .collect(Collectors.toList());
         }
 
         Map<String, Attendance> attMap = attendanceRepository.findAll().stream()
@@ -298,13 +313,11 @@ public class AttendanceServiceImpl implements AttendanceService {
 
                     if (record != null) {
                         attStatus = record.getStatus().name();
-                        lateMins = record.getLateMinutes() != null ? record.getLateMinutes() : 0;
+                        lateMins  = record.getLateMinutes() != null ? record.getLateMinutes()       : 0;
                         earlyMins = record.getEarlyLeaveMinutes() != null ? record.getEarlyLeaveMinutes() : 0;
                     } else {
                         LocalDateTime shiftEnd = LocalDateTime.of(shift.getDate(), shift.getEndTime()).plusMinutes(30);
-                        if (now.isAfter(shiftEnd)) {
-                            attStatus = "ABSENT";
-                        }
+                        if (now.isAfter(shiftEnd)) attStatus = "ABSENT";
                     }
 
                     return StaffAttendanceDetailsResponse.builder()
@@ -318,14 +331,13 @@ public class AttendanceServiceImpl implements AttendanceService {
                             .lateMinutes(lateMins)
                             .earlyLeaveMinutes(earlyMins)
                             .build();
-                }).sorted((StaffAttendanceDetailsResponse a, StaffAttendanceDetailsResponse b) -> b.getDate().compareTo(a.getDate()))
+                }).sorted((a, b) -> b.getDate().compareTo(a.getDate()))
                 .collect(Collectors.toList());
     }
 
     private String calculateShiftStatus(Shift shift, LocalDateTime now) {
         LocalDateTime shiftStart = LocalDateTime.of(shift.getDate(), shift.getStartTime());
         LocalDateTime shiftEnd = LocalDateTime.of(shift.getDate(), shift.getEndTime());
-
         LocalDateTime allowCheckInTime = shiftStart.minusMinutes(30);
         LocalDateTime closeTime = shiftEnd.plusMinutes(30);
 
