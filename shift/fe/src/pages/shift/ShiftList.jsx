@@ -81,7 +81,6 @@ export default function ShiftList() {
             try {
                 await deleteShift(id);
                 alert("Deleted successfully!");
-                // Xóa xong tải lại dữ liệu của ngày hiện tại đang xem
                 fetchShiftsByDateAPI(filterDate);
             } catch (error) {
                 alert(error.message);
@@ -112,7 +111,7 @@ export default function ShiftList() {
             {/* BỘ LỌC ĐÃ ĐƯỢC TỐI GIẢN - TỰ ĐỘNG LỌC */}
             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap gap-4 items-end justify-between">
                 <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Filter by Date <span className="text-red-500">*</span></label>
+                    <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Search by Date <span className="text-red-500">*</span></label>
                     <div className="flex items-center gap-2">
                         <input
                             type="date"
