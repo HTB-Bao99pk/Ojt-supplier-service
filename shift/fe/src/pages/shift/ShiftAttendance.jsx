@@ -91,10 +91,9 @@ export default function ShiftAttendance() {
 
             const map = {};
             recList.forEach(r => {
-                let actionUI = "";
-                if (r.status === "PRESENT" || r.status === "LATE") actionUI = "PRESENT";
-                if (r.status === "EARLY_LEAVE") actionUI = "EARLY_LEAVE";
-                if (r.status === "ABSENT") actionUI = "ABSENT";
+                // Map trực tiếp từ status BE → action FE (không gộp LATE vào PRESENT)
+                // LATE vẫn hiển thị button "Check In" sáng lên nhưng count đúng vào Late
+                const actionUI = r.status || "";
                 map[r.staffId] = { action: actionUI };
             });
             staffList.forEach(s => { if (!map[s.id]) map[s.id] = { action: null }; });
@@ -120,11 +119,14 @@ export default function ShiftAttendance() {
 
     async function handleSave() {
         if (!isOpen) return;
-        // [CHANGE 4] Lọc bỏ INACTIVE khỏi payload
         const activeIds = new Set(activeStaff.map(s => s.id));
         const payload = Object.entries(att)
             .filter(([staffId, v]) => v?.action && activeIds.has(staffId))
-            .map(([staffId, v]) => ({ staffId, status: v.action }));
+            .map(([staffId, v]) => {
+                // LATE do BE tu tinh khi nhan PRESENT — gui lai PRESENT de BE re-tinh lateMins
+                const sendStatus = v.action === "LATE" ? "PRESENT" : v.action;
+                return { staffId, status: sendStatus };
+            });
 
         if (!payload.length) return;
         setSaveState("saving");
@@ -137,7 +139,7 @@ export default function ShiftAttendance() {
         catch (e) { setError(e.message); setSaveState("error"); setTimeout(() => setSaveState("idle"), 3000); }
     }
 
-    // Count chỉ tính active staff
+    // Count chi tinh active staff — LATE dem rieng, khong gop vao PRESENT
     const markedCount = Object.entries(att).filter(([id, v]) => v?.action && activeStaff.some(s => s.id === id)).length;
     const pct = activeStaff.length ? Math.round((markedCount / activeStaff.length) * 100) : 0;
     const counts = Object.entries(att)
@@ -148,21 +150,21 @@ export default function ShiftAttendance() {
         filter === "ALL"      ? staff :
         filter === "INACTIVE" ? inactiveStaff :
         filter === "UNMARKED" ? activeStaff.filter(s => !att[s.id]?.action) :
+        filter === "PRESENT"  ? activeStaff.filter(s => att[s.id]?.action === "PRESENT" || att[s.id]?.action === "LATE") :
                                 activeStaff.filter(s => att[s.id]?.action === filter);
 
     const shiftCfg = SHIFT_STATUS_CFG[shift?.status] ?? SHIFT_STATUS_CFG.CLOSED;
 
+    // pendingCount: PRESENT va LATE o BE deu match voi action "PRESENT"/"LATE" tren FE
     const pendingCount = Object.entries(att).filter(([id, v]) => {
         if (!activeStaff.some(s => s.id === id)) return false;
         const rec = records.find(r => r.staffId === id);
         if (!rec && v.action) return true;
-        let recAction = "";
-        if (rec?.status === "PRESENT" || rec?.status === "LATE") recAction = "PRESENT";
-        if (rec?.status === "EARLY_LEAVE") recAction = "EARLY_LEAVE";
-        if (rec?.status === "ABSENT") recAction = "ABSENT";
-        if (recAction && v.action && recAction !== v.action) return true;
-        if (!recAction && v.action) return true;
-        return false;
+        if (!rec) return false;
+        const beIsCheckedIn = rec.status === "PRESENT" || rec.status === "LATE";
+        const feIsCheckedIn = v.action  === "PRESENT"  || v.action  === "LATE";
+        if (beIsCheckedIn && feIsCheckedIn) return false;
+        return rec.status !== v.action;
     }).length;
 
     const SAVE_CFG = { idle: { label: `Save Attendance${pendingCount > 0 ? ` (${pendingCount})` : ""}`, bg: "#f97316" }, saving: { label: "Saving…", bg: "#fb923c" }, saved: { label: "✓ Saved!", bg: "#22c55e" }, error: { label: "⚠ Retry", bg: "#ef4444" } };
@@ -312,7 +314,7 @@ export default function ShiftAttendance() {
                                         </span>
                                     ) : isOpen ? (
                                         <div style={{ display: "flex", gap: 6 }}>
-                                            <button className="status-btn" onClick={() => handleMarkAction(s.id, "PRESENT")} style={{ padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "2px solid", background: curAction === "PRESENT" ? "#dcfce7" : "#f9fafb", color: curAction === "PRESENT" ? "#15803d" : "#6b7280", borderColor: curAction === "PRESENT" ? "#86efac" : "#e5e7eb" }}>✓ Check In</button>
+                                            <button className="status-btn" onClick={() => handleMarkAction(s.id, "PRESENT")} style={{ padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "2px solid", background: (curAction === "PRESENT" || curAction === "LATE") ? "#dcfce7" : "#f9fafb", color: (curAction === "PRESENT" || curAction === "LATE") ? "#15803d" : "#6b7280", borderColor: (curAction === "PRESENT" || curAction === "LATE") ? "#86efac" : "#e5e7eb" }}>✓ Check In</button>
                                             <button className="status-btn" onClick={() => handleMarkAction(s.id, "EARLY_LEAVE")} style={{ padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "2px solid", background: curAction === "EARLY_LEAVE" ? "#dbeafe" : "#f9fafb", color: curAction === "EARLY_LEAVE" ? "#1d4ed8" : "#6b7280", borderColor: curAction === "EARLY_LEAVE" ? "#93c5fd" : "#e5e7eb" }}>🚪 Check Out</button>
                                             <button className="status-btn" onClick={() => handleMarkAction(s.id, "ABSENT")} style={{ padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "2px solid", background: curAction === "ABSENT" ? "#fee2e2" : "#f9fafb", color: curAction === "ABSENT" ? "#b91c1c" : "#6b7280", borderColor: curAction === "ABSENT" ? "#fca5a5" : "#e5e7eb" }}>✗ Absent</button>
                                         </div>
