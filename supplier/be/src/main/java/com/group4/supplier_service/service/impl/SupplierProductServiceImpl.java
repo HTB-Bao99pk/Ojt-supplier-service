@@ -84,7 +84,7 @@ public class SupplierProductServiceImpl implements SupplierProductService {
         }
 
         Pageable pageable = PageRequest.of(page, size);
-        return supplierProductRepository.findBySupplierId(supplierId, pageable)
+        return supplierProductRepository.findBySupplierIdAndIsActiveTrue(supplierId, pageable)
                 .map(this::mapToProductResponse);
     }
 
