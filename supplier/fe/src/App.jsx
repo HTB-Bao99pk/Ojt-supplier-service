@@ -1,6 +1,12 @@
-import { Routes, Route } from "react-router-dom";
-import DashboardLayout from "./layouts/DashboardLayout";
+import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Login"; // Đảm bảo file Login.jsx nằm đúng ở src/pages/Login.jsx
 
+// Layouts
+import AdminLayout from "./layouts/AdminLayout";
+import SupplierLayout from "./layouts/SupplierLayout";
+
+// Import Pages
 import SupplierDashboard from "./pages/supplier/SupplierDashboard";
 import SupplierList from "./pages/supplier/SupplierList";
 import SupplierDetail from "./pages/supplier/SupplierDetail";
@@ -14,21 +20,32 @@ import ProductManagement from "./pages/supplier/ProductManagement";
 function App() {
     return (
         <Routes>
-            {/* Layout cha */}
-            <Route path="/" element={<DashboardLayout />}>
+            {/* 1. PUBLIC ROUTES (Ai cũng vào được) */}
+            <Route path="/login" element={<Login />} />
+            
+            {/* Chuyển hướng trang chủ về login nếu gõ localhost:5173/ */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
 
-                {/* Trang mặc định khi vào "/" */}
-                <Route index element={<SupplierDashboard />} />
+            {/* 2. ADMIN ROUTES (Chỉ Admin mới được vào) */}
+            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                <Route element={<AdminLayout />}>
+                    <Route path="/admin/dashboard" element={<SupplierDashboard />} />
+                    <Route path="/admin/suppliers" element={<SupplierList />} />
+                    <Route path="/admin/suppliers/approved" element={<ViewApprovedSupplier />} />
+                    <Route path="/admin/suppliers/create" element={<CreateSupplier />} />
+                    <Route path="/admin/suppliers/:id" element={<SupplierDetail />} />
+                    <Route path="/admin/suppliers/update/:id" element={<UpdateSupplier />} />
+                    <Route path="/admin/suppliers/:id/audit" element={<SupplierAuditLogs />} />
+                    <Route path="/admin/products" element={<ProductManagement />} />
+                </Route>
+            </Route>
 
-                {/* Supplier routes */}
-                <Route path="suppliers" element={<SupplierList />} />
-                <Route path="suppliers/approved" element={<ViewApprovedSupplier />} />
-                <Route path="suppliers/:id" element={<SupplierDetail />} />
-                <Route path="suppliers/update/:id" element={<UpdateSupplier />} />
-                <Route path="/suppliers/create" element={<CreateSupplier />} />
-                <Route path="suppliers/compare/:productId" element={<CompareSuppliers />} />
-                <Route path="suppliers/:id/audit" element={<SupplierAuditLogs />} />
-                <Route path="products" element={<ProductManagement />} />
+            {/* 3. SUPPLIER ROUTES (Chỉ Supplier mới được vào) */}
+            <Route element={<ProtectedRoute allowedRoles={['SUPPLIER']} />}>
+                <Route element={<SupplierLayout />}>
+                    <Route path="/supplier/products" element={<ProductManagement />} />
+                    <Route path="/supplier/products/compare/:productId" element={<CompareSuppliers />} />
+                </Route>
             </Route>
         </Routes>
     );
