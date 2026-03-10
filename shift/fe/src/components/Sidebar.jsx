@@ -9,7 +9,8 @@ import {
     X,
     BarChart3,
     UserCheck,
-    Search
+    Search,
+    FileText
 } from "lucide-react";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 
@@ -24,31 +25,32 @@ export default function Sidebar({ isCollapsed, onToggle }) {
         { name: "Assign Staff", path: "/shifts/assign", icon: UserCheck },
         { name: "Attendance", path: "/attendance", icon: CalendarDays },
         { name: "Reports & KPI", path: "/attendance-report", icon: BarChart3 },
-        { name: "Staff History", path: "/attendance-history", icon: Search },
         { name: "Staff Directory", path: "/staff", icon: Users },
+        { name: "Staff Schedules", path: "/staff/schedules", icon: FileText },
+        { name: "Staff History", path: "/attendance-history", icon: Search },
     ];
 
     return (
         <aside
-            // Đã đồng bộ màu giống Supplier (Gradient Nâu/Cam)
-            className="bg-gradient-to-b from-amber-900 to-amber-950 text-white flex flex-col h-screen fixed left-0 top-0 z-20 transition-all duration-300 shrink-0"
+            className="bg-slate-900 text-white flex flex-col h-screen fixed left-0 top-0 z-20 transition-all duration-300 border-r border-slate-800"
             style={{ width: isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
         >
-            {/* Logo */}
-            <div className="flex items-center gap-3 border-b border-amber-800 h-[72px] shrink-0 p-4">
-                <div className={`bg-amber-600 p-2 rounded-lg flex-shrink-0 ${isCollapsed ? 'mx-auto' : ''}`}>
-                    <Coffee className="w-6 h-6 text-white" />
-                </div>
+            <div className="h-16 flex items-center px-5 border-b border-slate-800 shrink-0 overflow-hidden">
+                <Coffee className={`h-8 w-8 text-amber-500 shrink-0 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
+
                 {!isCollapsed && (
-                    <div className="overflow-hidden whitespace-nowrap">
-                        <h1 className="font-bold text-lg leading-tight">Capital Coffee</h1>
-                        <p className="text-xs text-amber-300 uppercase tracking-wider mt-0.5">Supply Chain Hub</p>
+                    <div className="flex flex-col whitespace-nowrap">
+                        <span className="text-sm font-bold tracking-widest text-white leading-tight">
+                            CAPITAL COFFEE
+                        </span>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">
+                            Supply Chain Hub
+                        </span>
                     </div>
                 )}
             </div>
 
-            {/* Navigation Menu */}
-            <nav className={`flex-1 ${isCollapsed ? 'p-2' : 'p-4'} space-y-2 overflow-y-auto scrollbar-hide`}>
+            <nav className={`flex-1 ${isCollapsed ? 'py-6 px-2' : 'py-6 px-3'} space-y-2 overflow-y-auto scrollbar-hide`}>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
 

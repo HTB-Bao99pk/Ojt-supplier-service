@@ -14,6 +14,8 @@ import CreateStaff from "./pages/staff/CreateStaff";
 import UpdateStaff from "./pages/staff/UpdateStaff";
 import AssignStaff from "./pages/shift/AssignStaff";
 import StaffAttendanceHistory from "./pages/shift/StaffAttendanceHistory";
+import StaffSchedules from "./components/StaffSchedules";
+
 import { Toaster } from "react-hot-toast";
 function App() {
   return (
@@ -41,6 +43,7 @@ function App() {
           <Route path="staff" element={<StaffList />} />
           <Route path="staff/create" element={<CreateStaff />} />
           <Route path="staff/update/:id" element={<UpdateStaff />} />
+          <Route path="staff/schedules" element={<StaffSchedules />} />
         </Route>
       </Routes>
     </>

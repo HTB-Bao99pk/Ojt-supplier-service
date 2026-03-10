@@ -1,11 +1,14 @@
 package com.group4.shift_service.entity;
 
+import com.group4.shift_service.enums.ScheduleStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(
@@ -36,4 +39,21 @@ public class ShiftAssignment {
     @Column(name = "assigned_at")
     @CreationTimestamp
     LocalDateTime assignedAt;
+
+    @Column(name = "date")
+    LocalDate date;
+
+    @Column(name = "start_time")
+    LocalTime startTime;
+
+    @Column(name = "end_time")
+    LocalTime endTime;
+
+    @Column(name = "branch_id")
+    String branchId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    @Builder.Default
+    ScheduleStatus status = ScheduleStatus.SCHEDULED;
 }
