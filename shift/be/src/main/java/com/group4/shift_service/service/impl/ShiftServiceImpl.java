@@ -74,7 +74,7 @@ public class ShiftServiceImpl implements ShiftService {
                 .orElseThrow(() -> new AppException(ErrorCode.SHIFT_NOT_FOUND));
 
         if (!calculateStatus(shift).equals("PREPARING")) {
-            throw new RuntimeException("Only shifts in PREPARING status can be updated!");
+            throw new AppException(ErrorCode.SHIFT_NOT_MODIFIABLE);
         }
 
         shift.setDate(request.getDate());
@@ -92,7 +92,7 @@ public class ShiftServiceImpl implements ShiftService {
                 .orElseThrow(() -> new AppException(ErrorCode.SHIFT_NOT_FOUND));
 
         if (!calculateStatus(shift).equals("PREPARING")) {
-            throw new RuntimeException("Only shifts in PREPARING status can be deleted!");
+            throw new AppException(ErrorCode.SHIFT_NOT_MODIFIABLE);
         }
         shiftRepository.deleteById(id);
     }
@@ -133,10 +133,10 @@ public class ShiftServiceImpl implements ShiftService {
     @Transactional
     public void assignStaffToShift(String shiftId, String staffId, String assignedBy) {
         Shift shift = shiftRepository.findById(shiftId)
-                .orElseThrow(() -> new RuntimeException("Shift not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIFT_NOT_FOUND));
 
         Staff staff = staffRepository.findById(staffId)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND, staffId));
 
         if (staff.getStatus() == StaffStatus.INACTIVE) {
             throw new AppException(ErrorCode.STAFF_INACTIVE);
@@ -146,7 +146,7 @@ public class ShiftServiceImpl implements ShiftService {
                 .stream().anyMatch(a -> a.getStaffId().equals(staffId));
 
         if (alreadyAssigned) {
-            throw new RuntimeException("Nhân viên này đã có trong ca làm việc!");
+            throw new AppException(ErrorCode.STAFF_ALREADY_ASSIGNED);
         }
 
         ShiftAssignment assignment = ShiftAssignment.builder()
