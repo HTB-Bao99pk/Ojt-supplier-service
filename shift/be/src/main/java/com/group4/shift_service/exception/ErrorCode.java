@@ -12,7 +12,9 @@ public enum ErrorCode {
     PHONE_EXISTED(400, "Phone number already exists", HttpStatus.BAD_REQUEST),
     EMAIL_EXISTED(400, "Email already exists", HttpStatus.BAD_REQUEST),
     INVALID_INPUT(400, "Invalid input data", HttpStatus.BAD_REQUEST),
-    ATTENDANCE_NOT_FOUND (404, "Attendance record not found",                                  HttpStatus.NOT_FOUND);
+    ATTENDANCE_NOT_FOUND (404, "Attendance record not found",                                  HttpStatus.NOT_FOUND),
+    SHIFT_NOT_MODIFIABLE   (400, "Only shifts in PREPARING status can be modified",          HttpStatus.BAD_REQUEST),
+    STAFF_ALREADY_ASSIGNED (409, "Staff is already assigned to this shift",                  HttpStatus.CONFLICT);
 
     final int code;
     final String message;
