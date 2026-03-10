@@ -14,7 +14,7 @@ import CreateStaff from "./pages/staff/CreateStaff";
 import UpdateStaff from "./pages/staff/UpdateStaff";
 import AssignStaff from "./pages/shift/AssignStaff";
 import StaffAttendanceHistory from "./pages/shift/StaffAttendanceHistory";
-import StaffSchedules from "./components/StaffSchedules";
+import StaffSchedules from "./pages/staff/StaffSchedules.jsx";
 
 import { Toaster } from "react-hot-toast";
 function App() {

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, User, Settings, LogOut, CalendarDays, Users} from "lucide-react";
+import { Bell, User, Settings, LogOut, CalendarDays, Users } from "lucide-react";
 
 export default function AppHeader() {
     const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -27,14 +27,14 @@ export default function AppHeader() {
     }, []);
 
     return (
-        <header className="relative z-[100] flex h-[72px] shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6 transition-all duration-300">
+        <header className="relative z-10 flex h-[72px] shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6 transition-all duration-300">
 
             {/* BÊN TRÁI: Nút lớn mô tả Phân Hệ (Module) giống với bên Supplier */}
             <button
                 onClick={() => navigate("/")}
-                className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2.5 text-xl font-bold text-white shadow-md transition-all hover:from-amber-600 hover:to-amber-700 hover:shadow-lg"
+                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2.5 text-xl font-bold text-white shadow-md transition-all hover:from-amber-600 hover:to-amber-700 hover:shadow-lg"
             >
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 mr-1">
                     <Users className="h-5 w-5 opacity-90" />
                     <CalendarDays className="h-6 w-6" />
                 </div>
@@ -74,15 +74,15 @@ export default function AppHeader() {
                                 <p className="text-sm text-gray-500">{currentUser.email}</p>
                             </div>
                             <div className="py-1">
-                                <Link to="#" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setUserMenuOpen(false)}>
+                                <Link to="/profile" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setUserMenuOpen(false)}>
                                     <User className="h-4 w-4 text-gray-500" /> My Profile
                                 </Link>
-                                <Link to="#" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setUserMenuOpen(false)}>
+                                <Link to="/settings" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setUserMenuOpen(false)}>
                                     <Settings className="h-4 w-4 text-gray-500" /> Settings
                                 </Link>
                             </div>
                             <div className="mt-1 border-t border-gray-100 py-1">
-                                <button className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                <button onClick={() => navigate("/login")} className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                     <LogOut className="h-4 w-4 text-gray-500" /> Sign Out
                                 </button>
                             </div>

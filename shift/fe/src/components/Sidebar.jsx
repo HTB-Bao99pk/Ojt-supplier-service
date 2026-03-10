@@ -17,7 +17,6 @@ import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 export default function Sidebar({ isCollapsed, onToggle }) {
     const location = useLocation();
 
-    // Giữ nguyên các menu của nhánh Shift
     const menuItems = [
         { name: "Dashboard", path: "/", icon: LayoutDashboard, exact: true },
         { name: "All Shifts", path: "/shifts", icon: CalendarDays, exact: true },
@@ -32,18 +31,19 @@ export default function Sidebar({ isCollapsed, onToggle }) {
 
     return (
         <aside
-            className="bg-slate-900 text-white flex flex-col h-screen fixed left-0 top-0 z-20 transition-all duration-300 border-r border-slate-800"
+            className="bg-gradient-to-b from-amber-900 to-amber-950 text-white flex flex-col h-screen fixed left-0 top-0 z-20 transition-all duration-300 border-r border-amber-800"
             style={{ width: isCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
         >
-            <div className="h-16 flex items-center px-5 border-b border-slate-800 shrink-0 overflow-hidden">
-                <Coffee className={`h-8 w-8 text-amber-500 shrink-0 ${isCollapsed ? 'mx-auto' : 'mr-3'}`} />
-
+            <div className="h-16 flex items-center px-4 border-b border-amber-800 shrink-0 overflow-hidden">
+                <div className={`bg-amber-600 p-2 rounded-lg flex-shrink-0 ${isCollapsed ? 'mx-auto' : 'mr-3'}`}>
+                    <Coffee className="w-6 h-6" />
+                </div>
                 {!isCollapsed && (
                     <div className="flex flex-col whitespace-nowrap">
                         <span className="text-sm font-bold tracking-widest text-white leading-tight">
                             CAPITAL COFFEE
                         </span>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">
+                        <span className="text-[10px] text-amber-300 uppercase tracking-wider mt-0.5">
                             Supply Chain Hub
                         </span>
                     </div>
@@ -81,7 +81,6 @@ export default function Sidebar({ isCollapsed, onToggle }) {
                 })}
             </nav>
 
-            {/* Nút Thu gọn / Mở rộng Sidebar */}
             <button
                 onClick={onToggle}
                 className="p-4 border-t border-amber-800 hover:bg-amber-800 transition-colors flex justify-center items-center h-16 shrink-0"
