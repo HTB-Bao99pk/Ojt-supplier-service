@@ -40,7 +40,7 @@ const formatDateUI = (d) => {
 
 const formatShiftId = (id) => id ? `SH-${id.substring(0, 5).toUpperCase()}` : "—";
 
-// [CHANGE 1] Avatar nhận thêm prop inactive
+// [CHANGE 1] Avatar receives additional prop inactive
 function Avatar({ name = "?", size = 38, inactive = false }) {
     return <div style={{ width: size, height: size, borderRadius: Math.round(size * .32), background: inactive ? "#e5e7eb" : avatarBg(name), flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: inactive ? "#9ca3af" : "#fff", fontWeight: 800, fontSize: size * .38, boxShadow: inactive ? "none" : `0 2px 8px ${avatarBg(name)}50` }}>{name.charAt(0)}</div>;
 }
@@ -66,7 +66,7 @@ export default function ShiftAttendance() {
     const [filter, setFilter] = useState("ALL");
 
     const loadData = useCallback(async () => {
-        if (!shiftId) return setError("Không tìm thấy ID ca làm việc trên URL!");
+        if (!shiftId) return setError("Shift ID not found in URL!");
         setLoading(true); setError(null);
         try {
             const [shiftInfo, staffData, recData] = await Promise.all([
@@ -80,7 +80,7 @@ export default function ShiftAttendance() {
 
             if (shiftInfo.status === "CLOSED") {
                 const existingRecIds = recList.map(r => r.staffId);
-                // [CHANGE 2] Auto-absent chỉ cho active staff
+                // [CHANGE 2] Auto-absent only for active staff
                 const autoAbsents = staffList
                     .filter(s => s.status !== "INACTIVE" && !existingRecIds.includes(s.id))
                     .map(s => ({ staffId: s.id, status: "ABSENT", lateMinutes: 0, earlyLeaveMinutes: 0, isAuto: true }));
@@ -91,8 +91,8 @@ export default function ShiftAttendance() {
 
             const map = {};
             recList.forEach(r => {
-                // Map trực tiếp từ status BE → action FE (không gộp LATE vào PRESENT)
-                // LATE vẫn hiển thị button "Check In" sáng lên nhưng count đúng vào Late
+                // Map directly from BE status → FE action (don't merge LATE into PRESENT)
+                // LATE still shows "Check In" button lit up but counts correctly as Late
                 const actionUI = r.status || "";
                 map[r.staffId] = { action: actionUI };
             });
@@ -105,13 +105,13 @@ export default function ShiftAttendance() {
 
     const isOpen = shift?.status === "OPEN" || shift?.status === "PREPARING";
 
-    // [CHANGE 3] Phân loại active / inactive
+    // [CHANGE 3] Classify active / inactive
     const activeStaff   = staff.filter(s => s.status !== "INACTIVE");
     const inactiveStaff = staff.filter(s => s.status === "INACTIVE");
 
     const handleMarkAction = (staffId, actionType) => {
         if (!isOpen) return;
-        // Chặn mark INACTIVE
+        // Block marking INACTIVE staff
         if (staff.find(s => s.id === staffId)?.status === "INACTIVE") return;
         setAtt(p => ({ ...p, [staffId]: { action: p[staffId]?.action === actionType ? null : actionType } }));
         setSaveState("idle");
@@ -169,16 +169,16 @@ export default function ShiftAttendance() {
 
     const SAVE_CFG = { idle: { label: `Save Attendance${pendingCount > 0 ? ` (${pendingCount})` : ""}`, bg: "#f97316" }, saving: { label: "Saving…", bg: "#fb923c" }, saved: { label: "✓ Saved!", bg: "#22c55e" }, error: { label: "⚠ Retry", bg: "#ef4444" } };
 
-    if (error) return <div className="p-10 text-center text-red-600 bg-red-50 rounded-xl border border-red-200"><h2 className="text-xl font-bold mb-2">Đã xảy ra lỗi</h2><p>{error}</p><button onClick={() => navigate("/attendance")} className="mt-4 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg">Quay lại</button></div>;
+    if (error) return <div className="p-10 text-center text-red-600 bg-red-50 rounded-xl border border-red-200"><h2 className="text-xl font-bold mb-2">An error occurred</h2><p>{error}</p><button onClick={() => navigate("/attendance")} className="mt-4 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg">Go back</button></div>;
 
     return (
         <div style={{ fontFamily: "'Plus Jakarta Sans','DM Sans',sans-serif" }} className="pb-10">
             <style>{`@keyframes slideUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} } .att-row { transition: background .12s; } .att-row:hover { background: #fafbfc !important; } .status-btn { transition: all .13s ease; cursor: pointer; } .status-btn:hover { transform: translateY(-1px); } .status-btn:active { transform: scale(.97); }`}</style>
 
             <div className="flex items-center gap-2 text-sm font-medium mb-6">
-                <button onClick={() => navigate("/attendance")} className="text-gray-400 hover:text-amber-600 transition-colors">Danh sách ca</button>
+                <button onClick={() => navigate("/attendance")} className="text-gray-400 hover:text-amber-600 transition-colors">Shift List</button>
                 <span className="text-gray-300">/</span>
-                <span className="text-gray-900 font-bold">Điểm danh nhân viên</span>
+                <span className="text-gray-900 font-bold">Mark Attendance</span>
             </div>
 
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6 relative overflow-hidden">
@@ -214,7 +214,7 @@ export default function ShiftAttendance() {
                     ) : (
                         <div className="px-5 py-2.5 rounded-xl text-sm font-bold border flex items-center gap-2" style={{ background: shiftCfg.bg, color: shiftCfg.text, borderColor: `${shiftCfg.dot}40` }}>
                             <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: shiftCfg.dot }}></div>
-                            {shift?.status === "CLOSED" ? "Ca đã đóng - Không thể sửa" : "Ca chưa bắt đầu"}
+                            {shift?.status === "CLOSED" ? "Shift closed - Cannot edit" : "Shift not started yet"}
                         </div>
                     )}
                 </div>
@@ -226,7 +226,7 @@ export default function ShiftAttendance() {
                     <span className="text-lg mt-0.5">⚠️</span>
                     <div>
                         <div className="text-sm font-bold text-red-700">
-                            {inactiveStaff.length} nhân viên đã nghỉ việc trong ca này — không thể điểm danh
+                            {inactiveStaff.length} staff members have left - cannot mark attendance
                         </div>
                         <div className="text-xs text-red-500 mt-1">
                             {inactiveStaff.map(s => s.name).join(", ")}
@@ -235,14 +235,14 @@ export default function ShiftAttendance() {
                 </div>
             )}
 
-            {loading ? <div className="py-20 text-center text-gray-500 font-medium">Đang tải dữ liệu điểm danh...</div> : (
+            {loading ? <div className="py-20 text-center text-gray-500 font-medium">Loading attendance data...</div> : (
                 <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e5e7eb", overflow: "hidden" }}>
 
                     <div style={{ padding: "14px 20px", background: "#fafafa", borderBottom: "1px solid #f0f2f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
                             {STATUSES.map(k => <div key={k} style={{ fontSize: 12, color: "#6b7280" }}>{STATUS_CFG[k].label}: <b style={{ color: "#111827" }}>{counts[k] || 0}</b></div>)}
                             <div style={{ fontSize: 12, color: "#6b7280" }}>Unmarked: <b style={{ color: "#f97316" }}>{activeStaff.length - markedCount}</b></div>
-                            {inactiveStaff.length > 0 && <div style={{ fontSize: 12, color: "#b91c1c" }}>Nghỉ việc: <b>{inactiveStaff.length}</b></div>}
+                            {inactiveStaff.length > 0 && <div style={{ fontSize: 12, color: "#b91c1c" }}>Inactive: <b>{inactiveStaff.length}</b></div>}
                         </div>
                         <span style={{ fontSize: 13, fontWeight: 800, color: "#f97316" }}>{markedCount}/{activeStaff.length} ({pct}%) Complete</span>
                     </div>
@@ -253,7 +253,7 @@ export default function ShiftAttendance() {
                         {[
                             { key: "ALL",      label: `All (${staff.length})` },
                             ...STATUSES.map(k => ({ key: k, label: `${STATUS_CFG[k].label} (${counts[k]||0})` })),
-                            ...(inactiveStaff.length > 0 ? [{ key: "INACTIVE", label: `Nghỉ việc (${inactiveStaff.length})` }] : []),
+                            ...(inactiveStaff.length > 0 ? [{ key: "INACTIVE", label: `Inactive (${inactiveStaff.length})` }] : []),
                         ].map(tab => (
                             <button key={tab.key} onClick={() => setFilter(tab.key)} style={{
                                 padding: "4px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", border: "none",
@@ -286,10 +286,10 @@ export default function ShiftAttendance() {
                                     <Avatar name={s.name || s.staffName} size={42} inactive={inactive}/>
                                     <div>
                                         <div style={{ fontWeight: 800, fontSize: 14, color: inactive ? "#9ca3af" : "#111827", display: "flex", alignItems: "center", gap: 6 }}>
-                                            {s.name || s.staffName || "Nhân viên"}
+                                            {s.name || s.staffName || "Employee"}
                                             {inactive && (
                                                 <span style={{ fontSize: 10, fontWeight: 600, color: "#b91c1c", background: "#fee2e2", padding: "1px 7px", borderRadius: 10, border: "1px solid #fca5a5" }}>
-                                                    Nghỉ việc
+                                                    Inactive
                                                 </span>
                                             )}
                                         </div>
@@ -297,11 +297,11 @@ export default function ShiftAttendance() {
 
                                         {rec && !inactive && (
                                             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
-                                                {rec.lateMinutes === 0 && (rec.status === "PRESENT" || rec.status === "EARLY_LEAVE") && <span style={{ fontSize: 11, color: "#15803d", fontWeight: 700, background: "#dcfce7", padding: "2px 8px", borderRadius: 12 }}>✓ Check-in Đúng giờ</span>}
-                                                {rec.lateMinutes > 0 && <span style={{ fontSize: 11, color: "#b91c1c", fontWeight: 700, background: "#fee2e2", padding: "2px 8px", borderRadius: 12 }}>⏰ Đi trễ {rec.lateMinutes} phút</span>}
-                                                {rec.earlyLeaveMinutes === 0 && (rec.status === "PRESENT" || rec.status === "LATE") && rec.updatedAt && !rec.isAuto && <span style={{ fontSize: 11, color: "#15803d", fontWeight: 700, background: "#dcfce7", padding: "2px 8px", borderRadius: 12 }}>🚪 Check-out Đúng giờ</span>}
-                                                {rec.earlyLeaveMinutes > 0 && <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700, background: "#dbeafe", padding: "2px 8px", borderRadius: 12 }}>↩ Về sớm {rec.earlyLeaveMinutes} phút</span>}
-                                                {rec.status === "ABSENT" && <span style={{ fontSize: 11, color: "#b91c1c", fontWeight: 700, background: "#fee2e2", padding: "2px 8px", borderRadius: 12 }}>{rec.isAuto ? "✗ Vắng mặt (Hệ thống tự chốt)" : "✗ Vắng mặt"}</span>}
+                                                {rec.lateMinutes === 0 && (rec.status === "PRESENT" || rec.status === "EARLY_LEAVE") && <span style={{ fontSize: 11, color: "#15803d", fontWeight: 700, background: "#dcfce7", padding: "2px 8px", borderRadius: 12 }}>✓ Check-in On Time</span>}
+                                                {rec.lateMinutes > 0 && <span style={{ fontSize: 11, color: "#b91c1c", fontWeight: 700, background: "#fee2e2", padding: "2px 8px", borderRadius: 12 }}>⏰ Late {rec.lateMinutes} min</span>}
+                                                {rec.earlyLeaveMinutes === 0 && (rec.status === "PRESENT" || rec.status === "LATE") && rec.updatedAt && !rec.isAuto && <span style={{ fontSize: 11, color: "#15803d", fontWeight: 700, background: "#dcfce7", padding: "2px 8px", borderRadius: 12 }}>🚪 Check-out On Time</span>}
+                                                {rec.earlyLeaveMinutes > 0 && <span style={{ fontSize: 11, color: "#1d4ed8", fontWeight: 700, background: "#dbeafe", padding: "2px 8px", borderRadius: 12 }}>↩ Left Early {rec.earlyLeaveMinutes} min</span>}
+                                                {rec.status === "ABSENT" && <span style={{ fontSize: 11, color: "#b91c1c", fontWeight: 700, background: "#fee2e2", padding: "2px 8px", borderRadius: 12 }}>{rec.isAuto ? "✗ Absent (Auto-closed by system)" : "✗ Absent"}</span>}
                                             </div>
                                         )}
                                     </div>
@@ -310,7 +310,7 @@ export default function ShiftAttendance() {
                                 <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
                                     {inactive ? (
                                         <span style={{ fontSize: 12, color: "#fca5a5", fontStyle: "italic", fontWeight: 600 }}>
-                                            🚫 Không thể điểm danh
+                                            🚫 Cannot mark attendance
                                         </span>
                                     ) : isOpen ? (
                                         <div style={{ display: "flex", gap: 6 }}>
@@ -319,7 +319,7 @@ export default function ShiftAttendance() {
                                             <button className="status-btn" onClick={() => handleMarkAction(s.id, "ABSENT")} style={{ padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "2px solid", background: curAction === "ABSENT" ? "#fee2e2" : "#f9fafb", color: curAction === "ABSENT" ? "#b91c1c" : "#6b7280", borderColor: curAction === "ABSENT" ? "#fca5a5" : "#e5e7eb" }}>✗ Absent</button>
                                         </div>
                                     ) : (
-                                        rec?.status ? <StatusBadge status={rec.status}/> : <span style={{ fontSize: 13, color: "#d1d5db", fontStyle: "italic", fontWeight: 600 }}>Không thể chỉnh sửa</span>
+                                        rec?.status ? <StatusBadge status={rec.status}/> : <span style={{ fontSize: 13, color: "#d1d5db", fontStyle: "italic", fontWeight: 600 }}>Cannot edit</span>
                                     )}
                                 </div>
                             </div>

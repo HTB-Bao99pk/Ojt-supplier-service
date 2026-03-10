@@ -4,7 +4,7 @@ import { assignStaffToShift, fetchStaffByShift } from "../../api/attendanceApi";
 import { getShiftsByDate } from "../../api/shiftApi";
 import { getAllStaffs } from "../../api/staffApi";
 
-// Lấy ngày hôm nay
+// Get today's date
 const getTodayDate = () => {
     const d = new Date();
     const year = d.getFullYear();
@@ -30,12 +30,12 @@ const formatDateUI = (d) => {
     return `${day}/${month}/${year}`;
 };
 
-// Hàm render Giới tính dạng thẻ nhỏ cho danh sách
+// Render Gender as a small badge for the list
 const renderGender = (gender) => {
     if (!gender) return null;
-    if (gender === "MALE") return <span className="text-blue-600 font-bold text-[10px] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">Nam</span>;
-    if (gender === "FEMALE") return <span className="text-pink-600 font-bold text-[10px] bg-pink-50 px-1.5 py-0.5 rounded border border-pink-100">Nữ</span>;
-    return <span className="text-gray-500 font-bold text-[10px] bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">Khác</span>;
+    if (gender === "MALE") return <span className="text-blue-600 font-bold text-[10px] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">Male</span>;
+    if (gender === "FEMALE") return <span className="text-pink-600 font-bold text-[10px] bg-pink-50 px-1.5 py-0.5 rounded border border-pink-100">Female</span>;
+    return <span className="text-gray-500 font-bold text-[10px] bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">Other</span>;
 };
 
 export default function AssignStaff() {
@@ -48,7 +48,7 @@ export default function AssignStaff() {
     const [loading, setLoading] = useState(false);
     const [loadingShifts, setLoadingShifts] = useState(false);
 
-    // Load danh sách nhân viên 1 lần lúc mở trang
+    // Load staff list once when page opens
     useEffect(() => {
         const fetchStaff = async () => {
             try {
@@ -59,7 +59,7 @@ export default function AssignStaff() {
         fetchStaff();
     }, []);
 
-    // Fetch ca làm việc BẤT CỨ KHI NÀO TÊN NGÀY THAY ĐỔI
+    // Fetch shifts WHENEVER DATE CHANGES
     useEffect(() => {
         const fetchShifts = async () => {
             if (!filterDate || filterDate.length !== 10) return;
@@ -67,10 +67,10 @@ export default function AssignStaff() {
             try {
                 const shiftData = await getShiftsByDate(filterDate);
                 const fetchedShifts = shiftData?.content || shiftData || [];
-                // Chỉ lấy những ca PREPARING hoặc OPEN để gán
+                // Only get PREPARING or OPEN shifts for assignment
                 const activeShifts = fetchedShifts.filter(s => s.status === "PREPARING" || s.status === "OPEN");
                 setShifts(activeShifts);
-                setSelectedShift(""); // Reset select khi đổi ngày
+                setSelectedShift(""); // Reset select when changing date
             } catch (err) {
                 console.error("Error fetching shifts by date:", err);
                 setShifts([]);
@@ -81,7 +81,7 @@ export default function AssignStaff() {
         fetchShifts();
     }, [filterDate]);
 
-    // Load nhân viên đã gán khi chọn 1 ca
+    // Load assigned staff when selecting a shift
     useEffect(() => {
         if (!selectedShift) { setShiftDetails(null); setAssignedStaff([]); return; }
         const details = shifts.find(s => s.id === selectedShift);
@@ -102,10 +102,10 @@ export default function AssignStaff() {
     const handleAssign = async (staffId) => {
         try {
             await assignStaffToShift(selectedShift, staffId);
-            // Sau khi assign thành công, fetch lại danh sách assigned
+            // After successful assignment, fetch the assigned list again
             const assigned = await fetchStaffByShift(selectedShift);
             setAssignedStaff(assigned?.content || assigned || []);
-        } catch (err) { alert("Lỗi khi thêm: " + err.message); }
+        } catch (err) { alert("Error adding staff: " + err.message); }
     };
 
     const assignedIds = assignedStaff.map(s => s.id || s.staffId);
@@ -115,14 +115,14 @@ export default function AssignStaff() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2"><UserCheck className="text-amber-500" /> Assign Staff to Shift</h1>
-                <p className="text-sm text-gray-500 mt-1">Phân công nhân viên vào các ca làm việc.</p>
+                <p className="text-sm text-gray-500 mt-1">Assign employees to work shifts.</p>
             </div>
 
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-5">
 
-                {/* STEP 1: CHỌN NGÀY */}
+                {/* STEP 1: SELECT DATE */}
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">1. Chọn Ngày Làm Việc</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">1. Select Work Date</label>
                     <div className="flex items-center gap-3">
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -139,14 +139,14 @@ export default function AssignStaff() {
                             onClick={() => setFilterDate(getTodayDate())}
                             className="text-sm font-bold text-amber-600 bg-amber-50 px-3 py-2 rounded-lg hover:bg-amber-100 transition-colors"
                         >
-                            Hôm nay
+                            Today
                         </button>
                     </div>
                 </div>
 
-                {/* STEP 2: CHỌN CA */}
+                {/* STEP 2: SELECT SHIFT */}
                 <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">2. Chọn Ca (Hiển thị ca Đang Mở/Chuẩn Bị)</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">2. Select Shift (Show Open/Preparing Shifts)</label>
                     <select
                         value={selectedShift}
                         onChange={(e) => setSelectedShift(e.target.value)}
@@ -154,19 +154,19 @@ export default function AssignStaff() {
                         className="w-full md:w-1/2 border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-amber-500 font-medium disabled:bg-gray-50 disabled:text-gray-400"
                     >
                         <option value="">
-                            {loadingShifts ? "Đang tải ca..." : shifts.length === 0 ? `-- Không có ca trống nào vào ngày ${formatDateUI(filterDate)} --` : "-- Bấm để chọn ca làm việc --"}
+                            {loadingShifts ? "Loading shifts..." : shifts.length === 0 ? `-- No available shifts on ${formatDateUI(filterDate)} --` : "-- Click to select shift --"}
                         </option>
                         {shifts.map((s, idx) => (
                             <option key={s.id || `shift-${idx}`} value={s.id}>
-                                {formatTime(s.startTime)} - {formatTime(s.endTime)} | Chi nhánh: {s.branchId} | ({s.status})
+                                {formatTime(s.startTime)} - {formatTime(s.endTime)} | Branch: {s.branchId} | ({s.status})
                             </option>
                         ))}
                     </select>
 
                     {shiftDetails && (
                         <div className="mt-4 p-4 bg-amber-50 border border-amber-100 rounded-lg flex flex-wrap gap-6 text-sm">
-                            <div className="flex items-center gap-2 text-amber-800"><Calendar size={16}/> <b>Ngày:</b> {formatDateUI(shiftDetails.date)}</div>
-                            <div className="flex items-center gap-2 text-amber-800"><Clock size={16}/> <b>Giờ:</b> {formatTime(shiftDetails.startTime)} - {formatTime(shiftDetails.endTime)}</div>
+                            <div className="flex items-center gap-2 text-amber-800"><Calendar size={16}/> <b>Date:</b> {formatDateUI(shiftDetails.date)}</div>
+                            <div className="flex items-center gap-2 text-amber-800"><Clock size={16}/> <b>Time:</b> {formatTime(shiftDetails.startTime)} - {formatTime(shiftDetails.endTime)}</div>
                             <div className="flex items-center gap-2 text-amber-800"><MapPin size={16}/> <b>Branch:</b> {shiftDetails.branchId}</div>
                         </div>
                     )}
@@ -175,41 +175,41 @@ export default function AssignStaff() {
 
             {selectedShift && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* KHUNG BÊN TRÁI: NHÂN VIÊN TRỐNG */}
+                    {/* LEFT BOX: AVAILABLE STAFF */}
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div className="bg-slate-50 px-5 py-4 border-b border-gray-200"><h2 className="font-bold text-gray-800">Nhân viên trống ({availableStaff.length})</h2></div>
+                        <div className="bg-slate-50 px-5 py-4 border-b border-gray-200"><h2 className="font-bold text-gray-800">Available Staff ({availableStaff.length})</h2></div>
                         <div className="p-2 max-h-[500px] overflow-y-auto">
-                            {availableStaff.length === 0 ? <p className="text-center text-gray-500 py-10 text-sm">Không còn nhân viên nào.</p> : availableStaff.map((staff, idx) => (
+                            {availableStaff.length === 0 ? <p className="text-center text-gray-500 py-10 text-sm">No more staff available.</p> : availableStaff.map((staff, idx) => (
                                 <div key={staff.id || `avail-${idx}`} className="flex justify-between items-center p-3 hover:bg-slate-50 rounded-lg border-b border-gray-50 last:border-0">
                                     <div>
                                         <p className="font-bold text-gray-900 text-sm flex items-center gap-2">
                                             {staff.name || staff.staffName}
                                             {renderGender(staff.gender)}
                                         </p>
-                                        {/* ĐÃ SỬA: Hiển thị Email thay vì ID */}
-                                        <p className="text-xs text-gray-500 mt-0.5">{staff.email || staff.staffCode || "Chưa có email"}</p>
+                                        {/* FIXED: Show Email instead of ID */}
+                                        <p className="text-xs text-gray-500 mt-0.5">{staff.email || staff.staffCode || "No email yet"}</p>
                                     </div>
-                                    <button onClick={() => handleAssign(staff.id)} className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-md text-xs font-bold transition-colors"><UserPlus size={14}/> Thêm vào ca</button>
+                                    <button onClick={() => handleAssign(staff.id)} className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-md text-xs font-bold transition-colors"><UserPlus size={14}/> Add to shift</button>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* KHUNG BÊN PHẢI: ĐÃ PHÂN CÔNG */}
+                    {/* RIGHT BOX: ASSIGNED */}
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div className="bg-emerald-50 px-5 py-4 border-b border-emerald-100 flex justify-between items-center"><h2 className="font-bold text-emerald-800">Đã phân công ({assignedStaff.length})</h2>{loading && <span className="text-xs text-emerald-600 animate-pulse">Đang tải...</span>}</div>
+                        <div className="bg-emerald-50 px-5 py-4 border-b border-emerald-100 flex justify-between items-center"><h2 className="font-bold text-emerald-800">Assigned ({assignedStaff.length})</h2>{loading && <span className="text-xs text-emerald-600 animate-pulse">Loading...</span>}</div>
                         <div className="p-2 max-h-[500px] overflow-y-auto">
-                            {assignedStaff.length === 0 ? <p className="text-center text-gray-500 py-10 text-sm">Ca này chưa có ai.</p> : assignedStaff.map((staff, idx) => (
+                            {assignedStaff.length === 0 ? <p className="text-center text-gray-500 py-10 text-sm">No one assigned to this shift yet.</p> : assignedStaff.map((staff, idx) => (
                                 <div key={staff.id || staff.staffId || `assign-${idx}`} className="flex justify-between items-center p-3 bg-white hover:bg-emerald-50/30 rounded-lg border-b border-gray-50 last:border-0">
                                     <div>
                                         <p className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                                            {staff.name || staff.staffName || "Tên không xác định"}
+                                            {staff.name || staff.staffName || "Name unknown"}
                                             {renderGender(staff.gender)}
                                         </p>
-                                        {/* ĐÃ SỬA: Hiển thị Email thay vì ID */}
-                                        <p className="text-xs text-gray-500 mt-0.5">{staff.email || staff.staffCode || "Chưa có email"}</p>
+                                        {/* FIXED: Show Email instead of ID */}
+                                        <p className="text-xs text-gray-500 mt-0.5">{staff.email || staff.staffCode || "No email yet"}</p>
                                     </div>
-                                    <div className="flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold"><CheckCircle2 size={14}/> Đã gán</div>
+                                    <div className="flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold"><CheckCircle2 size={14}/> Assigned</div>
                                 </div>
                             ))}
                         </div>

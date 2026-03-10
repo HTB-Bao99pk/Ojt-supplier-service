@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Clock, MapPin } from "lucide-react";
 import { getShiftById, updateShift } from "../../api/shiftApi";
 
-// FIX CỨNG CHI NHÁNH GIỐNG TRANG CREATE
+// FIX BRANCH LIKE CREATE PAGE
 const CURRENT_BRANCH_ID = "BR-001";
 const CURRENT_BRANCH_NAME = "Ho Chi Minh Central";
 
@@ -18,7 +18,7 @@ export default function UpdateShift() {
         date: "",
         startTime: "",
         endTime: "",
-        branchId: CURRENT_BRANCH_ID // Gán mặc định
+        branchId: CURRENT_BRANCH_ID // Set default
     });
 
     const shortenId = (uuid) => {
@@ -41,10 +41,10 @@ export default function UpdateShift() {
                     date: data.date,
                     startTime: formatTimeForInput(data.startTime),
                     endTime: formatTimeForInput(data.endTime),
-                    branchId: CURRENT_BRANCH_ID // Luôn ép về nhánh cố định
+                    branchId: CURRENT_BRANCH_ID // Always force to fixed branch
                 });
             } catch (err) {
-                console.error("Lỗi tải dữ liệu ca:", err);
+                console.error("Error loading shift data:", err);
                 setError("Could not load shift data.");
             } finally {
                 setInitialLoading(false);
@@ -73,12 +73,12 @@ export default function UpdateShift() {
                 date: formData.date,
                 startTime: formData.startTime.length === 5 ? formData.startTime + ":00" : formData.startTime,
                 endTime: formData.endTime.length === 5 ? formData.endTime + ":00" : formData.endTime,
-                branchId: CURRENT_BRANCH_ID // Đảm bảo payload gửi đi luôn là nhánh cứng
+                branchId: CURRENT_BRANCH_ID // Ensure payload sent is always the fixed branch
             });
             alert("Shift updated successfully!");
             navigate("/shifts");
         } catch (err) {
-            alert("Lỗi khi cập nhật: " + (err.response?.data?.message || err.message));
+            alert("Error updating: " + (err.response?.data?.message || err.message));
         } finally {
             setLoading(false);
         }
@@ -170,7 +170,7 @@ export default function UpdateShift() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Branch</label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                {/* Thêm màu cho icon */}
+                                {/* Add color to icon */}
                                 <MapPin className="h-5 w-5 text-amber-500" />
                             </div>
                             <input
@@ -181,7 +181,7 @@ export default function UpdateShift() {
                                 className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500 cursor-not-allowed focus:outline-none"
                             />
                         </div>
-                        <p className="text-xs text-gray-400 mt-1.5 ml-1">* Chi nhánh được cố định cho tài khoản Franchise Manager</p>
+                        <p className="text-xs text-gray-400 mt-1.5 ml-1">* Branch is locked for Franchise Manager account</p>
                     </div>
 
                     <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
