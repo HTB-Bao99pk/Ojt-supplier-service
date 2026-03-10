@@ -16,12 +16,12 @@ import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 export default function Sidebar({ isCollapsed, onToggle }) {
     const location = useLocation();
 
-    // ĐÃ SỬA ĐƯỜNG DẪN ASSIGN STAFF THÀNH /shifts/assign CHO KHỚP VỚI APP.JSX
+    // FIXED: Changed ASSIGN STAFF path to /shifts/assign to match APP.JSX
     const menuItems = [
         { name: "Dashboard", path: "/", icon: LayoutDashboard },
         { name: "All Shifts", path: "/shifts", icon: CalendarDays },
         { name: "Create Shift", path: "/shifts/create", icon: CalendarPlus },
-        { name: "Assign Staff", path: "/shifts/assign", icon: UserCheck }, // <-- Sửa chuẩn ở đây
+        { name: "Assign Staff", path: "/shifts/assign", icon: UserCheck }, // <-- Fixed correctly here
         { name: "Attendance", path: "/attendance", icon: CalendarDays },
         { name: "Reports & KPI", path: "/attendance-report", icon: BarChart3 },
         { name: "Staff Directory", path: "/staff", icon: Users },
@@ -51,7 +51,7 @@ export default function Sidebar({ isCollapsed, onToggle }) {
             <nav className={`flex-1 ${isCollapsed ? 'py-6 px-2' : 'py-6 px-3'} space-y-2 overflow-y-auto scrollbar-hide`}>
                 {menuItems.map((item) => {
                     const Icon = item.icon;
-                    // Xử lý Active state: sáng đèn khi trùng path
+                    // Handle Active state: highlight when path matches
                     const isActive = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== "/");
 
                     return (

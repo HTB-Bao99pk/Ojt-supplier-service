@@ -1,10 +1,10 @@
 const BASE_URL = "http://localhost:8081";
 
-// BIẾN GIẢ LẬP: ID chi nhánh của người đang đăng nhập
+// MOCK VARIABLE: Current logged-in user's branch ID
 const CURRENT_BRANCH_ID = "BR-001";
 
 export const getAllShifts = async (page = 0, size = 10) => {
-    // Ép thêm branchId vào query để Backend lọc (khi BE đã sẵn sàng)
+    // Add branchId to query for Backend filtering (when BE is ready)
     const res = await fetch(`${BASE_URL}/shifts?page=${page}&size=${size}&branchId=${CURRENT_BRANCH_ID}`);
     if (!res.ok) throw new Error("Failed to fetch shifts");
     const data = await res.json();
@@ -19,7 +19,7 @@ export const getShiftById = async (id) => {
 };
 
 export const createShift = async (dataBody, user = "admin_01") => {
-    // Ép dữ liệu gửi xuống Backend phải là chi nhánh này
+    // Force data sent to Backend to be this branch
     const payload = { ...dataBody, branchId: CURRENT_BRANCH_ID };
 
     const res = await fetch(`${BASE_URL}/shifts`, {

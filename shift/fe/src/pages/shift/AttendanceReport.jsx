@@ -6,7 +6,7 @@ export default function AttendanceReport() {
     const [reportData, setReportData] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Lấy tháng hiện tại theo format YYYY-MM
+    // Get current month in YYYY-MM format
     const getCurrentMonthStr = () => {
         const d = new Date();
         const year = d.getFullYear();
@@ -19,18 +19,18 @@ export default function AttendanceReport() {
     const loadReport = async () => {
         setLoading(true);
         try {
-            // Cắt chuỗi YYYY-MM để lấy năm và tháng
+            // Split YYYY-MM string to get year and month
             const [year, month] = selectedMonthStr.split('-');
             const data = await getAttendanceReport(parseInt(month, 10), parseInt(year, 10));
             setReportData(data || []);
         } catch (error) {
-            console.error("Lỗi khi tải báo cáo:", error);
+            console.error("Error loading report:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    // Tự động load lại dữ liệu khi người dùng chọn tháng khác
+    // Auto-load data when user selects another month
     useEffect(() => {
         if (selectedMonthStr) {
             loadReport();
@@ -56,14 +56,14 @@ export default function AttendanceReport() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <BarChart3 className="text-amber-500" /> Báo Cáo Chuyên Cần
+                        <BarChart3 className="text-amber-500" /> Attendance Report
                     </h1>
                     <p className="text-sm text-gray-500 mt-1">
-                        Theo dõi tỷ lệ đi làm đầy đủ của nhân viên theo từng tháng.
+                        Track employee attendance coverage by month.
                     </p>
                 </div>
 
-                {/* BỘ LỌC THÁNG ĐƯỢC THÊM VÀO ĐÂY */}
+                {/* MONTH FILTER ADDED HERE */}
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -77,7 +77,7 @@ export default function AttendanceReport() {
                         />
                     </div>
                     <button onClick={loadReport} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors shadow-sm">
-                        <RefreshCw size={16} className={loading ? "animate-spin text-amber-500" : ""} /> Làm mới
+                        <RefreshCw size={16} className={loading ? "animate-spin text-amber-500" : ""} /> Refresh
                     </button>
                 </div>
             </div>
@@ -85,7 +85,7 @@ export default function AttendanceReport() {
             {loading ? (
                 <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
                     <RefreshCw size={40} className="animate-spin text-amber-500" />
-                    <p className="text-gray-500 font-medium">Đang tổng hợp dữ liệu tháng {selectedMonthStr.split('-')[1]}...</p>
+                    <p className="text-gray-500 font-medium">Aggregating data for month {selectedMonthStr.split('-')[1]}...</p>
                 </div>
             ) : (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -93,10 +93,10 @@ export default function AttendanceReport() {
                         <table className="w-full text-left whitespace-nowrap">
                             <thead className="bg-slate-50 border-b border-gray-200">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Nhân viên</th>
-                                <th className="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tổng ca trong tháng</th>
-                                <th className="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Đã làm / Vắng</th>
-                                <th className="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Trễ / Về sớm</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
+                                <th className="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Total Shifts/Month</th>
+                                <th className="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Present / Absent</th>
+                                <th className="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Late / Early Leave</th>
                                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-[250px]">Coverage % (KPI)</th>
                             </tr>
                             </thead>
@@ -111,7 +111,7 @@ export default function AttendanceReport() {
                                             <div>
                                                 <p className="font-bold text-gray-900 text-sm flex items-center gap-2">
                                                     {staff.staffName}
-                                                    {index === 0 && staff.assignedShifts > 0 && staff.coveragePercentage === 100 && <Award size={14} className="text-amber-500" title="Nhân viên xuất sắc" />}
+                                                    {index === 0 && staff.assignedShifts > 0 && staff.coveragePercentage === 100 && <Award size={14} className="text-amber-500" title="Outstanding employee" />}
                                                 </p>
                                                 <p className="text-xs text-gray-500 font-medium bg-gray-100 px-1.5 py-0.5 rounded w-max mt-0.5">{staff.staffCode}</p>
                                             </div>
@@ -120,15 +120,15 @@ export default function AttendanceReport() {
 
                                     <td className="px-4 py-4 text-center">
                                             <span className="font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">
-                                                {staff.assignedShifts} ca
+                                                {staff.assignedShifts} shifts
                                             </span>
                                     </td>
 
                                     <td className="px-4 py-4 text-center">
                                         <div className="flex items-center justify-center gap-2 text-sm font-bold">
-                                            <span className="text-emerald-600" title="Có mặt">{staff.presentCount}</span>
+                                            <span className="text-emerald-600" title="Present">{staff.presentCount}</span>
                                             <span className="text-gray-300">/</span>
-                                            <span className="text-rose-500" title="Vắng mặt">{staff.absentCount}</span>
+                                            <span className="text-rose-500" title="Absent">{staff.absentCount}</span>
                                         </div>
                                     </td>
 
@@ -137,12 +137,12 @@ export default function AttendanceReport() {
                                             <div className="flex flex-col items-center justify-center gap-1 text-xs font-bold text-amber-600">
                                                 {staff.totalLateMins > 0 && (
                                                     <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded">
-                                                        <Clock size={12} /> Trễ {staff.totalLateMins}p
+                                                        <Clock size={12} /> Late {staff.totalLateMins}m
                                                     </div>
                                                 )}
                                                 {staff.totalEarlyMins > 0 && (
                                                     <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded">
-                                                        <Clock size={12} /> Sớm {staff.totalEarlyMins}p
+                                                        <Clock size={12} /> Early {staff.totalEarlyMins}m
                                                     </div>
                                                 )}
                                             </div>
@@ -153,7 +153,7 @@ export default function AttendanceReport() {
 
                                     <td className="px-6 py-4">
                                         {staff.assignedShifts === 0 ? (
-                                            <span className="text-xs font-medium text-gray-400 italic">Không có dữ liệu tháng này</span>
+                                            <span className="text-xs font-medium text-gray-400 italic">No data for this month</span>
                                         ) : (
                                             <div className="w-full">
                                                 <div className="flex justify-between items-end mb-1">

@@ -6,7 +6,7 @@ export default function AppHeader({ isSidebarCollapsed }) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    // Xử lý sự kiện click ra ngoài để tự động đóng Dropdown
+    // Handle click outside to auto-close Dropdown
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -22,7 +22,7 @@ export default function AppHeader({ isSidebarCollapsed }) {
             className="h-16 shrink-0 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-[100] transition-all duration-300"
             style={{ marginLeft: isSidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
         >
-            {/* Left side: Logo & BRAND NAME (Giữ nguyên 100% code gốc của bạn) */}
+            {/* Left side: Logo & BRAND NAME (Keep 100% original code) */}
             <div className="flex items-center gap-4">
                 <div className="flex items-center">
                     <Coffee className="h-7 w-7 text-blue-500 mr-2.5" />
@@ -32,15 +32,15 @@ export default function AppHeader({ isSidebarCollapsed }) {
                 <h2 className="text-sm font-medium text-gray-500">Shift Management</h2>
             </div>
 
-            {/* Right side: Đã thay thế Search & Bell bằng Avatar Dropdown */}
+            {/* Right side: Replace Search & Bell with Avatar Dropdown */}
             <div className="flex items-center gap-4 flex-1 justify-end relative" ref={dropdownRef}>
 
-                {/* Nút bấm Avatar */}
+                {/* Avatar Button */}
                 <div
                     className="flex items-center gap-3 cursor-pointer p-1.5 pr-2 hover:bg-slate-50 rounded-xl transition-all"
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                 >
-                    {/* Text thông tin */}
+                    {/* Text info */}
                     <div className="hidden md:flex flex-col items-end justify-center mt-0.5">
                         <span className="text-sm font-bold text-gray-900 leading-none mb-1.5">
                             Vĩ Đại
@@ -50,7 +50,7 @@ export default function AppHeader({ isSidebarCollapsed }) {
                         </span>
                     </div>
 
-                    {/* Hình ảnh Avatar */}
+                    {/* Avatar Image */}
                     <div className="flex items-center gap-2">
                         <img
                             src="https://ui-avatars.com/api/?name=Vĩ+Đại&background=0284c7&color=fff&rounded=true&bold=true&size=128"

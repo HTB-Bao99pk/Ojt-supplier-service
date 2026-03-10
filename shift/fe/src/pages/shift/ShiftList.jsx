@@ -46,10 +46,10 @@ export default function ShiftList() {
     const [shifts, setShifts] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // Mặc định là ngày hôm nay
+    // Default is today's date
     const [filterDate, setFilterDate] = useState(getTodayDate());
 
-    // Hàm gọi API trực tiếp bằng Ngày
+    // Function to call API directly by Date
     const fetchShiftsByDateAPI = async (dateToFetch) => {
         setLoading(true);
         try {
@@ -64,13 +64,13 @@ export default function ShiftList() {
         }
     };
 
-    // TỰ ĐỘNG TÌM KIẾM KHI NGÀY THAY ĐỔI (Không cần nút Search)
+    // AUTO SEARCH WHEN DATE CHANGES (No need for Search button)
     useEffect(() => {
-        // RÀNG BUỘC: Phải nhập/chọn đủ 10 ký tự (YYYY-MM-DD) mới tiến hành gọi API
+        // CONSTRAINT: Must enter/select full 10 characters (YYYY-MM-DD) before calling API
         if (filterDate && filterDate.length === 10) {
             fetchShiftsByDateAPI(filterDate);
         } else {
-            // Nếu người dùng xóa ngày (input rỗng) -> Làm trống danh sách
+            // If user clears the date (empty input) -> Clear the list
             setShifts([]);
         }
     }, [filterDate]);
@@ -108,7 +108,7 @@ export default function ShiftList() {
                 </button>
             </div>
 
-            {/* BỘ LỌC ĐÃ ĐƯỢC TỐI GIẢN - TỰ ĐỘNG LỌC */}
+            {/* FILTER HAS BEEN SIMPLIFIED - AUTO FILTER */}
             <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap gap-4 items-end justify-between">
                 <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Search by Date <span className="text-red-500">*</span></label>
@@ -138,14 +138,14 @@ export default function ShiftList() {
                 </button>
             </div>
 
-            {/* BẢNG DỮ LIỆU */}
+            {/* DATA TABLE */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden min-h-[300px] relative">
 
-                {/* Lớp phủ Loading đẹp mắt */}
+                {/* Beautiful loading overlay */}
                 {loading && (
                     <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
                         <RefreshCw size={28} className="animate-spin text-amber-500 mb-3" />
-                        <span className="text-sm font-bold text-gray-600">Đang tìm dữ liệu...</span>
+                        <span className="text-sm font-bold text-gray-600">Searching data...</span>
                     </div>
                 )}
 
@@ -165,8 +165,8 @@ export default function ShiftList() {
                             <td colSpan="5" className="px-6 py-16 text-center text-gray-500">
                                 <div className="flex flex-col items-center gap-2">
                                     <Calendar size={40} className="text-gray-300" />
-                                    <p className="font-medium">Không có ca làm việc nào trong ngày <b className="text-amber-600">{displayDate(filterDate) || "này"}</b>.</p>
-                                    <button onClick={() => navigate("/shifts/create")} className="text-amber-600 text-sm font-bold hover:underline mt-1">+ Bấm vào đây để tạo mới</button>
+                                    <p className="font-medium">No shifts on <b className="text-amber-600">{displayDate(filterDate) || "this day"}</b>.</p>
+                                    <button onClick={() => navigate("/shifts/create")} className="text-amber-600 text-sm font-bold hover:underline mt-1">+ Click here to create new</button>
                                 </div>
                             </td>
                         </tr>
@@ -190,10 +190,10 @@ export default function ShiftList() {
                                     <div className="flex justify-end gap-2">
                                         {shift.status === "PREPARING" ? (
                                             <>
-                                                <button onClick={() => navigate(`/shifts/update/${shift.id}`)} className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Chỉnh sửa">
+                                                <button onClick={() => navigate(`/shifts/update/${shift.id}`)} className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Edit">
                                                     <Edit className="h-4 w-4" />
                                                 </button>
-                                                <button onClick={() => handleDelete(shift.id, shift.status)} className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors" title="Xóa ca">
+                                                <button onClick={() => handleDelete(shift.id, shift.status)} className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors" title="Delete shift">
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </>

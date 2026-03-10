@@ -3,7 +3,7 @@ import { Users, Clock, MapPin, Search, RefreshCw, ChevronDown } from "lucide-rea
 import { getAllStaffs } from "../../api/staffApi";
 import { getStaffAttendanceHistory } from "../../api/attendanceApi";
 
-// Hàm Helper
+// Helper Functions
 const getTodayDateLocal = () => {
     const d = new Date();
     const year = d.getFullYear();
@@ -31,7 +31,7 @@ export default function StaffAttendanceHistory() {
     const [staffList, setStaffList] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState("");
 
-    // State cho Dropdown tìm kiếm
+    // State for Search Dropdown
     const [searchTerm, setSearchTerm] = useState("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -77,11 +77,11 @@ export default function StaffAttendanceHistory() {
     }, [selectedStaff, filterType, monthStr, exactDate]);
 
     const renderStatus = (status, lateMins, earlyMins) => {
-        if (status === "PRESENT") return <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">✓ Có mặt</span>;
-        if (status === "LATE") return <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">⏰ Trễ {lateMins}p</span>;
-        if (status === "EARLY_LEAVE") return <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">↩ Về sớm {earlyMins}p</span>;
-        if (status === "ABSENT") return <span className="bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-xs font-bold border border-rose-200">✗ Vắng mặt</span>;
-        return <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">Chưa điểm danh</span>;
+        if (status === "PRESENT") return <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">✓ Present</span>;
+        if (status === "LATE") return <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">⏰ Late {lateMins}m</span>;
+        if (status === "EARLY_LEAVE") return <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">↩ Early leave {earlyMins}m</span>;
+        if (status === "ABSENT") return <span className="bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-xs font-bold border border-rose-200">✗ Absent</span>;
+        return <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">Not marked</span>;
     };
 
     const filteredStaffs = staffList.filter(s => {
@@ -97,25 +97,25 @@ export default function StaffAttendanceHistory() {
         <div className="space-y-6 pb-10">
             <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <Search className="text-amber-500" /> Tra cứu Lịch sử Điểm danh
+                    <Search className="text-amber-500" /> Staff Attendance History Lookup
                 </h1>
-                <p className="text-sm text-gray-500 mt-1">Xem chi tiết các ca làm việc của từng cá nhân theo Ngày hoặc Tháng.</p>
+                <p className="text-sm text-gray-500 mt-1">View detailed shift history of each individual by Date or Month.</p>
             </div>
 
             {/* CONTROL PANEL */}
-            {/* ĐÃ SỬA: Dùng lưới 12 cột (lg:grid-cols-12) để căn chỉnh tỉ lệ chiều dài */}
+            {/* FIXED: Use 12-column grid (lg:grid-cols-12) to align proportions */}
             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {/* THANH TÌM KIẾM NHÂN VIÊN (Chiếm 7 phần - Dài ra) */}
+                {/* EMPLOYEE SEARCH BAR (Takes 7 columns - Wider) */}
                 <div className="lg:col-span-7 relative">
-                    <label className="block text-sm font-bold text-gray-700 mb-2">1. Tìm Nhân Viên <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">1. Search Employee <span className="text-red-500">*</span></label>
                     <div className="relative">
                         <Users className="absolute left-3 top-2.5 text-amber-500" size={18} />
 
                         <input
                             type="text"
                             className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-medium text-sm transition-all"
-                            placeholder="Gõ Tên hoặc Mã NV..."
+                            placeholder="Type Name or Staff ID..."
                             value={isDropdownOpen ? searchTerm : (selectedStaffInfo ? `${selectedStaffInfo.name} (${selectedStaffInfo.staffCode})` : "")}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
@@ -135,7 +135,7 @@ export default function StaffAttendanceHistory() {
                     {isDropdownOpen && (
                         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                             {filteredStaffs.length === 0 ? (
-                                <div className="px-4 py-3 text-sm text-gray-500 text-center">Không tìm thấy nhân viên.</div>
+                                <div className="px-4 py-3 text-sm text-gray-500 text-center">No employees found.</div>
                             ) : (
                                 filteredStaffs.map(s => (
                                     <div
@@ -159,13 +159,13 @@ export default function StaffAttendanceHistory() {
                     )}
                 </div>
 
-                {/* Chọn Loại Lọc (Chiếm 5 phần - Ngắn lại) */}
+                {/* Filter Type Selector (Takes 5 columns - Shorter) */}
                 <div className="lg:col-span-5 flex flex-col justify-end">
-                    <label className="block text-sm font-bold text-gray-700 mb-2">2. Lọc Dữ Liệu Theo</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">2. Filter Data By</label>
                     <div className="flex items-center gap-3">
                         <div className="flex bg-gray-100 p-1 rounded-lg shrink-0">
-                            <button onClick={() => setFilterType("MONTH")} className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${filterType === "MONTH" ? "bg-white text-amber-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Tháng</button>
-                            <button onClick={() => setFilterType("DATE")} className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${filterType === "DATE" ? "bg-white text-amber-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Ngày</button>
+                            <button onClick={() => setFilterType("MONTH")} className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${filterType === "MONTH" ? "bg-white text-amber-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Month</button>
+                            <button onClick={() => setFilterType("DATE")} className={`px-3 py-1.5 text-sm font-bold rounded-md transition-all ${filterType === "DATE" ? "bg-white text-amber-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>Date</button>
                         </div>
 
                         <div className="flex-1 min-w-[120px]">
@@ -183,7 +183,7 @@ export default function StaffAttendanceHistory() {
             {!selectedStaff ? (
                 <div className="bg-slate-50 border border-dashed border-gray-300 rounded-2xl p-16 text-center text-gray-400">
                     <Users size={48} className="mx-auto mb-3 opacity-20" />
-                    <p className="font-medium text-sm">Vui lòng gõ tên và chọn một nhân viên ở phía trên để xem lịch sử.</p>
+                    <p className="font-medium text-sm">Please type a name and select an employee above to view history.</p>
                 </div>
             ) : (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden relative min-h-[300px]">
@@ -194,22 +194,22 @@ export default function StaffAttendanceHistory() {
                     )}
 
                     <div className="bg-slate-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                        <h2 className="font-bold text-gray-800 text-sm">Danh sách ca làm việc ({history.length})</h2>
+                        <h2 className="font-bold text-gray-800 text-sm">Shift List ({history.length})</h2>
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left whitespace-nowrap">
                             <thead className="bg-white border-b border-gray-100">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Ngày Làm</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Thời Gian</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Chi nhánh</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-right">Trạng thái Điểm danh</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Work Date</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Time</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Branch</th>
+                                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-right">Attendance Status</th>
                             </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                             {history.length === 0 && !loading ? (
-                                <tr><td colSpan="4" className="text-center py-10 text-sm text-gray-500">Không có dữ liệu ca làm việc trong khoảng thời gian này.</td></tr>
+                                <tr><td colSpan="4" className="text-center py-10 text-sm text-gray-500">No shift data available in this time period.</td></tr>
                             ) : (
                                 history.map((shift, i) => (
                                     <tr key={i} className="hover:bg-slate-50/50 transition-colors">

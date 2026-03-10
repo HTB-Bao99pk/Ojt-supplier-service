@@ -6,18 +6,18 @@ import { getAllStaffs, updateStaffStatus } from "../../api/staffApi";
 /* ── Status config ───────────────────────────────────────────────────────── */
 const STATUS_CFG = {
     ACTIVE: {
-        label:        "Đang làm việc",
+        label:        "Working",
         badgeCls:     "bg-green-100 text-green-700 border-green-200",
         dot:          "bg-green-500",
-        actionLabel:  "Cho nghỉ việc",
+        actionLabel:  "Set Inactive",
         actionCls:    "bg-red-50 text-red-600 border-red-200 hover:bg-red-100",
         next:         "INACTIVE",
     },
     INACTIVE: {
-        label:        "Nghỉ việc",
+        label:        "Inactive",
         badgeCls:     "bg-gray-100 text-gray-500 border-gray-200",
         dot:          "bg-gray-400",
-        actionLabel:  "Kích hoạt lại",
+        actionLabel:  "Reactivate",
         actionCls:    "bg-green-50 text-green-700 border-green-200 hover:bg-green-100",
         next:         "ACTIVE",
     },
@@ -38,7 +38,7 @@ function StatusCell({ staffId, initialStatus, onChanged }) {
             setStatus(cfg.next);
             onChanged?.(cfg.next);
         } catch (e) {
-            alert("Lỗi: " + e.message);
+            alert("Error: " + e.message);
         } finally {
             setLoading(false);
             setConfirm(false);
@@ -56,11 +56,11 @@ function StatusCell({ staffId, initialStatus, onChanged }) {
                 <div className="flex items-center gap-1.5">
                     <button onClick={doToggle} disabled={loading}
                         className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border transition-colors disabled:opacity-50 ${cfg.actionCls}`}>
-                        {loading ? "…" : "Xác nhận"}
+                        {loading ? "..." : "Confirm"}
                     </button>
                     <button onClick={() => setConfirm(false)}
                         className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100">
-                        Huỷ
+                        Cancel
                     </button>
                 </div>
             ) : (
@@ -110,9 +110,9 @@ export default function StaffList() {
     });
 
     const renderGender = (g) => {
-        if (g === "MALE")   return <span className="text-blue-600 font-medium text-xs bg-blue-50 px-2 py-0.5 rounded border border-blue-100">Nam</span>;
-        if (g === "FEMALE") return <span className="text-pink-600 font-medium text-xs bg-pink-50 px-2 py-0.5 rounded border border-pink-100">Nữ</span>;
-        return <span className="text-gray-500 font-medium text-xs bg-gray-100 px-2 py-0.5 rounded border border-gray-200">Khác</span>;
+        if (g === "MALE")   return <span className="text-blue-600 font-medium text-xs bg-blue-50 px-2 py-0.5 rounded border border-blue-100">Male</span>;
+        if (g === "FEMALE") return <span className="text-pink-600 font-medium text-xs bg-pink-50 px-2 py-0.5 rounded border border-pink-100">Female</span>;
+        return <span className="text-gray-500 font-medium text-xs bg-gray-100 px-2 py-0.5 rounded border border-gray-200">Other</span>;
     };
 
     return (
@@ -130,9 +130,9 @@ export default function StaffList() {
             {/* ── Summary cards ── */}
             <div className="grid grid-cols-3 gap-4">
                 {[
-                    { label: "Tổng nhân viên", value: staffs.length, cls: "bg-white border-gray-200 text-gray-800" },
-                    { label: "Đang làm việc",  value: activeCount,   cls: "bg-green-50 border-green-200 text-green-700" },
-                    { label: "Nghỉ việc",      value: inactiveCount, cls: "bg-gray-50 border-gray-200 text-gray-500" },
+                    { label: "Total Staff", value: staffs.length, cls: "bg-white border-gray-200 text-gray-800" },
+                    { label: "Working",  value: activeCount,   cls: "bg-green-50 border-green-200 text-green-700" },
+                    { label: "Inactive",      value: inactiveCount, cls: "bg-gray-50 border-gray-200 text-gray-500" },
                 ].map(c => (
                     <div key={c.label} className={`rounded-xl border px-5 py-4 shadow-sm ${c.cls}`}>
                         <div className="text-2xl font-extrabold">{c.value}</div>
@@ -149,7 +149,7 @@ export default function StaffList() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"/>
                         <input
                             type="text"
-                            placeholder="Tên hoặc mã NV…"
+                            placeholder="Name or Staff ID..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-amber-400 font-medium"
@@ -159,9 +159,9 @@ export default function StaffList() {
 
                 <div className="flex gap-1.5 flex-wrap">
                     {[
-                        { key: "ALL",      label: `Tất cả (${staffs.length})`    },
-                        { key: "ACTIVE",   label: `Đang làm (${activeCount})`    },
-                        { key: "INACTIVE", label: `Nghỉ việc (${inactiveCount})` },
+                        { key: "ALL",      label: `All (${staffs.length})`    },
+                        { key: "ACTIVE",   label: `Working (${activeCount})`    },
+                        { key: "INACTIVE", label: `Inactive (${inactiveCount})` },
                     ].map(tab => (
                         <button key={tab.key} onClick={() => setStatusFilter(tab.key)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
@@ -186,14 +186,14 @@ export default function StaffList() {
                 {loading && (
                     <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-3">
                         <RefreshCw size={26} className="animate-spin text-amber-500"/>
-                        <span className="text-sm font-bold text-gray-500">Đang tải dữ liệu nhân viên…</span>
+                        <span className="text-sm font-bold text-gray-500">Loading staff data...</span>
                     </div>
                 )}
 
                 <table className="w-full text-left">
                     <thead className="bg-slate-50 border-b">
                         <tr>
-                            {["Staff ID", "Nhân viên", "Liên hệ", "Chi nhánh", "Trạng thái", ""].map((h, i) => (
+                            {["Staff ID", "Employee", "Contact", "Branch", "Status", ""].map((h, i) => (
                                 <th key={i} className={`px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider ${i === 5 ? "text-right" : ""}`}>
                                     {h}
                                 </th>
@@ -206,7 +206,7 @@ export default function StaffList() {
                                 <td colSpan="6" className="px-6 py-16 text-center text-gray-400">
                                     <div className="flex flex-col items-center gap-2">
                                         <Search size={36} className="text-gray-200"/>
-                                        <p className="font-medium text-sm">Không tìm thấy nhân viên nào.</p>
+                                        <p className="font-medium text-sm">No staff found.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -262,7 +262,7 @@ export default function StaffList() {
                                 <td className="px-6 py-4 text-right">
                                     <button onClick={() => navigate(`/staff/update/${staff.id}`)}
                                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Chỉnh sửa">
+                                        title="Edit">
                                         <Edit className="h-4 w-4"/>
                                     </button>
                                 </td>

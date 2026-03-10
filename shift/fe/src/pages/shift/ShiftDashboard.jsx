@@ -37,7 +37,7 @@ export default function ShiftDashboard() {
             const data = await getDashboardOverview(today);
             setDashboardData(data);
         } catch (error) {
-            console.error("Lỗi tải Dashboard:", error);
+            console.error("Error loading Dashboard:", error);
         } finally {
             setLoading(false);
         }
@@ -59,7 +59,7 @@ export default function ShiftDashboard() {
         return (
             <div className="flex flex-col items-center justify-center h-[70vh] space-y-4">
                 <RefreshCw size={40} className="animate-spin text-amber-500" />
-                <p className="text-gray-500 font-medium">Đang đồng bộ dữ liệu chi nhánh...</p>
+                <p className="text-gray-500 font-medium">Synchronizing branch data...</p>
             </div>
         );
     }
@@ -88,7 +88,7 @@ export default function ShiftDashboard() {
                 <TrendingUp size={160} className="absolute -right-10 -bottom-10 text-white opacity-5" />
             </div>
 
-            {/* TẦNG 1: KPI */}
+            {/* LAYER 1: KPI */}
             <div>
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function ShiftDashboard() {
                 </div>
             </div>
 
-            {/* TẦNG 2: TIMELINE */}
+            {/* LAYER 2: TIMELINE */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 lg:p-8">
                 <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                     <Clock size={20} className="text-amber-500"/> Interactive Shift Timeline
@@ -121,7 +121,7 @@ export default function ShiftDashboard() {
                     {dashboardData.timeline.length === 0 ? (
                         <div className="pl-6 md:pl-10 text-gray-400 font-medium py-10 flex flex-col items-center">
                             <AlertCircle size={40} className="mb-2 opacity-50"/>
-                            Hôm nay không có ca làm việc nào.
+                            No shifts scheduled for today.
                         </div>
                     ) : (
                         dashboardData.timeline.map((shift, idx) => (
@@ -137,7 +137,7 @@ export default function ShiftDashboard() {
                                     <div
                                         className={`flex-1 flex justify-between items-center p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.01] ${shift.status === 'FULL' ? 'bg-emerald-50/30 border-emerald-100' : 'bg-amber-50/30 border-amber-100'}`}
                                         onClick={() => navigate(`/attendance/${shift.id}`)}
-                                        title="Click để vào trang điểm danh"
+                                        title="Click to go to attendance page"
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className={`p-3 rounded-lg ${shift.status === 'FULL' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
@@ -146,7 +146,7 @@ export default function ShiftDashboard() {
                                             <div>
                                                 <p className="text-sm font-bold text-gray-900">{shift.branchId}</p>
                                                 <p className="text-sm text-gray-600 mt-0.5">
-                                                    Đi làm / Đã gán: <strong className={shift.status === 'FULL' ? 'text-emerald-700' : 'text-amber-700'}>
+                                                    Present / Assigned: <strong className={shift.status === 'FULL' ? 'text-emerald-700' : 'text-amber-700'}>
                                                     {shift.presentStaff} / {shift.assignedStaff}
                                                 </strong>
                                                 </p>
@@ -156,11 +156,11 @@ export default function ShiftDashboard() {
                                         <div className="text-right">
                                             {shift.status === 'FULL' ? (
                                                 <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-full text-sm font-bold">
-                                                    <CheckCircle2 size={16} /> Đủ người
+                                                    <CheckCircle2 size={16} /> Fully Staffed
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-1.5 text-amber-600 bg-amber-100 px-3 py-1.5 rounded-full text-sm font-bold">
-                                                    <AlertCircle size={16} /> Vắng {shift.assignedStaff - shift.presentStaff}
+                                                    <AlertCircle size={16} /> Short {shift.assignedStaff - shift.presentStaff}
                                                 </div>
                                             )}
                                         </div>
