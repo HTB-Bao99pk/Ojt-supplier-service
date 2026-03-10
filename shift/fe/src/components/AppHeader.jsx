@@ -1,16 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Coffee, ChevronDown, User, Settings, LogOut } from "lucide-react";
-import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
+import { Link, useNavigate } from "react-router-dom";
+import { Bell, User, Settings, LogOut, CalendarDays, Users} from "lucide-react";
 
-export default function AppHeader({ isSidebarCollapsed }) {
-    const [isProfileOpen, setIsProfileOpen] = useState(false);
+export default function AppHeader() {
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const navigate = useNavigate();
     const dropdownRef = useRef(null);
+
+    // Đã thay đổi thông tin tĩnh một xíu cho hợp với Shift Admin
+    const currentUser = {
+        name: "Vĩ Đại",
+        role: "Admin",
+        email: "vidai@capitalcoffee.com",
+        avatar: "VĐ"
+    };
 
     // Xử lý sự kiện click ra ngoài để tự động đóng Dropdown
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsProfileOpen(false);
+                setUserMenuOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -18,73 +27,68 @@ export default function AppHeader({ isSidebarCollapsed }) {
     }, []);
 
     return (
-        <header
-            className="h-16 shrink-0 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-[100] transition-all duration-300"
-            style={{ marginLeft: isSidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
-        >
-            {/* Left side: Logo & BRAND NAME (Giữ nguyên 100% code gốc của bạn) */}
+        <header className="relative z-[100] flex h-[72px] shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6 transition-all duration-300">
+
+            {/* BÊN TRÁI: Nút lớn mô tả Phân Hệ (Module) giống với bên Supplier */}
+            <button
+                onClick={() => navigate("/")}
+                className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2.5 text-xl font-bold text-white shadow-md transition-all hover:from-amber-600 hover:to-amber-700 hover:shadow-lg"
+            >
+                <div className="flex items-center gap-1.5">
+                    <Users className="h-5 w-5 opacity-90" />
+                    <CalendarDays className="h-6 w-6" />
+                </div>
+                Staff & Shift Management
+            </button>
+
+            {/* BÊN PHẢI: Thông báo & Menu Đăng nhập */}
             <div className="flex items-center gap-4">
-                <div className="flex items-center">
-                    <Coffee className="h-7 w-7 text-blue-500 mr-2.5" />
-                    <span className="text-xl font-bold tracking-wider">SHIFT<span className="text-blue-400">SYNC</span></span>
+                {/* Nút Chuông */}
+                <button className="relative flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-gray-100">
+                    <Bell className="h-5 w-5 text-gray-600" />
+                    <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full border-2 border-white bg-red-500"></span>
+                </button>
+
+                {/* Khối Avatar Dropdown (Code chuẩn Supplier) */}
+                <div className="relative" ref={dropdownRef}>
+                    <button
+                        onClick={() => setUserMenuOpen(!userMenuOpen)}
+                        className={`flex items-center gap-3 rounded-lg border p-1 pr-1.5 transition-all ${
+                            userMenuOpen ? "border-gray-300 bg-gray-50 shadow-sm" : "border-transparent hover:border-gray-200 hover:bg-gray-50"
+                        }`}
+                    >
+                        <div className="hidden pl-2 text-right md:block">
+                            <p className="text-sm font-medium leading-tight text-gray-900">{currentUser.name}</p>
+                            <p className="text-xs leading-tight text-gray-500">{currentUser.role}</p>
+                        </div>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-600">
+                            <span className="text-sm font-bold text-white">{currentUser.avatar}</span>
+                        </div>
+                    </button>
+
+                    {/* Menu xổ xuống */}
+                    {userMenuOpen && (
+                        <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg">
+                            <div className="border-b border-gray-100 px-4 py-3">
+                                <p className="font-medium text-gray-900">{currentUser.name}</p>
+                                <p className="text-sm text-gray-500">{currentUser.email}</p>
+                            </div>
+                            <div className="py-1">
+                                <Link to="#" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setUserMenuOpen(false)}>
+                                    <User className="h-4 w-4 text-gray-500" /> My Profile
+                                </Link>
+                                <Link to="#" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setUserMenuOpen(false)}>
+                                    <Settings className="h-4 w-4 text-gray-500" /> Settings
+                                </Link>
+                            </div>
+                            <div className="mt-1 border-t border-gray-100 py-1">
+                                <button className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                    <LogOut className="h-4 w-4 text-gray-500" /> Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
-                <div className="text-gray-300 text-2xl font-extralight">|</div>
-                <h2 className="text-sm font-medium text-gray-500">Shift Management</h2>
-            </div>
-
-            {/* Right side: Đã thay thế Search & Bell bằng Avatar Dropdown */}
-            <div className="flex items-center gap-4 flex-1 justify-end relative" ref={dropdownRef}>
-
-                {/* Nút bấm Avatar */}
-                <div
-                    className="flex items-center gap-3 cursor-pointer p-1.5 pr-2 hover:bg-slate-50 rounded-xl transition-all"
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
-                >
-                    {/* Text thông tin */}
-                    <div className="hidden md:flex flex-col items-end justify-center mt-0.5">
-                        <span className="text-sm font-bold text-gray-900 leading-none mb-1.5">
-                            Vĩ Đại
-                        </span>
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider leading-none">
-                            Admin
-                        </span>
-                    </div>
-
-                    {/* Hình ảnh Avatar */}
-                    <div className="flex items-center gap-2">
-                        <img
-                            src="https://ui-avatars.com/api/?name=Vĩ+Đại&background=0284c7&color=fff&rounded=true&bold=true&size=128"
-                            alt="User Avatar"
-                            className="w-9 h-9 rounded-full shadow-sm border-2 border-white ring-1 ring-gray-100 object-cover"
-                        />
-                        <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
-                    </div>
-                </div>
-
-                {/* MENU DROPDOWN (My Profile, Settings, Sign out) */}
-                {isProfileOpen && (
-                    <div className="absolute right-0 top-[calc(100%+4px)] w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-50">
-                        <div className="px-4 py-3 border-b border-gray-50 md:hidden">
-                            <p className="text-sm font-bold text-gray-900">Vĩ Đại</p>
-                            <p className="text-xs text-gray-500 font-bold uppercase mt-1">Admin</p>
-                        </div>
-
-                        <div className="p-1.5">
-                            <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-slate-50 hover:text-blue-600 rounded-lg transition-colors">
-                                <User size={16} className="text-gray-400" /> My Profile
-                            </button>
-                            <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-slate-50 hover:text-blue-600 rounded-lg transition-colors">
-                                <Settings size={16} className="text-gray-400" /> Settings
-                            </button>
-                        </div>
-
-                        <div className="p-1.5 border-t border-gray-100 mt-1">
-                            <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
-                                <LogOut size={16} /> Sign out
-                            </button>
-                        </div>
-                    </div>
-                )}
             </div>
         </header>
     );

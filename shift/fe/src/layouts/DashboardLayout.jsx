@@ -9,22 +9,25 @@ export default function DashboardLayout() {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     return (
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen bg-gray-50">
             {/* Sidebar (Cố định góc trái) - Truyền hàm toggle xuống */}
             <Sidebar
                 isCollapsed={isSidebarCollapsed}
                 onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             />
 
-            <div className="flex-1 flex flex-col bg-gray-50 transition-all duration-300">
-                {/* App Header (Thanh trên) - Cần biết trạng thái thu phóng để căn lề trái */}
+            {/* VÙNG NỘI DUNG CHÍNH */}
+            {/* ĐÃ SỬA: Áp dụng paddingLeft vào vùng này để đẩy nội dung sang thay vì dùng marginLeft lẻ tẻ */}
+            <div
+                className="flex-1 flex flex-col transition-all duration-300"
+                style={{ paddingLeft: isSidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
+            >
+                {/* App Header (Thanh trên) */}
+                {/* Header sẽ tự động nằm trong vùng padding của div cha */}
                 <AppHeader isSidebarCollapsed={isSidebarCollapsed} />
 
-                {/* Main Content (Nội dung chính) - Tự động giãn margin theo Sidebar */}
-                <main
-                    className="flex-1 p-6 transition-all duration-300"
-                    style={{ marginLeft: isSidebarCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
-                >
+                {/* Main Content (Nội dung chính) */}
+                <main className="flex-1 p-6">
                     {/* Nơi hiển thị các trang con */}
                     <Outlet />
                 </main>
