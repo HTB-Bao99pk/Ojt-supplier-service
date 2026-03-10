@@ -54,9 +54,12 @@ export default function Sidebar({ isCollapsed, onToggle }) {
                 {menuItems.map((item) => {
                     const Icon = item.icon;
 
-                    const isActive = item.exact
-                        ? location.pathname === item.path
-                        : (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
+                    const isActive =
+                        location.pathname === item.path ||
+                        (!item.exact &&
+                            location.pathname.startsWith(item.path)
+                            && item.path !== "/staff"
+                            && !location.pathname.startsWith("/attendance"));
 
                     return (
                         <Link
