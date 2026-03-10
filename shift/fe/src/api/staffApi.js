@@ -7,7 +7,9 @@ async function http(path, options = {}) {
         ...options,
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+    if (!res.ok) {
+        throw data; 
+    }
     return data.result ?? data;
 }
 

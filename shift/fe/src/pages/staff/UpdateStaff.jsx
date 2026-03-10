@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, UserPlus, Phone, MapPin, Calendar, Users, Mail } from "lucide-react";
 import { getStaffById, updateStaff, updateStaffStatus } from "../../api/staffApi";
+import toast from "react-hot-toast";
 
 const BRANCHES = [
     { value: "BR-001", label: "Ho Chi Minh Branch (BR-001)" },
@@ -68,9 +69,10 @@ export default function UpdateStaff() {
         setLoading(true);
         try {
             await updateStaff(id, form);
+            toast.success("Staff updated successfully!");
             navigate("/staff");
         } catch (err) {
-            alert(err.message);
+            toast.error(err.message || "Failed to update staff.");
         } finally {
             setLoading(false);
         }

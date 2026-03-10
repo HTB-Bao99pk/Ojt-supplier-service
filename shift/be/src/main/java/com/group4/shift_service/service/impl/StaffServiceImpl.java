@@ -15,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 @Service
@@ -25,8 +27,19 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public StaffResponse createStaff(StaffCreateRequest request) {
-        if (staffRepository.existsByEmail(request.getEmail()))
-            throw new RuntimeException("Email already exists");
+        Map<String, String> errors = new HashMap<>();
+
+        if (staffRepository.existsByEmail(request.getEmail())) {
+            errors.put("email", "Email already exists");
+        }
+
+        if (staffRepository.existsByPhone(request.getPhone())) {
+            errors.put("phone", "Phone number already exists");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_INPUT, errors);
+        }
 
         // 1. Tạo entity Staff
         Staff staff = Staff.builder()
@@ -49,7 +62,11 @@ public class StaffServiceImpl implements StaffService {
     public StaffResponse updateStaff(String id, StaffCreateRequest request) {
         Staff staff = staffRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.STAFF_NOT_FOUND, id));
-
+        staffRepository.findByPhone(request.getPhone()).ifPresent(existingStaff -> {
+            if (!existingStaff.getId().equals(id)) {
+                throw new AppException(ErrorCode.PHONE_EXISTED);
+            }
+        });
         staff.setName(request.getName());
         staff.setPhone(request.getPhone());
         staff.setBranchId(request.getBranchId());
