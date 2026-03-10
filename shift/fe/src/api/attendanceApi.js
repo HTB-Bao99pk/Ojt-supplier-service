@@ -1,5 +1,5 @@
 const BASE_URL   = "http://localhost:8081";
-const MANAGER_ID = "admin_01"; // Đã đồng bộ với header USER bên BE
+const MANAGER_ID = "admin_01"; // Synchronized with USER header on backend
 
 /* =========================
    FETCH WRAPPER
@@ -64,7 +64,7 @@ export async function updateAttendance(shiftId, attendanceId, staffId, status, n
     });
 }
 
-// HÀM MỚI ĐƯỢC THÊM: Phân công nhân viên vào ca
+// NEW FUNCTION: Assign staff to shift
 export async function assignStaffToShift(shiftId, staffId) {
     return http(`/shifts/${shiftId}/assign`, {
         method: "POST",
@@ -103,10 +103,10 @@ export const getStaffAttendanceHistory = async (staffId, month, year, date) => {
     const queryParams = new URLSearchParams();
     if (month) queryParams.append('month', month);
     if (year) queryParams.append('year', year);
-    if (date) queryParams.append('exactDate', date); // Tên param khớp với BE
+    if (date) queryParams.append('exactDate', date); // Param name matches BE
 
     const response = await fetch(`${BASE_URL}/attendance-reports/staff/${staffId}?${queryParams.toString()}`);
-    if (!response.ok) throw new Error("Lỗi khi tải lịch sử nhân viên");
+    if (!response.ok) throw new Error("Error loading staff history");
     const data = await response.json();
     return data.result;
 };

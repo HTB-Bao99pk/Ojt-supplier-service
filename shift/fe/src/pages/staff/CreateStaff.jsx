@@ -11,7 +11,7 @@ const BRANCHES = [
     { value: "BR-003", label: "Hanoi Branch (BR-003)"       },
 ];
 
-/* max date = 18 năm trước hôm nay */
+/* max date = 18 years ago from today */
 const maxDob = () => {
     const d = new Date();
     d.setFullYear(d.getFullYear() - 18);
@@ -60,7 +60,7 @@ export default function CreateStaff() {
                 </button>
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Add New Staff</h1>
-                    <p className="text-sm text-gray-500">Thêm nhân viên mới vào chi nhánh của bạn.</p>
+                    <p className="text-sm text-gray-500">Add new employee to your branch.</p>
                 </div>
             </div>
 
@@ -74,7 +74,7 @@ export default function CreateStaff() {
                 {/* Name + Gender */}
                 <div className="grid grid-cols-2 gap-6">
                     <div className="col-span-2 md:col-span-1">
-                        <label className={labelCls}>Họ và tên <span className="text-red-500">*</span></label>
+                        <label className={labelCls}>Full Name <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <UserPlus className="absolute left-3 top-2.5 text-gray-400" size={17}/>
                             <input name="name" required value={form.name} onChange={handleChange}
@@ -83,14 +83,14 @@ export default function CreateStaff() {
                     </div>
 
                     <div className="col-span-2 md:col-span-1">
-                        <label className={labelCls}>Giới tính <span className="text-red-500">*</span></label>
+                        <label className={labelCls}>Gender <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <Users className="absolute left-3 top-2.5 text-gray-400" size={17}/>
                             <select name="gender" required value={form.gender} onChange={handleChange}
                                 className={`${inputCls} bg-white appearance-none`}>
-                                <option value="MALE">Nam</option>
-                                <option value="FEMALE">Nữ</option>
-                                <option value="OTHER">Khác</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                                <option value="OTHER">Other</option>
                             </select>
                         </div>
                     </div>
@@ -108,21 +108,21 @@ export default function CreateStaff() {
                     </div>
 
                     <div className="col-span-2 md:col-span-1">
-                        <label className={labelCls}>Số điện thoại <span className="text-red-500">*</span></label>
+                        <label className={labelCls}>Phone Number <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <Phone className="absolute left-3 top-2.5 text-gray-400" size={17}/>
                             <input name="phone" required value={form.phone} onChange={handleChange}
                                 className={inputCls} placeholder="09xxxxxxxx" maxLength={10}
                                 onInput={e => e.target.value = e.target.value.replace(/\D/g, "")}/>
                         </div>
-                        <p className="text-xs text-gray-400 mt-1">Định dạng: 03/05/07/08/09xxxxxxxx</p>
+                        <p className="text-xs text-gray-400 mt-1">Format: 03/05/07/08/09xxxxxxxx</p>
                     </div>
                 </div>
 
                 {/* DOB + Branch */}
                 <div className="grid grid-cols-2 gap-6">
                     <div className="col-span-2 md:col-span-1">
-                        <label className={labelCls}>Ngày sinh <span className="text-red-500">*</span></label>
+                        <label className={labelCls}>Date of Birth <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <Calendar className="absolute left-3 top-2.5 text-gray-400" size={17}/>
                             <input name="dateOfBirth" type="date" required
@@ -130,11 +130,11 @@ export default function CreateStaff() {
                                 max={maxDob()}
                                 className={inputCls}/>
                         </div>
-                        <p className="text-xs text-gray-400 mt-1">Phải đủ 18 tuổi trở lên</p>
+                        <p className="text-xs text-gray-400 mt-1">Must be 18 years old or older</p>
                     </div>
 
                     <div className="col-span-2 md:col-span-1">
-                        <label className={labelCls}>Chi nhánh</label>
+                        <label className={labelCls}>Branch</label>
                         <div className="relative">
                             <MapPin className="absolute left-3 top-2.5 text-gray-400" size={17}/>
                             <select name="branchId" value={CURRENT_BRANCH_ID} disabled
@@ -149,11 +149,11 @@ export default function CreateStaff() {
                 <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
                     <button type="button" onClick={() => navigate(-1)}
                         className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                        Huỷ
+                        Cancel
                     </button>
                     <button type="submit" disabled={loading}
                         className="px-5 py-2.5 text-sm font-bold bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors">
-                        {loading ? "Đang lưu…" : "Tạo nhân viên"}
+                        {loading ? "Saving..." : "Create Staff"}
                     </button>
                 </div>
             </form>

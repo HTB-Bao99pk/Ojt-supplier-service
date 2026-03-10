@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchShiftsByDate } from "../../api/attendanceApi";
 
-// --- HÀM FIX LỖI NGÀY THÁNG (LẤY GIỜ LOCAL VIỆT NAM) ---
+// --- FIX DATE BUG (GET LOCAL VIETNAM TIME) ---
 const getTodayDateLocal = () => {
     const d = new Date();
     const year = d.getFullYear();
@@ -11,7 +11,7 @@ const getTodayDateLocal = () => {
     return `${year}-${month}-${day}`;
 };
 
-// HÀM BẢO VỆ LỖI FORMAT THỜI GIAN
+// FUNCTION TO PROTECT TIME FORMAT ERRORS
 const formatTime = (time) => {
     if (!time) return "—";
     if (typeof time === "string") return time.substring(0, 5);
@@ -19,7 +19,7 @@ const formatTime = (time) => {
     return "—";
 };
 
-// HÀM FORMAT ID NGẮN GỌN (CHUYỂN THÀNH SH-XXXXX)
+// SHORT ID FORMAT FUNCTION (CONVERT TO SH-XXXXX)
 const formatShiftId = (id) => {
     if (!id) return "—";
     return `SH-${id.substring(0, 5).toUpperCase()}`;
@@ -134,7 +134,7 @@ function ShiftCard({ shift, onClick }) {
 export default function Attendance() {
     const navigate = useNavigate();
 
-    // Sử dụng hàm getTodayDateLocal mới tạo thay vì todayDate() từ API
+    // Use new getTodayDateLocal function instead of todayDate() from API
     const [date, setDate] = useState(getTodayDateLocal());
     const [shifts, setShifts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -169,7 +169,7 @@ export default function Attendance() {
                         className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400"
                     />
                     <button
-                        onClick={() => setDate(getTodayDateLocal())} // Fix nút Today
+                        onClick={() => setDate(getTodayDateLocal())} // Fix Today button
                         className="px-3 py-2 rounded-lg text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-colors"
                     >
                         Today
