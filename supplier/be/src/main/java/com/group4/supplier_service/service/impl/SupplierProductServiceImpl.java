@@ -17,6 +17,7 @@ import com.group4.supplier_service.repository.SupplierProductRepository;
 import com.group4.supplier_service.repository.SupplierRepository;
 import com.group4.supplier_service.service.SupplierProductService;
 import com.group4.supplier_service.specification.SupplierProductSpecification;
+import jakarta.persistence.criteria.Join;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,12 +49,13 @@ public class SupplierProductServiceImpl implements SupplierProductService {
 
     @Override
     public Page<ProductResponse> getSupplierProducts(SupplierProductFilterRequest request, Pageable pageable) {
-        // Build specification
-        var spec = SupplierProductSpecification.fromFilter(request);
-
-        // Apply sorting if pageable has none but request contains sort info - caller should set pageable normally
-        Pageable pageToUse = pageable;
-        Page<SupplierProduct> page = supplierProductRepository.findAll(spec, pageToUse);
+        Specification<SupplierProduct> baseSpec = (root, query, cb) -> {
+            Join<SupplierProduct, Supplier> supplierJoin = root.join("supplier");
+            return cb.not(supplierJoin.get("status").in(SupplierStatus.DELETED, SupplierStatus.REJECTED));
+        };
+        var filterSpec = SupplierProductSpecification.fromFilter(request);
+        var finalSpec = baseSpec.and(filterSpec);
+        Page<SupplierProduct> page = supplierProductRepository.findAll(finalSpec, pageable);
         return page.map(this::mapToProductResponseWithSupplier);
     }
 
@@ -217,9 +220,11 @@ public class SupplierProductServiceImpl implements SupplierProductService {
                 .updateAt(supplierProduct.getUpdateAt())
                 .build();
 
-        if (request.getPrice() != null && request.getPrice().compareTo(supplierProduct.getPrice()) != 0) {
-            supplierProduct.setPrice(request.getPrice());
-            isChanged = true;
+        if(request.getPrice() != null ){
+            if(request.getPrice() == null || request.getPrice().compareTo(supplierProduct.getPrice()) != 0){
+                supplierProduct.setPrice(request.getPrice());
+                isChanged = true;
+            }
         }
 
         if (request.getDeliveryDateTimes() != null && !request.getDeliveryDateTimes().equals(supplierProduct.getDeliveryDateTimes())) {
@@ -272,7 +277,7 @@ public class SupplierProductServiceImpl implements SupplierProductService {
         }
     }
 
-    private void saveProductAuditLog(Supplier supplier, SupplierProduct oldData, SupplierProduct newData, String performedBy, com.group4.supplier_service.enums.AuditAction action) {
+    private void saveProductAuditLog(Supplier supplier, SupplierProduct oldData, SupplierProduct newData, String performedBy, AuditAction action) {
         String oldDataJson = (oldData != null) ? toJson(oldData) : null;
         String newDataJson = (newData != null) ? toJson(newData) : null;
 
