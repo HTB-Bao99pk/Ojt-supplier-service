@@ -50,7 +50,7 @@ export default function CreateSupplier() {
       
       // Giữ trạng thái isSubmitting = true để nút luôn mờ cho đến khi chuyển trang
       setTimeout(() => {
-        navigate("/suppliers");
+        navigate("/admin/suppliers");
       }, 2000);
     } catch (err) {
       setIsSubmitting(false); // Mở lại nút nếu có lỗi để người dùng sửa
@@ -71,7 +71,7 @@ export default function CreateSupplier() {
       {/* Header: Nút Back và Tiêu đề */}
       <div className="flex items-center gap-4">
         <Link
-          to="/suppliers"
+          to="/admin/suppliers"
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -259,7 +259,7 @@ export default function CreateSupplier() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate("/suppliers")}
+              onClick={() => navigate("/admin/suppliers")}
               className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
             >
               Cancel

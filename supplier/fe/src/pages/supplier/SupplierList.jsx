@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, CheckCircle, Ban, Plus, MoreVertical } from "lucide-react";
+import { Eye, CheckCircle, Ban, Plus, MoreVertical, Trash2 } from "lucide-react";
 import {
   getAllSuppliers,
   filterSuppliers,
   toggleSuspend,
   reviewSupplier,
   searchSuppliersByKeyword,
+  deleteSupplier,
 } from "../../api/supplierApi";
 import { useAuth } from "../../context/AuthContext";
 
 export default function SupplierList() {
   const navigate = useNavigate();
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const [openDropdown, setOpenDropdown] = useState(null);
 
   const [suppliers, setSuppliers] = useState([]);
@@ -202,7 +203,7 @@ export default function SupplierList() {
         <h1 className="text-2xl font-bold">Suppliers</h1>
 
         <button
-          onClick={() => navigate("/suppliers/create")}
+          onClick={() => navigate("/admin/suppliers/create")}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 shrink-0"
         >
           <Plus className="h-4 w-4" />
@@ -359,14 +360,24 @@ export default function SupplierList() {
 
                     <td className="px-5 py-3 text-right">
                       <div className="flex justify-end gap-2 relative">
+                        {/* 1. Nút Detail */}
                         <button
-                          onClick={() => navigate(`/suppliers/${s.id}`)}
+                          onClick={() => navigate(`/admin/suppliers/${s.id}`)}
                           className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
                         >
                           <Eye className="h-4 w-4" />
                           Detail
                         </button>
 
+                        {/* 2. Nút Edit */}
+                        <button
+                          onClick={() => navigate(`/admin/suppliers/update/${s.id}`)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                        >
+                          Edit
+                        </button>
+
+                        {/* 3. Dropdown Action */}
                         <div className="relative">
                           <button
                             onClick={() =>
@@ -381,9 +392,9 @@ export default function SupplierList() {
 
                           {openDropdown === s.id && (
                             <div
-                              className={`absolute right-0 w-auto min-w-[10rem] rounded-lg border border-gray-200 bg-white shadow-lg z-20
-    ${suppliers.indexOf(s) >= suppliers.length - 2 ? "bottom-full mb-2" : "top-full mt-2"}
-  `}
+                              className={`absolute right-0 w-auto min-w-[10rem] rounded-lg border border-gray-200 bg-white shadow-lg z-20 ${
+                                suppliers.indexOf(s) >= suppliers.length - 2 ? "bottom-full mb-2" : "top-full mt-2"
+                              }`}
                             >
                               {s.status === "PENDING" && (
                                 <div className="flex gap-2 p-2">
@@ -391,14 +402,9 @@ export default function SupplierList() {
                                     onClick={() =>
                                       setConfirmModal({
                                         open: true,
-                                        message:
-                                          "Are you sure you want to approve this supplier?",
+                                        message: "Are you sure you want to approve this supplier?",
                                         action: async () => {
-                                          await reviewSupplier(
-                                            s.id,
-                                            "APPROVED",
-                                            currentUser,
-                                          );
+                                          await reviewSupplier(s.id, "APPROVED", user);
                                           refreshList();
                                         },
                                       })
@@ -430,10 +436,9 @@ export default function SupplierList() {
                                   onClick={() =>
                                     setConfirmModal({
                                       open: true,
-                                      message:
-                                        "Are you sure you want to suspend this supplier?",
+                                      message: "Are you sure you want to suspend this supplier?",
                                       action: async () => {
-                                        await toggleSuspend(s.id, currentUser);
+                                        await toggleSuspend(s.id, user);
                                         refreshList();
                                       },
                                     })
@@ -452,11 +457,7 @@ export default function SupplierList() {
                                       open: true,
                                       message: "Reactivate this supplier?",
                                       action: async () => {
-                                        await reviewSupplier(
-                                          s.id,
-                                          "APPROVED",
-                                          currentUser,
-                                        );
+                                        await reviewSupplier(s.id, "APPROVED", user);
                                         refreshList();
                                       },
                                     })
@@ -467,6 +468,28 @@ export default function SupplierList() {
                                   Reactivate
                                 </button>
                               )}
+
+                              {/* 4. Nút Delete (Nằm dưới cùng của dropdown) */}
+                              <button
+                                onClick={() =>
+                                  setConfirmModal({
+                                    open: true,
+                                    message: `Are you sure you want to delete supplier "${s.name}"? This action cannot be undone.`,
+                                    action: async () => {
+                                      try {
+                                        await deleteSupplier(s.id, user?.username || "admin");
+                                        refreshList();
+                                      } catch (error) {
+                                        alert(error.message || "Failed to delete supplier");
+                                      }
+                                    },
+                                  })
+                                }
+                                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 font-medium border-t border-gray-100"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                              </button>
                             </div>
                           )}
                         </div>
@@ -573,7 +596,7 @@ export default function SupplierList() {
             await reviewSupplier(
               rejectModal.supplierId,
               "REJECTED",
-              currentUser,
+              user,
               rejectModal.reason
             );
 

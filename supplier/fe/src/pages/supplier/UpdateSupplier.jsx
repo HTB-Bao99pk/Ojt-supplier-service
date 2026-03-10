@@ -69,7 +69,7 @@ export default function UpdateSupplier() {
             await updateSupplier(id, payload, currentUser);
             setSuccessMsg('✅ Supplier updated successfully');
             setTimeout(() => {
-                navigate(`/suppliers`);
+                navigate(`/admin/suppliers`);
             }, 500);
 
         } catch (err) {
@@ -95,7 +95,7 @@ export default function UpdateSupplier() {
         <div className="max-w-4xl space-y-6">
             <div className="flex items-center gap-4">
                 <Link
-                    to={`/suppliers/${id}`}
+                    to={`/admin/suppliers/${id}`}
                     className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50"
                 >
                     <ArrowLeft className="h-5 w-5" />
@@ -240,7 +240,7 @@ export default function UpdateSupplier() {
                     <button
                         type="button"
                         disabled={isSubmitting}
-                        onClick={() => navigate(`/suppliers/${id}`)}
+                        onClick={() => navigate(`/admin/suppliers/${id}`)}
                         className="rounded-lg border bg-white px-5 py-2.5 text-sm hover:bg-gray-50 disabled:opacity-50"
                     >
                         Cancel

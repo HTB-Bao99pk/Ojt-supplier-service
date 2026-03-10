@@ -3,10 +3,23 @@ import { createContext, useContext, useState } from 'react';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState('admin');
+  // Bắt đầu là null (Chưa có ai đăng nhập)
+  const [user, setUser] = useState(null); 
+
+  // Hàm login giả lập để test
+  const login = (role) => {
+    setUser({
+      username: role === 'ADMIN' ? 'admin_super' : 'supplier_test',
+      role: role, // 'ADMIN' hoặc 'SUPPLIER'
+    });
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={{ currentUser, setCurrentUser }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
