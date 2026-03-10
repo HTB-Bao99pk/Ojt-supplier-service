@@ -26,7 +26,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/suppliers")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SupplierProductController {
     SupplierProductService supplierProductService;

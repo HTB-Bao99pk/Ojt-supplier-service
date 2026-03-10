@@ -19,7 +19,8 @@ public interface SupplierProductRepository extends JpaRepository<SupplierProduct
 
     List<SupplierProduct> findByProductIdAndIsActiveTrue(String productId);
 
-    boolean existsBySupplierIdAndProductId(String supplierId, String productId);
+    // Tìm sản phẩm theo ID nhà cung cấp VÀ bắt buộc isActive phải là true
+    Page<SupplierProduct> findBySupplierIdAndIsActiveTrue(String supplierId, Pageable pageable);
 
     Optional<SupplierProduct> findBySupplierIdAndProductId(String supplierId, String productId );
 
