@@ -110,7 +110,7 @@ export default function SupplierDetail() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Link
-            to="/suppliers"
+            to="/admin/suppliers"
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -133,13 +133,13 @@ export default function SupplierDetail() {
         </div>
         <div className="flex items-center gap-3">
         <button
-          onClick={() => navigate(`/suppliers/update/${supplier.id}`)}
+          onClick={() => navigate(`/admin/suppliers/update/${supplier.id}`)}
           className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 shadow-sm"
         >
           <Edit className="h-4 w-4" /> Edit Supplier
         </button>
         <button
-          onClick={() => navigate(`/suppliers/${id}/audit`)}
+          onClick={() => navigate(`/adnin/suppliers/${id}/audit`)}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 shadow-sm"
         >
           <History className="h-4 w-4" /> View History
@@ -187,7 +187,7 @@ export default function SupplierDetail() {
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <Link
-                      to={`/suppliers/compare/${item.productId}`}
+                      to={`/admin/suppliers/compare/${item.productId}`}
                       className="flex items-center gap-2 text-blue-600 hover:underline"
                     >
                       {item.productId}{" "}

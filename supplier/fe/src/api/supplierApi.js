@@ -237,13 +237,19 @@ export const getSupplierAuditLogs = async (supplierId, page = 0, size = 10) => {
     return data.result;
 
 };
-export const deleteShift = async (id) => {
-    const res = await fetch(`${BASE_URL}/shifts/${id}`, {
-        method: "DELETE",
-    });
-    if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Failed to delete shift");
-    }
-    return true;
+
+export const deleteSupplier = async (id, userName = "admin_user") => {
+  const res = await fetch(`${BASE_URL}/suppliers/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "USER": userName, // Gửi tên người thực hiện để lưu Audit Log bên Backend
+    },
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Không thể xóa nhà cung cấp");
+  }
+  return res.json();
 };

@@ -1,12 +1,16 @@
 import { useState, useCallback, useEffect } from "react";
-import { Eye, CheckCircle, Ban } from "lucide-react";
-import { getProducts } from "../../api/productService";
+import { Eye, CheckCircle, Ban, Edit } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getProducts, toggleProductStatus } from "../../api/productService";
 
 export default function ProductManagement() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const navigate = useNavigate();
+    const { user } = useAuth();
 
     const defaultFilters = {
         query: "",
@@ -115,6 +119,19 @@ export default function ProductManagement() {
         setFilters((prev) => ({ ...prev, minPrice: "", maxPrice: "", deliveryDateTimes: "", isActive: "" }));
     };
 
+    const handleToggleStatus = async (supplierId, productId, currentStatus) => {
+        const actionText = currentStatus ? "Disable (Vô hiệu hóa)" : "Enable (Kích hoạt)";
+        if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} sản phẩm này?`)) return;
+
+        try {
+            await toggleProductStatus(supplierId, productId, { isActive: !currentStatus });
+            alert("Cập nhật trạng thái thành công!");
+            loadProducts(page, filters); // Load lại bảng để cập nhật màu sắc
+        } catch (error) {
+            alert(error.message || "Lỗi khi cập nhật trạng thái");
+        }
+    };
+
     return (
         <div>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -218,15 +235,34 @@ export default function ProductManagement() {
                                         </td>
                                         <td className="px-5 py-3 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1 text-sm text-gray-700">
-                                                    <Eye className="w-4 h-4" /> Detail
-                                                </button>
-                                                <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1 text-sm text-gray-700">
-                                                    <Eye className="w-4 h-4" /> Edit
-                                                </button>
-                                                <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1 text-sm text-gray-700">
-                                                    {p.isActive ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />} {p.isActive ? 'Disable' : 'Enable'}
-                                                </button>
+                                                {/* Nút DETAIL */}
+                                                    <button 
+                                                        onClick={() => navigate(user?.role === 'ADMIN' ? `/admin/products/${p.productId}` : `/supplier/products/${p.productId}`)}
+                                                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                                                    >
+                                                        <Eye className="w-4 h-4" /> Detail
+                                                    </button>
+
+                                                    {/* Nút EDIT */}
+                                                    <button 
+                                                        onClick={() => navigate(user?.role === 'ADMIN' ? `/admin/products/update/${p.productId}` : `/supplier/products/update/${p.productId}`)}
+                                                        className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100"
+                                                    >
+                                                        <Edit className="w-4 h-4" /> Edit
+                                                    </button>
+
+                                                    {/* Nút ENABLE / DISABLE */}
+                                                    <button 
+                                                        onClick={() => handleToggleStatus(p.supplierId, p.productId, p.isActive)}
+                                                        className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1 text-sm font-medium transition-colors ${
+                                                            p.isActive 
+                                                            ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100" 
+                                                            : "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
+                                                        }`}
+                                                    >
+                                                        {p.isActive ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />} 
+                                                        {p.isActive ? 'Disable' : 'Enable'}
+                                                    </button>
                                             </div>
                                         </td>
                                     </tr>

@@ -1,5 +1,6 @@
 const BASE_URL = "http://localhost:8080";
 
+// 1. LẤY DANH SÁCH SẢN PHẨM (Map với @GetMapping("/products/search"))
 export const getProducts = async (params = {}) => {
     const query = new URLSearchParams();
     Object.keys(params).forEach((key) => {
@@ -8,7 +9,8 @@ export const getProducts = async (params = {}) => {
         }
     });
 
-    const res = await fetch(`${BASE_URL}/api/supplier-products?${query.toString()}`);
+    // Sửa đường dẫn khớp với Controller
+    const res = await fetch(`${BASE_URL}/suppliers/products/search?${query.toString()}`);
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || "Unable to fetch products.");
@@ -18,23 +20,46 @@ export const getProducts = async (params = {}) => {
     return data.result; // Page object
 };
 
+// 2. LẤY CHI TIẾT SẢN PHẨM
 export const getProductById = async (id) => {
-    const res = await fetch(`${BASE_URL}/api/supplier-products/${id}`);
+    // LƯU Ý: Backend không có @GetMapping("/products/{id}"). 
+    // Nên giải pháp tạm thời là gọi API search và lọc theo productId, sau đó lấy phần tử đầu tiên.
+    const res = await fetch(`${BASE_URL}/suppliers/products/search?productId=${id}`);
     if (!res.ok) throw new Error("Unable to fetch product.");
     const data = await res.json();
-    return data.result;
+    
+    // API search trả về Page, nên ta lấy item đầu tiên trong mảng content
+    return data.result?.content?.length > 0 ? data.result.content[0] : null;
 };
 
-export const toggleProductStatus = async (id, body = {}) => {
-    // Optional endpoint not yet implemented on backend; placeholder for PATCH /api/supplier-products/{id}/status
-    const res = await fetch(`${BASE_URL}/api/supplier-products/${id}/status`, {
+// 3. CẬP NHẬT TRẠNG THÁI / THÔNG TIN SẢN PHẨM (Map với @PatchMapping("/{supplierId}/products/{productId}"))
+// CẦN BỔ SUNG supplierId VÀO THAM SỐ VÌ BACKEND YÊU CẦU
+export const toggleProductStatus = async (supplierId, productId, body = {}) => {
+    const res = await fetch(`${BASE_URL}/suppliers/${supplierId}/products/${productId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        // body truyền lên isActive: false/true tuỳ vào phía component gọi hàm
         body: JSON.stringify(body),
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || "Unable to update status.");
+    }
+    const data = await res.json();
+    return data.result;
+};
+
+// 4. CẬP NHẬT THÔNG TIN SẢN PHẨM
+export const updateProduct = async (supplierId, productId, updateData) => {
+    const res = await fetch(`${BASE_URL}/suppliers/${supplierId}/products/${productId}`, {
+        method: "PATCH", // Hoặc "PATCH" tuỳ thuộc vào cấu hình Backend của bạn
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData),
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Không thể cập nhật sản phẩm.");
     }
     const data = await res.json();
     return data.result;

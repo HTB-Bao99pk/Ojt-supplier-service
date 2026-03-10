@@ -117,7 +117,7 @@ export default function SupplierAuditLogs() {
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Link
-          to={`/suppliers/${id}`}
+          to={`/admin/suppliers/${id}`}
           className="p-2 bg-white border rounded-lg hover:bg-gray-50 shadow-sm transition-colors"
         >
           <ArrowLeft className="h-5 w-5 text-gray-600" />
