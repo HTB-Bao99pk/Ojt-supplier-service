@@ -16,6 +16,8 @@ import ViewApprovedSupplier from './pages/supplier/ViewApprovedSupplier';
 import CompareSuppliers from './pages/supplier/CompareSuppliers';
 import SupplierAuditLogs from "./pages/supplier/SupplierAuditLogs";
 import ProductManagement from "./pages/supplier/ProductManagement";
+import ProductDetail from "./pages/supplier/ProductDetail"; 
+import UpdateProduct from "./pages/supplier/UpdateProduct";
 
 function App() {
     return (
@@ -33,11 +35,16 @@ function App() {
                     <Route path="/admin/suppliers" element={<SupplierList />} />
                     <Route path="/admin/suppliers/approved" element={<ViewApprovedSupplier />} />
                     <Route path="/admin/suppliers/create" element={<CreateSupplier />} />
+                    {/* ĐẢM BẢO CÓ 2 DÒNG NÀY ĐỂ KHÔNG BỊ TRANG TRẮNG */}
                     <Route path="/admin/suppliers/:id" element={<SupplierDetail />} />
                     <Route path="/admin/suppliers/update/:id" element={<UpdateSupplier />} />
                     <Route path="/admin/suppliers/:id/audit" element={<SupplierAuditLogs />} />
+                    
                     <Route path="/admin/products" element={<ProductManagement />} />
-                </Route>
+                    <Route path="/admin/products/:id" element={<ProductDetail />} />
+                    <Route path="/admin/products/update/:id" element={<UpdateProduct />} />
+                    
+    </Route>
             </Route>
 
             {/* 3. SUPPLIER ROUTES (Chỉ Supplier mới được vào) */}
@@ -45,6 +52,8 @@ function App() {
                 <Route element={<SupplierLayout />}>
                     <Route path="/supplier/products" element={<ProductManagement />} />
                     <Route path="/supplier/products/compare/:productId" element={<CompareSuppliers />} />
+                    <Route path="/supplier/products/:id" element={<ProductDetail />} />
+                    <Route path="/supplier/products/update/:id" element={<UpdateProduct />} />
                 </Route>
             </Route>
         </Routes>

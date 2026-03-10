@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Menu, X, Coffee, CheckCircle, LogOut, Package } from "lucide-react";
+import { LayoutDashboard, Users, Menu, X, Coffee, LogOut, Package } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
@@ -10,7 +10,6 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
     const navigationItems = [
         { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { path: "/admin/suppliers", label: "Supplier Management", icon: Users },
-        { path: "/admin/suppliers/approved", label: "Approved Suppliers", icon: CheckCircle },
         { path: "/admin/products", label: "Product Management", icon: Package },
     ];
 
@@ -21,7 +20,6 @@ export default function AdminSidebar({ sidebarOpen, setSidebarOpen }) {
 
     const isActive = (path) => {
         if (path === "/admin/dashboard") return location.pathname === "/admin/dashboard";
-        if (path === "/admin/suppliers/approved") return location.pathname === "/admin/suppliers/approved";
         if (path === "/admin/suppliers") {
             return (
                 location.pathname === "/admin/suppliers" ||

@@ -223,7 +223,7 @@ export default function SupplierDashboard() {
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                     <div className="mb-4 flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-gray-900">Recently Updated Suppliers</h3>
-                        <Link to="/suppliers" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                        <Link to="/admin/suppliers" className="text-sm font-medium text-blue-600 hover:text-blue-700">
                             View All
                         </Link>
                     </div>
@@ -294,7 +294,7 @@ export default function SupplierDashboard() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <Link to="/suppliers/create" className="group flex items-center justify-between rounded-xl bg-blue-600 p-6 text-white transition-colors hover:bg-blue-700 shadow-sm">
+                <Link to="/admin/suppliers/create" className="group flex items-center justify-between rounded-xl bg-blue-600 p-6 text-white transition-colors hover:bg-blue-700 shadow-sm">
                     <div>
                         <PlusCircle className="mb-2 h-8 w-8 text-blue-200" />
                         <h4 className="font-semibold text-lg">Add New Supplier</h4>
@@ -303,7 +303,7 @@ export default function SupplierDashboard() {
                     <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-2" />
                 </Link>
 
-                <Link to="/suppliers" className="group flex items-center justify-between rounded-xl border-2 border-gray-200 bg-white p-6 transition-all hover:border-amber-500 hover:shadow-sm">
+                <Link to="/admin/suppliers" className="group flex items-center justify-between rounded-xl border-2 border-gray-200 bg-white p-6 transition-all hover:border-amber-500 hover:shadow-sm">
                     <div>
                         <Clock className="mb-2 h-8 w-8 text-amber-500" />
                         <h4 className="font-semibold text-gray-900 text-lg">Review Pending</h4>
@@ -312,7 +312,7 @@ export default function SupplierDashboard() {
                     <ArrowRight className="h-6 w-6 text-amber-500 transition-transform group-hover:translate-x-2" />
                 </Link>
 
-                <Link to="/suppliers" className="group flex items-center justify-between rounded-xl border-2 border-gray-200 bg-white p-6 transition-all hover:border-green-500 hover:shadow-sm">
+                <Link to="/admin/suppliers" className="group flex items-center justify-between rounded-xl border-2 border-gray-200 bg-white p-6 transition-all hover:border-green-500 hover:shadow-sm">
                     <div>
                         <FileText className="mb-2 h-8 w-8 text-green-500" />
                         <h4 className="font-semibold text-gray-900 text-lg">Supplier Reports</h4>

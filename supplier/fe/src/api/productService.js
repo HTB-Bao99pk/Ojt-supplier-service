@@ -48,3 +48,19 @@ export const toggleProductStatus = async (supplierId, productId, body = {}) => {
     const data = await res.json();
     return data.result;
 };
+
+// 4. CẬP NHẬT THÔNG TIN SẢN PHẨM
+export const updateProduct = async (supplierId, productId, updateData) => {
+    const res = await fetch(`${BASE_URL}/suppliers/${supplierId}/products/${productId}`, {
+        method: "PATCH", // Hoặc "PATCH" tuỳ thuộc vào cấu hình Backend của bạn
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData),
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Không thể cập nhật sản phẩm.");
+    }
+    const data = await res.json();
+    return data.result;
+};
