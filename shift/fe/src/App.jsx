@@ -14,6 +14,8 @@ import CreateStaff from "./pages/staff/CreateStaff";
 import UpdateStaff from "./pages/staff/UpdateStaff";
 import AssignStaff from "./pages/shift/AssignStaff";
 import StaffAttendanceHistory from "./pages/shift/StaffAttendanceHistory";
+import StaffSchedules from "./components/StaffSchedules";
+
 function App() {
   return (
     <Routes>
@@ -25,16 +27,17 @@ function App() {
         <Route path="shifts" element={<ShiftList />} />
         <Route path="shifts/create" element={<CreateShift />} />
         <Route path="shifts/update/:id" element={<UpdateShift />} />
-          <Route path="shifts/assign" element={<AssignStaff />} />
+        <Route path="shifts/assign" element={<AssignStaff />} />
         {/* Router cho Attendance */}
         <Route path="attendance" element={<Attendance />} />
         <Route path="attendance/:shiftId" element={<ShiftAttendance />} />
-          <Route path="attendance-report" element={<AttendanceReport />} />
-          <Route path="attendance-history" element={<StaffAttendanceHistory />} />
+        <Route path="attendance-report" element={<AttendanceReport />} />
+        <Route path="attendance-history" element={<StaffAttendanceHistory />} />
         {/* Router cho Staff */}
         <Route path="staff" element={<StaffList />} />
         <Route path="staff/create" element={<CreateStaff />} />
         <Route path="staff/update/:id" element={<UpdateStaff />} />
+        <Route path="staff/schedules" element={<StaffSchedules />} />
       </Route>
     </Routes>
   );

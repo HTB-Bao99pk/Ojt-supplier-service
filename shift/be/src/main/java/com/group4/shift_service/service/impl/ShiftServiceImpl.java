@@ -153,6 +153,11 @@ public class ShiftServiceImpl implements ShiftService {
                 .shiftId(shiftId)
                 .staffId(staffId)
                 .assignedBy(assignedBy)
+                // save denormalized fields so schedule queries are fast
+                .date(shift.getDate())
+                .startTime(shift.getStartTime())
+                .endTime(shift.getEndTime())
+                .branchId(shift.getBranchId())
                 .build();
 
         shiftAssignmentRepository.save(assignment);

@@ -41,7 +41,7 @@ const STATUS_PILL = {
     CLOSED:    { bg: "#f3f4f6", color: "#6b7280", dot: "#9ca3af", label: "Closed"    },
 };
 
-function ShiftCard({ shift, onClick }) {
+function ShiftCard({ shift, onClick, highlight = false, innerRef = null }) {
     const [hovered,  setHovered]  = useState(false);
     const [pressed,  setPressed]  = useState(false);
     const period   = getPeriod(shift.startTime);
@@ -50,21 +50,22 @@ function ShiftCard({ shift, onClick }) {
 
     return (
         <div
+            ref={innerRef}
             onClick={onClick}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => { setHovered(false); setPressed(false); }}
             onMouseDown={() => setPressed(true)}
             onMouseUp={() => setPressed(false)}
             style={{
-                background: "#fff",
+                background: highlight ? "#fff7ed" : "#fff",
                 borderRadius: 16,
-                border: `2px solid ${hovered ? period.color : "#e8eaed"}`,
+                border: `2px solid ${highlight ? '#fb923c' : (hovered ? period.color : "#e8eaed")}`,
                 padding: "18px 20px",
                 cursor: "pointer",
                 display: "flex",
                 flexDirection: "column",
                 gap: 14,
-                boxShadow: hovered
+                boxShadow: hovered || highlight
                     ? `0 8px 24px ${period.color}20`
                     : "0 1px 4px rgba(0,0,0,.05)",
                 transform: pressed ? "scale(.98)" : hovered ? "translateY(-2px)" : "none",
@@ -133,12 +134,11 @@ function ShiftCard({ shift, onClick }) {
 
 export default function Attendance() {
     const navigate = useNavigate();
-
-    // Sử dụng hàm getTodayDateLocal mới tạo thay vì todayDate() từ API
     const [date, setDate] = useState(getTodayDateLocal());
     const [shifts, setShifts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [targetShiftId, setTargetShiftId] = useState(null);
 
     const load = (d) => {
         setLoading(true); setError(null);
@@ -146,12 +146,46 @@ export default function Attendance() {
             .then((data) => {
                 const list = data?.content || (Array.isArray(data) ? data : []);
                 setShifts(list);
+                // If a target shift was passed via query, we'll try to trigger after setting shifts
             })
             .catch((e)   => setError(e.message))
             .finally(()  => setLoading(false));
     };
 
+    // read query params on first render
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const sid = params.get("shiftId");
+            const d = params.get("date");
+            if (sid) setTargetShiftId(sid);
+            if (d) setDate(d);
+        } catch (e) {
+            // ignore
+        }
+    }, []);
+
     useEffect(() => { load(date); }, [date]);
+
+    // After shifts are loaded, if targetShiftId matches one shift, scroll to it and trigger click
+    useEffect(() => {
+        if (!targetShiftId || shifts.length === 0) return;
+        // find the DOM element for the shift card
+        const el = document.querySelector(`[data-shift-id='${targetShiftId}']`);
+        if (el) {
+            // highlight briefly
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('border-2', 'border-orange-400', 'bg-orange-50');
+            // trigger click on the inner container to open mark attendance (same as onClick)
+            const btn = el.querySelector('[data-action="mark-att"]');
+            if (btn) {
+                setTimeout(() => btn.click(), 420);
+            } else {
+                // fallback: click the card itself
+                setTimeout(() => el.click(), 420);
+            }
+        }
+    }, [shifts, targetShiftId]);
 
     return (
         <div style={{ fontFamily: "'Plus Jakarta Sans','DM Sans',sans-serif" }}>
@@ -208,7 +242,16 @@ export default function Attendance() {
                     {shifts.map((shift, i) => (
                         <div key={shift.id} style={{ animation: `fadeIn .25s ease ${i * 55}ms both` }}>
                             <style>{"@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}"}</style>
-                            <ShiftCard shift={shift} onClick={() => navigate(`/attendance/${shift.id}`)}/>
+                            <ShiftCard
+                                innerRef={el => {
+                                    if (!el) return;
+                                    // attach data attribute for query lookup
+                                    el.setAttribute('data-shift-id', shift.id);
+                                }}
+                                shift={shift}
+                                highlight={targetShiftId === shift.id}
+                                onClick={() => navigate(`/attendance/${shift.id}`)}
+                            />
                         </div>
                     ))}
                 </div>

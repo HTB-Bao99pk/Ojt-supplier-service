@@ -9,7 +9,8 @@ import {
     ChevronRight,
     BarChart3,
     UserCheck,
-    Search
+    Search,
+    FileText
 } from "lucide-react";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "../config/constants";
 
@@ -25,6 +26,7 @@ export default function Sidebar({ isCollapsed, onToggle }) {
         { name: "Attendance", path: "/attendance", icon: CalendarDays },
         { name: "Reports & KPI", path: "/attendance-report", icon: BarChart3 },
         { name: "Staff Directory", path: "/staff", icon: Users },
+        { name: "Staff Schedules", path: "/staff/schedules", icon: FileText },
         { name: "Staff History", path: "/attendance-history", icon: Search },
     ];
 
@@ -52,8 +54,13 @@ export default function Sidebar({ isCollapsed, onToggle }) {
                 {menuItems.map((item) => {
                     const Icon = item.icon;
                     // Xử lý Active state: sáng đèn khi trùng path
-                    const isActive = location.pathname === item.path || (location.pathname.startsWith(item.path) && item.path !== "/");
-
+                    const isActive =
+                        location.pathname === item.path ||
+                        (item.path !== "/attendance" &&
+                            item.path !== "/shifts" &&
+                            item.path !== "/staff" &&
+                            item.path !== "/" &&
+                            location.pathname.startsWith(item.path));
                     return (
                         <Link
                             key={item.name}

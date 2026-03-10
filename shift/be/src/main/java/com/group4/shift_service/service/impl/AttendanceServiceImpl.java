@@ -12,6 +12,7 @@ import com.group4.shift_service.entity.Shift;
 import com.group4.shift_service.entity.ShiftAssignment;
 import com.group4.shift_service.entity.Staff;
 import com.group4.shift_service.enums.AttendanceStatus;
+import com.group4.shift_service.enums.ScheduleStatus;
 import com.group4.shift_service.exception.AppException;
 import com.group4.shift_service.exception.ErrorCode;
 import com.group4.shift_service.repository.AttendanceRepository;
@@ -112,7 +113,28 @@ public class AttendanceServiceImpl implements AttendanceService {
             }
         }).collect(Collectors.toList());
 
-        return attendanceRepository.saveAll(toSave).stream()
+        // save attendances
+        List<Attendance> saved = attendanceRepository.saveAll(toSave);
+
+        // update related shift assignments status according to attendance
+        List<ShiftAssignment> assignmentsToUpdate = saved.stream().map(a -> {
+            ShiftAssignment asg = shiftAssignmentRepository.findByShiftIdAndStaffId(a.getShiftId(), a.getStaffId()).orElse(null);
+            if (asg == null) return null;
+            if (a.getStatus() == AttendanceStatus.ABSENT) {
+                asg.setStatus(ScheduleStatus.CANCELED);
+            } else {
+                // PRESENT, LATE, EARLY_LEAVE -> treat as present
+                asg.setStatus(ScheduleStatus.COMPLETED
+                );
+            }
+            return asg;
+        }).filter(x -> x != null).collect(Collectors.toList());
+
+        if (!assignmentsToUpdate.isEmpty()) {
+            shiftAssignmentRepository.saveAll(assignmentsToUpdate);
+        }
+
+        return saved.stream()
                 .map(a -> toResponse(a, staffNameMap.get(a.getStaffId()))).collect(Collectors.toList());
     }
 
@@ -343,3 +365,4 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .build();
     }
 }
+
