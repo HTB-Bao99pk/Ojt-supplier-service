@@ -1,14 +1,15 @@
-# Stage 1: Build file jar
-FROM maven:3.8.5-openjdk-17 AS build
+# Stage 1: Build
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-# Copy toan bo source code vao trong docker
 COPY . .
-# Chay lenh build (bo qua test de build nhanh hơn)
 RUN mvn clean package -DskipTests
 
-# Stage 2: Chay file jar
-FROM openjdk:21-jdk-slim
+# Stage 2: Run
+FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","app.jar"]
 # Copy file jar da build tu Stage 1 sang Stage 2
 COPY --from=build /app/target/*.jar app.jar
 # Mo port
