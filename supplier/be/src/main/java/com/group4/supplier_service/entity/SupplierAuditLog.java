@@ -27,13 +27,16 @@ public class SupplierAuditLog {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    AuditAction action = AuditAction.APPROVE;
+    AuditAction action;
 
     @Column(name = "old_data", columnDefinition = "TEXT")
     String oldData;
 
     @Column(name = "new_data", columnDefinition = "TEXT")
     String newData;
+
+    @Column(name = "change_fields", length = 300)
+    String changedFields;
 
     @Column(name = "performed_by", nullable = false)
     String performedBy;
