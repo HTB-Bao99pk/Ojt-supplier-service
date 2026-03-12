@@ -81,32 +81,24 @@ export function todayDate() {
 }
 
 export const getAttendanceReport = async (month, year) => {
-
     const queryParams = new URLSearchParams();
-    if (month) queryParams.append('month', month);
-    if (year) queryParams.append('year', year);
+    if (month) queryParams.append('month', parseInt(month, 10));
+    if (year) queryParams.append('year', parseInt(year, 10));
 
-    const response = await fetch(`${BASE_URL}/attendance-reports?${queryParams.toString()}`);
-    if (!response.ok) throw new Error("Failed to fetch report");
-    const data = await response.json();
-    return data.result;
+    // Dùng http() thay vì fetch() để có Header
+    return http(`/attendance-reports?${queryParams.toString()}`);
 };
 
 export const getDashboardOverview = async (date) => {
-    const response = await fetch(`${BASE_URL}/attendance-reports/dashboard?date=${date}`);
-    if (!response.ok) throw new Error("Failed to fetch dashboard data");
-    const data = await response.json();
-    return data.result;
+    return http(`/attendance-reports/dashboard?date=${date}`);
 };
 
 export const getStaffAttendanceHistory = async (staffId, month, year, date) => {
     const queryParams = new URLSearchParams();
-    if (month) queryParams.append('month', month);
-    if (year) queryParams.append('year', year);
-    if (date) queryParams.append('exactDate', date); // Param name matches BE
 
-    const response = await fetch(`${BASE_URL}/attendance-reports/staff/${staffId}?${queryParams.toString()}`);
-    if (!response.ok) throw new Error("Error loading staff history");
-    const data = await response.json();
-    return data.result;
+    if (month) queryParams.append('month', parseInt(month, 10));
+    if (year) queryParams.append('year', parseInt(year, 10));
+    if (date) queryParams.append('exactDate', date);
+
+    return http(`/attendance-reports/staff/${staffId}?${queryParams.toString()}`);
 };

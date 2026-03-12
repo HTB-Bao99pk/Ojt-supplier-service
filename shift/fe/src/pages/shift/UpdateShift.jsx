@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CalendarPlus, Clock, MapPin } from "lucide-react";
 import { getShiftById, updateShift } from "../../api/shiftApi";
 
-// FIX BRANCH LIKE CREATE PAGE
+
 const CURRENT_BRANCH_ID = "BR-001";
 const CURRENT_BRANCH_NAME = "Ho Chi Minh Central";
 
@@ -18,7 +18,7 @@ export default function UpdateShift() {
         date: "",
         startTime: "",
         endTime: "",
-        branchId: CURRENT_BRANCH_ID // Set default
+        branchId: CURRENT_BRANCH_ID
     });
 
     const shortenId = (uuid) => {

@@ -7,7 +7,7 @@ export default function AppHeader() {
     const navigate = useNavigate();
     const dropdownRef = useRef(null);
 
-    // Đã thay đổi thông tin tĩnh một xíu cho hợp với Shift Admin
+
     const currentUser = {
         name: "Vĩ Đại",
         role: "Admin",
