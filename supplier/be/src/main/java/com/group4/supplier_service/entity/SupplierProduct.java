@@ -31,22 +31,33 @@ public class SupplierProduct {
     String productId;
 
 
-    @Column(precision = 15, scale = 2)
+    @Column(precision = 15, scale = 2, nullable = false)
     BigDecimal price;
 
-    @Column(name = "delivery_date_times")
+    @Column(name = "delivery_date_times", nullable = false)
     Integer deliveryDateTimes;
 
-    @Column(name = "is_active")
-    Boolean isActive;
+    @Builder.Default
+    @Column(name = "is_active", nullable = false)
+    Boolean isActive = true;
+
+    @Column(name = "create_by", nullable = false, updatable = false)
+    String createBy;
 
     @CreationTimestamp
-    @Column(name = "create_at", nullable= false)
+    @Column(name = "create_at", nullable= false, updatable = false)
     LocalDateTime createAt;
+
+    @Column(name = "update_by")
+    String updateBy;
 
     @UpdateTimestamp
     @Column(name = "update_at")
     LocalDateTime updateAt;
+
+    @Column(name = "deleted_at")
+    LocalDateTime deletedAt;
+
 
 
 }
