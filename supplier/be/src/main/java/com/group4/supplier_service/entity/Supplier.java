@@ -24,20 +24,19 @@ public class Supplier {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id ;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     String name;
 
-    @Email
     @Column(name = "contact_email", unique = true)
     String contactEmail;
 
-    @Column(name = "phone", unique = true)
+    @Column(name = "phone", unique = true, length = 20)
     String phone;
 
     @Column(name = "material_type")
     String materialType;
 
-    @Column(name = "tax_code", unique = true)
+    @Column(name = "tax_code", unique = true, length = 20)
     String taxCode;
 
     @Column(columnDefinition = "TEXT")
@@ -51,6 +50,7 @@ public class Supplier {
     SupplierStatus status = SupplierStatus.PENDING;
 
     @Column(precision = 3, scale = 2)
+    @Builder.Default
     BigDecimal rating = BigDecimal.ZERO;
 
     @Column(name = "approved_by")
@@ -75,4 +75,12 @@ public class Supplier {
 
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     String rejectionReason;
+
+    @Column(name = "deleted_at")
+    LocalDateTime deletedAt;
+
+    @Column(name = "deleted_by")
+    String deletedBy;
+
+
 }
