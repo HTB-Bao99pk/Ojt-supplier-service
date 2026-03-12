@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://supplier-service-7qc3.onrender.com";
 
 /* =========================
    GET ALL (pagination)

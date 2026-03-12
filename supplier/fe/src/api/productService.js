@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://supplier-service-7qc3.onrender.com";
 
 // 1. LẤY DANH SÁCH SẢN PHẨM (Map với @GetMapping("/products/search"))
 export const getProducts = async (params = {}) => {
@@ -52,7 +52,7 @@ export const toggleProductStatus = async (supplierId, productId, body = {}) => {
 // 4. CẬP NHẬT THÔNG TIN SẢN PHẨM
 export const updateProduct = async (supplierId, productId, updateData) => {
     const res = await fetch(`${BASE_URL}/suppliers/${supplierId}/products/${productId}`, {
-        method: "PATCH", // Hoặc "PATCH" tuỳ thuộc vào cấu hình Backend của bạn
+        method: "PATCH", 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
     });
