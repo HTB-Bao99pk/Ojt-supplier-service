@@ -29,7 +29,6 @@ export default function StaffReportView() {
                 if (s.includes('ON_TIME') || s.includes('PRESENT')) {
                     onTime++;
                 } else if (s.includes('LATE') || s.includes('EARLY') || s.includes('LEFT')) {
-                    // Gom chung ĐI TRỄ và VỀ SỚM vào một nhóm để không bị đếm sót
                     lateOrEarly++;
                 } else if (s.includes('ABSENT') || s.includes('NO_SHOW')) {
                     absent++;

@@ -1,34 +1,32 @@
-// shift/fe/src/App.jsx
-import { Routes, Route, Navigate } from "react-router-dom"; // Bổ sung Navigate ở đây
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 // === Các Layouts ===
 import DashboardLayout from "./layouts/DashboardLayout";
-import StaffLayout from "./layouts/StaffLayout"; // Bạn nhớ kiểm tra xem file này có .jsx không nhé, nếu lỗi thì thêm .jsx vào
+import StaffLayout from "./layouts/StaffLayout";
 
 // === Các trang của Admin ===
-import ShiftDashboard from "./pages/shift/ShiftDashboard";
-import CreateShift from "./pages/shift/CreateShift";
-import ShiftList from "./pages/shift/ShiftList";
-import UpdateShift from "./pages/shift/UpdateShift";
-import AssignStaff from "./pages/shift/AssignStaff";
+import ShiftDashboard from "./pages/Shift/ShiftDashboard";
+import CreateShift from "./pages/Shift/CreateShift";
+import ShiftList from "./pages/Shift/ShiftList";
+import UpdateShift from "./pages/Shift/UpdateShift";
+import AssignStaff from "./pages/Shift/AssignStaff";
 
-import Attendance from "./pages/shift/Attendance";
-import ShiftAttendance from "./pages/shift/ShiftAttendance";
-import AttendanceReport from "./pages/shift/AttendanceReport";
-import StaffAttendanceHistory from "./pages/shift/StaffAttendanceHistory";
+import Attendance from "./pages/Shift/Attendance";
+import ShiftAttendance from "./pages/Shift/ShiftAttendance";
+import AttendanceReport from "./pages/Shift/AttendanceReport";
+import StaffAttendanceHistory from "./pages/Shift/StaffAttendanceHistory";
 
-import StaffList from "./pages/staff/StaffList";
-import CreateStaff from "./pages/staff/CreateStaff";
-import UpdateStaff from "./pages/staff/UpdateStaff";
-import StaffSchedules from "./pages/staff/StaffSchedules"; // Bỏ .jsx đi cho đồng bộ, hoặc thêm .jsx cho tất cả
+import StaffList from "./pages/Admin/StaffList";
+import CreateStaff from "./pages/Admin/CreateStaff";
+import UpdateStaff from "./pages/Admin/UpdateStaff";
+import StaffSchedules from "./pages/Admin/StaffSchedules";
 
 // === Các trang của Staff Portal ===
-// (Đã thêm đuôi .jsx để đề phòng Vite bắt lỗi)
-import StaffDashboardPortal from "./pages/staff-portal/StaffDashboard.jsx";
-import StaffScheduleView from "./pages/staff-portal/StaffScheduleView.jsx";
-import StaffAttendanceView from "./pages/staff-portal/StaffAttendanceView.jsx";
-import StaffReportView from "./pages/staff-portal/StaffReportView.jsx";
+import StaffDashboardPortal from "./pages/Staff/StaffDashboard.jsx";
+import StaffScheduleView from "./pages/Staff/StaffScheduleView.jsx";
+import StaffAttendanceView from "./pages/Staff/StaffAttendanceView.jsx";
+import StaffReportView from "./pages/Staff/StaffReportView.jsx";
 
 function App() {
     return (
@@ -48,19 +46,15 @@ function App() {
                     <Route path="attendance/:shiftId" element={<ShiftAttendance />} />
                     <Route path="attendance-report" element={<AttendanceReport />} />
                     <Route path="attendance-history" element={<StaffAttendanceHistory />} />
-
-                    <Route path="staff" element={<StaffList />} />
-                    <Route path="staff/create" element={<CreateStaff />} />
-                    <Route path="staff/update/:id" element={<UpdateStaff />} />
-                    <Route path="staff/schedules" element={<StaffSchedules />} />
+                    <Route path="admin" element={<StaffList />} />
+                    <Route path="admin/create" element={<CreateStaff />} />
+                    <Route path="admin/update/:id" element={<UpdateStaff />} />
+                    <Route path="admin/schedules" element={<StaffSchedules />} />
                 </Route>
 
                 {/* ======================= STAFF PORTAL ROUTES ======================= */}
-                <Route path="/staff-portal" element={<StaffLayout />}>
-                    {/* Tự động chuyển hướng /staff-portal sang /staff-portal/dashboard */}
+                <Route path="/staff" element={<StaffLayout />}>
                     <Route index element={<Navigate to="dashboard" replace />} />
-
-                    {/* Mình đổi tên biến import thành StaffDashboardPortal để không bị trùng tên với StaffDashboard của Admin */}
                     <Route path="dashboard" element={<StaffDashboardPortal />} />
                     <Route path="schedule" element={<StaffScheduleView />} />
                     <Route path="attendance" element={<StaffAttendanceView />} />

@@ -14,10 +14,10 @@ export default function StaffSidebar({ isCollapsed, onToggle }) {
     const location = useLocation();
 
     const menuItems = [
-        { name: "Dashboard", path: "/staff-portal/dashboard", icon: LayoutDashboard, exact: true },
-        { name: "My Schedule", path: "/staff-portal/schedule", icon: CalendarDays },
-        { name: "My Attendance", path: "/staff-portal/attendance", icon: ClipboardCheck },
-        { name: "Performance Report", path: "/staff-portal/report", icon: FileBarChart },
+        { name: "Dashboard", path: "/staff/dashboard", icon: LayoutDashboard, exact: true },
+        { name: "My Schedule", path: "/staff/schedule", icon: CalendarDays },
+        { name: "My Attendance", path: "/staff/attendance", icon: ClipboardCheck },
+        { name: "Performance Report", path: "/staff/report", icon: FileBarChart },
     ];
 
     return (

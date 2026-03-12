@@ -24,8 +24,8 @@ export default function Sidebar({ isCollapsed, onToggle }) {
         { name: "Assign Staff", path: "/shifts/assign", icon: UserCheck },
         { name: "Attendance", path: "/attendance", icon: CalendarDays },
         { name: "Reports & KPI", path: "/attendance-report", icon: BarChart3 },
-        { name: "Staff Directory", path: "/staff", icon: Users },
-        { name: "Staff Schedules", path: "/staff/schedules", icon: FileText },
+        { name: "Staff Directory", path: "/admin/manage-staff", icon: Users },
+        { name: "Staff Schedules", path: "/admin/schedules", icon: FileText },
         { name: "Staff History", path: "/attendance-history", icon: Search },
     ];
 
