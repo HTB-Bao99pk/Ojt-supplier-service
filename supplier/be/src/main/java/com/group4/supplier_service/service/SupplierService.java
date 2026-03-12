@@ -1,6 +1,6 @@
 package com.group4.supplier_service.service;
 
-import com.group4.supplier_service.dto.request.DashboardSummaryResponse;
+import com.group4.supplier_service.dto.response.DashboardSummaryResponse;
 import com.group4.supplier_service.dto.request.SupplierCreateRequest;
 import com.group4.supplier_service.dto.response.SupplierResponse;
 import com.group4.supplier_service.dto.request.SupplierUpdateRequest;

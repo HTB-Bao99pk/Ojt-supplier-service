@@ -1,6 +1,6 @@
 package com.group4.supplier_service.controller;
 
-import com.group4.supplier_service.dto.request.DashboardSummaryResponse;
+import com.group4.supplier_service.dto.response.DashboardSummaryResponse;
 import com.group4.supplier_service.dto.response.ApiResponse;
 import com.group4.supplier_service.dto.request.SupplierCreateRequest;
 import com.group4.supplier_service.dto.response.SupplierResponse;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/suppliers")
