@@ -1,4 +1,4 @@
-package com.group4.supplier_service.dto.request;
+package com.group4.supplier_service.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
